@@ -2,6 +2,9 @@ import dotenv from "dotenv";
 import express, {Request, Response} from "express";
 import session from "express-session";
 import cors from "cors";
+import { createContext, publicProcedure, router } from './trpc';
+import * as trpcExpress from '@trpc/server/adapters/express';
+import { appRouter } from "./router";
 
 dotenv.config();
 
@@ -15,6 +18,14 @@ app.use(session({
   resave: false,
   saveUninitialized: true,
 }));
+
+app.use(
+  '/trpc',
+  trpcExpress.createExpressMiddleware({
+    router: appRouter,
+    createContext,
+  })
+);
   
 app.get("/ping", (req: Request, res: Response) => {
   res.json({ message: "pong" });
