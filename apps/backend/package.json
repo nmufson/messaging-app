@@ -1,5 +1,5 @@
 {
-  "name": "api",
+  "name": "backend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,18 +8,26 @@
     "start": "node dist/app.js"
   },
   "dependencies": {
+    "@prisma/client": "^6.16.0",
     "@trpc/client": "^11.5.0",
     "@trpc/server": "^11.5.0",
+    "bcrypt": "^6.0.0",
+    "common": "*",
+    "connect-pg-simple": "^10.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
-    "express-session": "^1.18.2"
+    "express-session": "^1.18.2",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/express-session": "^1.17.10",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.5.0"
+    "@types/passport": "^1.0.17",
+    "@types/passport-local": "^1.0.38",
+    "ts-node-dev": "^2.0.0"
   }
 }

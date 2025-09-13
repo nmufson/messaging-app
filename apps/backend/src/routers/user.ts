@@ -13,6 +13,15 @@ export const userRouter = router({
 
       return user;
     }),
+  getUserByEmail: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .query(async ({ input, ctx }) => {
+      const user = await ctx.prisma.user.findUnique({
+        where: { email: input.email },
+      });
+
+      return user;
+    }),
   getFriendsOfUser: publicProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input, ctx }) => {

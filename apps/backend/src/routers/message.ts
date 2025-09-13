@@ -1,33 +1,30 @@
-import { contextProps } from '@trpc/react-query/shared';
 import { router, publicProcedure } from '../trpc';
+import { MessageType, UserRole } from '@db';
 import { z } from 'zod';
+import { MessageInput } from '@common/schemas/message';
+import { DateTime } from 'luxon';
 
 export const messageRouter = router({
   sendMessage: publicProcedure
-    .input(z.object({
-      // extract this to schema file 
-      senderId: z.string(),
-      conversationId: z.string(),
-      content: z.string() // allow this to also be image??
-      messageType: MessageType,
-    }))
-    .query(async ({ input, ctx })) => {
-      const { senderId, conversationId, content, imageUrl, messageType } = input;
+    .input(MessageInput)
+    .query(async ({ input, ctx }) => {
+      const { senderId, conversationId, content, imageUrl, messageType } =
+        input;
 
-      let messageData = {
+      const initialMessageData = {
         senderId,
         conversationId,
         type: messageType,
       };
-
+      let fullMessageData;
       if (messageType === 'TEXT') {
-        messageData.content = content;
+        fullMessageData = { ...initialMessageData, content };
       } else if (messageType === 'IMAGE') {
-        messageData.imageUrl = imageUrl;
+        fullMessageData = { ...initialMessageData, imageUrl };
       }
 
       const newMessage = await ctx.prisma.message.create({
-        data: messageData,
-      })
-    }
-})
+        data: fullMessageData,
+      });
+    }),
+});
