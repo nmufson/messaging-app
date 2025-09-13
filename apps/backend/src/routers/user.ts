@@ -1,28 +1,37 @@
-import { router, publicProcedure } from '../trpc';
+import { router, publicProcedure, userProcedure } from '../trpc';
 import { z } from 'zod';
+import { handleTRPCError } from '../utils/error';
+import { getUserByEmail, getUserById } from '../utils/user';
+import { TRPCError } from '@trpc/server';
 
 export const userRouter = router({
-  getUserById: publicProcedure
+  getUserById: userProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input, ctx }) => {
       const { userId } = input;
 
-      const user = await ctx.prisma.user.findUnique({
-        where: { id: userId },
-      });
+      try {
+        const user = getUserById(userId);
 
-      return user;
+        return { user };
+      } catch (err) {
+        handleTRPCError(err, 'Failed to retrieve user');
+      }
     }),
-  getUserByEmail: publicProcedure
+  getUserByEmail: userProcedure
     .input(z.object({ email: z.string().email() }))
     .query(async ({ input, ctx }) => {
-      const user = await ctx.prisma.user.findUnique({
-        where: { email: input.email },
-      });
+      const user = await getUserByEmail(input.email);
 
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'No user found with this email',
+        });
+      }
       return user;
     }),
-  getFriendsOfUser: publicProcedure
+  getFriendsOfUser: userProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input, ctx }) => {
       const { userId } = input;

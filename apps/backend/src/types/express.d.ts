@@ -1,9 +1,11 @@
 import 'express';
+import { UserRole } from '@db';
 
 declare module 'express' {
   interface User {
     id: string;
     email: string;
+    role: UserRole;
   }
 
   interface Request {

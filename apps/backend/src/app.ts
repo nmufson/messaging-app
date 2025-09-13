@@ -6,6 +6,7 @@ import { createContext, publicProcedure, router } from './trpc';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { appRouter } from './router';
 import passport from 'passport';
+import './middleware/auth';
 
 dotenv.config();
 
@@ -35,10 +36,6 @@ app.use(
     createContext,
   })
 );
-
-app.get('/ping', (req: Request, res: Response) => {
-  res.json({ message: 'pong' });
-});
 
 const PORT = Number(process.env.PORT) || 3000;
 

@@ -1,8 +1,10 @@
 import z from 'zod';
-import { publicProcedure, router } from '../trpc';
+import { publicProcedure, router, userProcedure } from '../trpc';
+import { TRPCError } from '@trpc/server';
+import { handleTRPCError } from '../utils/error';
 
 export const conversationRouter = router({
-  getProfileConversations: publicProcedure
+  getProfileConversations: userProcedure
     .input(
       z.object({
         profileId: z.string(),
@@ -11,6 +13,13 @@ export const conversationRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const { profileId, limit } = input;
+      const { user } = ctx;
+      if (user?.id !== profileId && user?.role !== 'ADMIN') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: "Not allowed to view this profile's conversation",
+        });
+      }
 
       const profile = await ctx.prisma.profile.findUnique({
         where: { id: profileId },
@@ -23,6 +32,7 @@ export const conversationRouter = router({
                 orderBy: { createdAt: 'desc' },
                 take: 1, // for displaying most recent msg in list
               },
+              // ! make sure we're not returning all profile info
               profiles: true,
             },
           },
@@ -30,12 +40,21 @@ export const conversationRouter = router({
       });
 
       if (!profile) {
-        // return an error
-        // TODO: figure out error handling
-        return;
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
       }
-
       return profile.conversations;
+    }),
+  getAllConversations: publicProcedure // TODO: change this to admin
+    .query(async ({ ctx }) => {
+      try {
+        const conversations = await ctx.prisma.profile.findMany({});
+        return { conversations };
+      } catch (err) {
+        handleTRPCError(err, 'Failed to retrieve conversations');
+      }
     }),
 
   // startConversation: publicProcedure

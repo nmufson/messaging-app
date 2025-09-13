@@ -1,11 +1,11 @@
-import { router, publicProcedure } from '../trpc';
+import { router, publicProcedure, userProcedure } from '../trpc';
 import { MessageType, UserRole } from '@db';
 import { z } from 'zod';
 import { MessageInput } from '@common/schemas/message';
 import { DateTime } from 'luxon';
 
 export const messageRouter = router({
-  sendMessage: publicProcedure
+  sendMessage: userProcedure
     .input(MessageInput)
     .query(async ({ input, ctx }) => {
       const { senderId, conversationId, content, imageUrl, messageType } =
