@@ -1,30 +1,33 @@
 import { router, publicProcedure, userProcedure } from '../trpc';
 import { MessageType, UserRole } from '@db';
 import { z } from 'zod';
-import { MessageInput } from '@common/schemas/message';
 import { DateTime } from 'luxon';
+import { Message } from '@/packages/common/schemas/message';
+import { TRPCBuilder, TRPCError } from '@trpc/server';
 
 export const messageRouter = router({
-  sendMessage: userProcedure
-    .input(MessageInput)
-    .query(async ({ input, ctx }) => {
-      const { senderId, conversationId, content, imageUrl, messageType } =
-        input;
+  sendMessage: userProcedure.input(Message).query(async ({ input, ctx }) => {
+    const { senderId, conversationId, content, imageUrl, type } = input;
 
-      const initialMessageData = {
-        senderId,
-        conversationId,
-        type: messageType,
-      };
-      let fullMessageData;
-      if (messageType === 'TEXT') {
-        fullMessageData = { ...initialMessageData, content };
-      } else if (messageType === 'IMAGE') {
-        fullMessageData = { ...initialMessageData, imageUrl };
-      }
+    const initialMessageData = {
+      senderId,
+      conversationId,
+      type: type,
+    };
+    let fullMessageData;
+    if (type === 'TEXT') {
+      fullMessageData = { ...initialMessageData, content };
+    } else if (type === 'IMAGE') {
+      fullMessageData = { ...initialMessageData, imageUrl };
+    }
 
-      const newMessage = await ctx.prisma.message.create({
-        data: fullMessageData,
-      });
-    }),
+    if (!fullMessageData) {
+      // TODO: improve this
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+    }
+
+    const newMessage = await ctx.prisma.message.create({
+      data: fullMessageData,
+    });
+  }),
 });

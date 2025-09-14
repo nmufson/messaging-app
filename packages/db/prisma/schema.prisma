@@ -61,8 +61,14 @@ model FriendRequest {
   updatedAt   DateTime?            
 }
 
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
 model Conversation {
   id              String @id    @default(cuid())
+  type            ConversationType
   messages        Message[]
   profiles        Profile[]     @relation("ConversationParticipants")
 

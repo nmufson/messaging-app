@@ -57,9 +57,12 @@ export const conversationRouter = router({
       }
     }),
 
-  // startConversation: publicProcedure
-  //   .input(z.object({
-  //     senderId: z.string(),
-
-  //   }))
+  startConversation: publicProcedure
+    // If sending to one person, conversation must start with a message (txt or file)
+    // if starting a group convo, don't need an initial message
+    .input(
+      z.object({
+        senderId: z.string(),
+      })
+    ),
 });
