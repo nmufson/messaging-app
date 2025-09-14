@@ -2,6 +2,8 @@ import z from 'zod';
 import { publicProcedure, router, userProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { handleTRPCError } from '../utils/error';
+import { ConversationType } from '@common/schemas/conversation';
+import { MessageType } from '@common/schemas/message';
 
 export const conversationRouter = router({
   getProfileConversations: userProcedure
@@ -33,7 +35,14 @@ export const conversationRouter = router({
                 take: 1, // for displaying most recent msg in list
               },
               // ! make sure we're not returning all profile info
-              profiles: true,
+              participants: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  profilePictureUrl: true,
+                },
+              },
             },
           },
         },
@@ -57,12 +66,47 @@ export const conversationRouter = router({
       }
     }),
 
-  startConversation: publicProcedure
-    // If sending to one person, conversation must start with a message (txt or file)
-    // if starting a group convo, don't need an initial message
+  startConversation: userProcedure
+    // If theres an iniitalMessage, call newMessage helper
     .input(
       z.object({
-        senderId: z.string(),
+        creator: z.string(),
+        convoType: ConversationType,
+        participants: z.string().array(),
+        initialMessage: z
+          .object({
+            message: z.string(),
+            type: MessageType,
+          })
+          .nullable(),
       })
-    ),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { creator, convoType, participants, initialMessage } = input;
+
+      const newConvo = await ctx.prisma.$transaction(async (tx) => {
+        const convo = await tx.conversation.create({
+          data: {
+            creator,
+            type: convoType,
+            participants: {
+              connect: participants.map((id) => ({ id })),
+            },
+          },
+        });
+
+        if (initialMessage) {
+          await tx.message.create({
+            data: {
+              conversationId: convo.id,
+              senderId: creator,
+              content: initialMessage.message,
+              type: initialMessage.type,
+            },
+          });
+        }
+
+        return convo;
+      });
+    }),
 });

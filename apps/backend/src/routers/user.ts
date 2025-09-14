@@ -31,6 +31,7 @@ export const userRouter = router({
       }
       return user;
     }),
+  // TODO: move this to profile
   getFriendsOfUser: userProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input, ctx }) => {

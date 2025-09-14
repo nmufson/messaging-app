@@ -68,9 +68,10 @@ enum ConversationType {
 
 model Conversation {
   id              String @id    @default(cuid())
+  creator         String
   type            ConversationType
   messages        Message[]
-  profiles        Profile[]     @relation("ConversationParticipants")
+  participants    Profile[]     @relation("ConversationParticipants")
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime?

@@ -7,10 +7,10 @@ import { TRPCBuilder, TRPCError } from '@trpc/server';
 
 export const messageRouter = router({
   sendMessage: userProcedure.input(Message).query(async ({ input, ctx }) => {
-    const { senderId, conversationId, content, imageUrl, type } = input;
+    const { sender, conversationId, content, imageUrl, type } = input;
 
     const initialMessageData = {
-      senderId,
+      sender,
       conversationId,
       type: type,
     };

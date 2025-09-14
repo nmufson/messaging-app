@@ -2,6 +2,7 @@ import { Dir } from 'fs';
 import { DateTime } from 'luxon';
 import z from 'zod';
 import { Message } from './message';
+import { Profile } from './profile';
 
 export const ConversationType = z.enum(['GROUP', 'DIRECT']);
 
@@ -16,7 +17,9 @@ export const DateTimeSchema = z.string().transform((str, ctx) => {
 const BaseConversation = z.object({
   id: z.string(),
   messages: Message.array(),
-  profiles: profile.array(),
+  get profiles() {
+    return Profile.array();
+  },
   createdAt: DateTimeSchema,
   updatedAt: DateTimeSchema.optional(),
 });

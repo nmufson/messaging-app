@@ -17,7 +17,10 @@ export const Profile = z.object({
   receivedFriendRequests: z.union([z.string(), FriendRequest]).array(),
 
   messages: z.union([z.string(), Message]).array(),
-  conversation: z.union([z.string(), Conversation]).array(),
+
+  get conversations() {
+    return z.union([z.string(), Conversation]).array();
+  },
 
   user: z.string(),
 
