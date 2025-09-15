@@ -1,33 +1,74 @@
 import { router, publicProcedure, userProcedure } from '../trpc';
-import { MessageType, UserRole } from '@db';
+import { UserRole } from '@db';
 import { z } from 'zod';
 import { DateTime } from 'luxon';
-import { Message } from '@/packages/common/schemas/message';
+import {
+  Message,
+  MessageType,
+  SendMessageInput,
+} from '@common/schemas/message';
 import { TRPCBuilder, TRPCError } from '@trpc/server';
+import { findOrCreateDirectConvo } from '../services/conversation';
+import { sendMessage } from '../services/message';
 
 export const messageRouter = router({
-  sendMessage: userProcedure.input(Message).query(async ({ input, ctx }) => {
-    const { sender, conversationId, content, imageUrl, type } = input;
+  sendDirectMessage: userProcedure
+    .input(
+      z.object({
+        sender: z.string(),
+        receiver: z.string(),
+        type: MessageType,
+        content: z.string().nullable(),
+        imageUrl: z.string().nullable(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { sender, receiver, content, imageUrl, type } = input;
 
-    const initialMessageData = {
-      sender,
-      conversationId,
-      type: type,
-    };
-    let fullMessageData;
-    if (type === 'TEXT') {
-      fullMessageData = { ...initialMessageData, content };
-    } else if (type === 'IMAGE') {
-      fullMessageData = { ...initialMessageData, imageUrl };
-    }
+      const convo = await findOrCreateDirectConvo(ctx.prisma, sender, receiver);
 
-    if (!fullMessageData) {
-      // TODO: improve this
-      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
-    }
+      if (!convo) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Conversation not found or could not be created',
+        });
+      }
 
-    const newMessage = await ctx.prisma.message.create({
-      data: fullMessageData,
-    });
-  }),
+      const newDirectMessage = await sendMessage(ctx.prisma, {
+        ...input,
+        conversationId: convo.id,
+      });
+
+      return { convo, newDirectMessage };
+    }),
+  sendMessage: userProcedure
+    .input(SendMessageInput)
+    .query(async ({ input, ctx }) => {
+      const { sender, conversationId, content, imageUrl, type } = input;
+
+      const convo = await ctx.prisma.conversation.findUnique({
+        where: { id: conversationId },
+        include: {
+          participants: true,
+        },
+      });
+
+      if (!convo) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Conversation not found',
+        });
+      }
+
+      if (!convo.participants.some((p) => p.id === sender)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'User is not a participant in this conversation',
+        });
+      }
+
+      const newMessage = await sendMessage(ctx.prisma, input);
+
+      return { newMessage };
+    }),
 });

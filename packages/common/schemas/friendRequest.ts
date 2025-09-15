@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Profile } from './profile';
-import { DateTimeSchema } from './conversation';
+import { DateTimeSchema, ObjectId } from './primitives';
 
 export const FriendRequestStatus = z.enum([
   'PENDING',
@@ -10,14 +10,14 @@ export const FriendRequestStatus = z.enum([
 ]);
 
 export const FriendRequest = z.object({
-  id: z.string(),
+  id: ObjectId,
   status: FriendRequestStatus,
 
   get sender() {
-    return z.union([z.string(), Profile]);
+    return z.union([ObjectId, Profile]);
   },
   get receiver() {
-    return z.union([z.string(), Profile]);
+    return z.union([ObjectId, Profile]);
   },
 
   createdAt: DateTimeSchema,

@@ -3,8 +3,8 @@ import { t } from '../trpc';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
-import { getUserByEmail, getUserById } from '../utils/user';
-import { verifyPassword } from '../utils/hash';
+import { getUserByEmail, getUserById } from '../services/user';
+import { verifyPassword } from '../services/hash';
 
 passport.use(
   new LocalStrategy(

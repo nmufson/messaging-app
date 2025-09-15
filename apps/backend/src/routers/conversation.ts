@@ -1,11 +1,58 @@
 import z from 'zod';
 import { publicProcedure, router, userProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
-import { handleTRPCError } from '../utils/error';
+import { handleTRPCError } from '../services/error';
 import { ConversationType } from '@common/schemas/conversation';
 import { MessageType } from '@common/schemas/message';
 
 export const conversationRouter = router({
+  // ? implement streaming/subscription here??
+  getConversation: userProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+        limit: z.number().default(100),
+        cursor: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { conversationId, limit, cursor } = input;
+
+      const conversation = await ctx.prisma.conversation.findUnique({
+        where: { id: conversationId },
+        include: {
+          messages: {
+            take: limit,
+            skip: cursor ? 1 : 0,
+            cursor: cursor ? { id: cursor } : undefined,
+            orderBy: { createdAt: 'desc' },
+            select: {
+              type: true,
+              content: true,
+              imageUrl: true,
+              senderId: true,
+            },
+          },
+          participants: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profilePictureUrl: true,
+            },
+          },
+        },
+      });
+
+      if (!conversation) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Conversation not found',
+        });
+      }
+
+      return { conversation };
+    }),
   getProfileConversations: userProcedure
     .input(
       z.object({
@@ -33,6 +80,17 @@ export const conversationRouter = router({
               messages: {
                 orderBy: { createdAt: 'desc' },
                 take: 1, // for displaying most recent msg in list
+                select: {
+                  content: true,
+                },
+                include: {
+                  sender: {
+                    select: {
+                      firstName: true,
+                      lastName: true,
+                    },
+                  },
+                },
               },
               // ! make sure we're not returning all profile info
               participants: {
@@ -66,47 +124,24 @@ export const conversationRouter = router({
       }
     }),
 
-  startConversation: userProcedure
-    // If theres an iniitalMessage, call newMessage helper
+  startGroupConversation: userProcedure
     .input(
       z.object({
         creator: z.string(),
-        convoType: ConversationType,
         participants: z.string().array(),
-        initialMessage: z
-          .object({
-            message: z.string(),
-            type: MessageType,
-          })
-          .nullable(),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { creator, convoType, participants, initialMessage } = input;
+      const { creator, participants } = input;
 
-      const newConvo = await ctx.prisma.$transaction(async (tx) => {
-        const convo = await tx.conversation.create({
-          data: {
-            creator,
-            type: convoType,
-            participants: {
-              connect: participants.map((id) => ({ id })),
-            },
+      const convo = await ctx.prisma.conversation.create({
+        data: {
+          creator,
+          type: 'GROUP',
+          participants: {
+            connect: participants.map((id) => ({ id })),
           },
-        });
-
-        if (initialMessage) {
-          await tx.message.create({
-            data: {
-              conversationId: convo.id,
-              senderId: creator,
-              content: initialMessage.message,
-              type: initialMessage.type,
-            },
-          });
-        }
-
-        return convo;
+        },
       });
     }),
 });

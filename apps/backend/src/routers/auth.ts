@@ -1,10 +1,10 @@
 import z from 'zod';
 import { publicProcedure, router, userProcedure } from '../trpc';
-import { getUserByEmail } from '../utils/user';
+import { getUserByEmail } from '../services/user';
 import passport from 'passport';
 import type { User } from 'express';
 import { LoginInput, RegisterInput } from '@/packages/common/schemas/auth';
-import { hashPassword } from '../utils/hash';
+import { hashPassword } from '../services/hash';
 import { TRPCError } from '@trpc/server';
 import { messageRouter } from './message';
 

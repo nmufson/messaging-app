@@ -1,7 +1,7 @@
 import { router, publicProcedure, userProcedure } from '../trpc';
 import { z } from 'zod';
-import { handleTRPCError } from '../utils/error';
-import { getUserByEmail, getUserById } from '../utils/user';
+import { handleTRPCError } from '../services/error';
+import { getUserByEmail, getUserById } from '../services/user';
 import { TRPCError } from '@trpc/server';
 
 export const userRouter = router({

@@ -1,28 +1,29 @@
 import { z } from 'zod';
-import { Conversation, DateTimeSchema } from './conversation';
+import { Conversation } from './conversation';
+import { DateTimeSchema, ObjectId } from './primitives';
 import { Message } from './message';
 import { FriendRequest } from './friendRequest';
 
 export const Profile = z.object({
-  id: z.string(),
+  id: ObjectId,
   firstName: z.string(),
   lastName: z.string(),
   profilePictureUrl: z.string().nullable(),
 
   get friends() {
-    return z.union([z.string(), Profile]).array();
+    return z.union([ObjectId, Profile]).array();
   },
 
-  sentFriendRequests: z.union([z.string(), FriendRequest]).array(),
-  receivedFriendRequests: z.union([z.string(), FriendRequest]).array(),
+  sentFriendRequests: z.union([ObjectId, FriendRequest]).array(),
+  receivedFriendRequests: z.union([ObjectId, FriendRequest]).array(),
 
-  messages: z.union([z.string(), Message]).array(),
+  messages: z.union([ObjectId, Message]).array(),
 
   get conversations() {
-    return z.union([z.string(), Conversation]).array();
+    return z.union([ObjectId, Conversation]).array();
   },
 
-  user: z.string(),
+  user: ObjectId,
 
   createdAt: DateTimeSchema,
   updatedAt: DateTimeSchema.optional(),
