@@ -1,13 +1,7 @@
-import { router, publicProcedure, userProcedure } from '../trpc';
-import { UserRole } from '@db';
+import { router, userProcedure } from '../trpc';
 import { z } from 'zod';
-import { DateTime } from 'luxon';
-import {
-  Message,
-  MessageType,
-  SendMessageInput,
-} from '@common/schemas/message';
-import { TRPCBuilder, TRPCError } from '@trpc/server';
+import { MessageType, SendMessageInput } from '@common/schemas/message';
+import { TRPCError } from '@trpc/server';
 import { findOrCreateDirectConvo } from '../services/conversation';
 import { sendMessage } from '../services/message';
 
