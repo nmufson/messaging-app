@@ -57,7 +57,7 @@ export const conversationRouter = router({
     .input(
       z.object({
         profileId: z.string(),
-        limit: z.number().default(30),
+        limit: z.number().default(100),
       })
     )
     .query(async ({ input, ctx }) => {
@@ -92,7 +92,6 @@ export const conversationRouter = router({
                   },
                 },
               },
-              // ! make sure we're not returning all profile info
               participants: {
                 select: {
                   id: true,
@@ -115,9 +114,42 @@ export const conversationRouter = router({
       return profile.conversations;
     }),
   getAllConversations: publicProcedure // TODO: change this to admin
+    .input(
+      z.object({
+        limit: z.number().default(100),
+      })
+    )
     .query(async ({ ctx }) => {
       try {
-        const conversations = await ctx.prisma.profile.findMany({});
+        const conversations = await ctx.prisma.conversation.findMany({
+          take: 30,
+          orderBy: { updatedAt: 'desc' },
+          include: {
+            messages: {
+              orderBy: { createdAt: 'desc' },
+              take: 1, // for displaying most recent msg in list
+              select: {
+                content: true,
+              },
+              include: {
+                sender: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                  },
+                },
+              },
+            },
+            participants: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                profilePictureUrl: true,
+              },
+            },
+          },
+        });
         return { conversations };
       } catch (err) {
         handleTRPCError(err, 'Failed to retrieve conversations');

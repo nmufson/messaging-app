@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
 import session from 'express-session';
+import { PrismaSessionStore } from '@quixo3/prisma-session-store';
+import { prisma } from '@db';
 import cors from 'cors';
 import { createContext, publicProcedure, router } from './trpc';
 import * as trpcExpress from '@trpc/server/adapters/express';
@@ -17,12 +19,17 @@ app.use(express.json());
 
 app.use(
   session({
-    secret: 'your-secret-key',
-    resave: false,
-    saveUninitialized: true,
     cookie: {
-      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // ms
     },
+    secret: 'secret keyyy',
+    resave: false,
+    saveUninitialized: false,
+    store: new PrismaSessionStore(prisma, {
+      checkPeriod: 2 * 60 * 1000, //ms
+      dbRecordIdIsSessionId: true,
+      dbRecordIdFunction: undefined,
+    }),
   })
 );
 
