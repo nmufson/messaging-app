@@ -5,14 +5,14 @@ export const isAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.user) {
     throw new TRPCError({ code: 'UNAUTHORIZED' });
   }
-  return next({ ctx });
+  return next({ ctx: { ...ctx, user: ctx.user } });
 });
 
 export const isAdmin = t.middleware(({ ctx, next }) => {
   if (ctx.user?.role !== 'ADMIN') {
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Only Admins have access to this route',
+      code: 'UNAUTHORIZED',
+      message: 'You must be an admin to access this route',
     });
   }
 

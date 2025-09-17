@@ -9,7 +9,7 @@ import { findOrCreateDirectConvo } from '../services/conversation';
 import { sendMessage } from '../services/message';
 import { Message } from '@/packages/db';
 
-const ee = new EventEmitter();
+const eventEmitter = new EventEmitter();
 
 export const messageRouter = router({
   onNewMessage: userProcedure
@@ -23,12 +23,12 @@ export const messageRouter = router({
       const { lastEventId, conversationId } = input;
       if (lastEventId) {
       }
-      for await (const [data] of on(ee, 'add', {
+      for await (const [data] of on(eventEmitter, 'add', {
         // Passing the AbortSignal from the request automatically cancels the event emitter when the subscription is aborted
         signal,
       })) {
         const message: Message = data;
-        // tracking the post id ensures the client can reconnect at any time and get the latest events this id
+
         yield tracked(message.id, message);
       }
     }),

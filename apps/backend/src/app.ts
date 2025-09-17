@@ -4,8 +4,8 @@ import session from 'express-session';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 import { prisma } from '@db';
 import cors from 'cors';
-import * as trpcExpress from '@trpc/server/adapters/express';
-import { appRouter } from './router';
+import { createExpressMiddleware } from '@trpc/server/adapters/express';
+import { appRouter } from './trpc/router';
 import passport from 'passport';
 import './middleware/auth';
 import { createContext } from './trpc';
@@ -36,9 +36,10 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+// express adapter for trpc
 app.use(
   '/trpc',
-  trpcExpress.createExpressMiddleware({
+  createExpressMiddleware({
     router: appRouter,
     createContext,
   })
@@ -46,7 +47,7 @@ app.use(
 
 const PORT = Number(process.env.PORT) || 3000;
 
-app.listen(PORT, '0.0.0.0', () =>
+export const server = app.listen(PORT, '0.0.0.0', () =>
   console.log(`Express app listening on port ${PORT}!`)
 );
 
