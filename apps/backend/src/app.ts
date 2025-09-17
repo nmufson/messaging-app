@@ -4,11 +4,11 @@ import session from 'express-session';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 import { prisma } from '@db';
 import cors from 'cors';
-import { createContext, publicProcedure, router } from './trpc';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { appRouter } from './router';
 import passport from 'passport';
 import './middleware/auth';
+import { createContext } from './trpc';
 
 dotenv.config();
 

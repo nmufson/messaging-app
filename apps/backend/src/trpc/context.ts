@@ -1,0 +1,40 @@
+import { User } from 'express';
+import { Request, Response } from 'express';
+import { prisma } from '@db';
+import { CreateExpressContextOptions } from '@trpc/server/adapters/express';
+import type { IncomingMessage } from 'http';
+import { CreateWSSContextFnOptions } from '@trpc/server/adapters/ws';
+
+interface BaseContext {
+  user?: User; // Replace with your actual User type
+  prisma: typeof prisma;
+}
+
+// Express
+interface HTTPContext extends BaseContext {
+  req: Request;
+  res: Response;
+}
+
+interface WSContext extends BaseContext {
+  req: IncomingMessage;
+}
+
+export type Context = HTTPContext | WSContext;
+
+export function createContext({
+  req,
+  res,
+}: CreateExpressContextOptions): HTTPContext {
+  return { req, res, user: req.user, prisma };
+}
+
+export function createWSSContext({
+  req,
+}: CreateWSSContextFnOptions): WSContext {
+  return {
+    req,
+    user: undefined, // TODO: implement ws auth logic?
+    prisma,
+  };
+}

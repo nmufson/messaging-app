@@ -1,11 +1,37 @@
 import { router, userProcedure } from '../trpc';
+import { tracked } from '@trpc/server';
 import { z } from 'zod';
+import EventEmitter, { on } from 'events';
+import { observable } from '@trpc/server/observable';
 import { MessageType, SendMessageInput } from '@common/schemas/message';
 import { TRPCError } from '@trpc/server';
 import { findOrCreateDirectConvo } from '../services/conversation';
 import { sendMessage } from '../services/message';
+import { Message } from '@/packages/db';
+
+const ee = new EventEmitter();
 
 export const messageRouter = router({
+  onNewMessage: userProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+        lastEventId: z.string().nullish(),
+      })
+    )
+    .subscription(async function* ({ input, ctx, signal }) {
+      const { lastEventId, conversationId } = input;
+      if (lastEventId) {
+      }
+      for await (const [data] of on(ee, 'add', {
+        // Passing the AbortSignal from the request automatically cancels the event emitter when the subscription is aborted
+        signal,
+      })) {
+        const message: Message = data;
+        // tracking the post id ensures the client can reconnect at any time and get the latest events this id
+        yield tracked(message.id, message);
+      }
+    }),
   sendDirectMessage: userProcedure
     .input(
       z.object({
@@ -35,7 +61,7 @@ export const messageRouter = router({
 
       return { convo, newDirectMessage };
     }),
-  sendMessage: userProcedure
+  sendMessageToConversation: userProcedure
     .input(SendMessageInput)
     .query(async ({ input, ctx }) => {
       const { sender, conversationId, content, imageUrl, type } = input;
