@@ -1,25 +1,25 @@
+import { ObjectId } from '@/packages/common/schemas/primitives';
+import { tracked, TRPCError } from '@trpc/server';
+import { on } from 'events';
 import z from 'zod';
-import { publicProcedure, router, userProcedure } from '../trpc';
-import { TRPCError } from '@trpc/server';
+import { eventEmitter } from '../lib/eventBus';
 import { handleTRPCError } from '../services/error';
-import { ConversationType } from '@common/schemas/conversation';
-import { MessageType } from '@common/schemas/message';
+import { publicProcedure, router, userProcedure } from '../trpc';
 
-export const conversationRouter = router({
-  // ? implement streaming/subscription here??
-  getConversation: userProcedure
+export const chatRouter = router({
+  byId: userProcedure
     .input(
       z.object({
-        conversationId: z.string(),
+        chatId: z.string(),
         limit: z.number().default(100),
         cursor: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { conversationId, limit, cursor } = input;
+      const { chatId, limit, cursor } = input;
 
-      const conversation = await ctx.prisma.conversation.findUnique({
-        where: { id: conversationId },
+      const chat = await ctx.prisma.chat.findUnique({
+        where: { id: chatId },
         include: {
           messages: {
             take: limit,
@@ -44,16 +44,60 @@ export const conversationRouter = router({
         },
       });
 
-      if (!conversation) {
+      if (!chat) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Conversation not found',
+          message: 'Chat not found',
         });
       }
 
-      return { conversation };
+      return chat;
     }),
-  getProfileConversations: userProcedure
+  onNewMessageInChat: userProcedure
+    .input(
+      z.object({
+        profileId: ObjectId,
+      })
+    )
+    .subscription(async function* ({ input, ctx, signal }) {
+      const { profileId } = input;
+      const { user } = ctx;
+
+      if (user.id !== profileId && user.role !== 'ADMIN') {
+        throw new TRPCError({ code: 'FORBIDDEN' });
+      }
+
+      const profile = await ctx.prisma.profile.findUnique({
+        where: { id: profileId },
+        include: {
+          chats: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      if (!profile) {
+        throw new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      // TODO: review this
+      const iterators = profile.chats.map(({ id }) =>
+        on(eventEmitter, `addMessageToChat:${id}`, { signal })
+      );
+
+      // for (;;) {
+      //   const promises = iterators.map((it) => it.next());
+      //   const result = await Promise.race(promises);
+
+      //   if (result.done) break;
+
+      //   const [message] = result.value;
+      //   yield tracked(message.id, message);
+      // }
+    }),
+  getList: userProcedure
     .input(
       z.object({
         profileId: z.string(),
@@ -63,17 +107,18 @@ export const conversationRouter = router({
     .query(async ({ input, ctx }) => {
       const { profileId, limit } = input;
       const { user } = ctx;
-      if (user?.id !== profileId && user?.role !== 'ADMIN') {
+
+      if (user.id !== profileId && user.role !== 'ADMIN') {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: "Not allowed to view this profile's conversation",
+          message: "Not allowed to view this profile's chat",
         });
       }
 
       const profile = await ctx.prisma.profile.findUnique({
         where: { id: profileId },
         include: {
-          conversations: {
+          chats: {
             take: limit,
             orderBy: { updatedAt: 'desc' },
             include: {
@@ -111,9 +156,9 @@ export const conversationRouter = router({
           message: 'Profile not found',
         });
       }
-      return profile.conversations;
+      return profile.chats;
     }),
-  getAllConversations: publicProcedure // TODO: change this to admin
+  getAll: publicProcedure // TODO: change this to admin
     .input(
       z.object({
         limit: z.number().default(100),
@@ -121,7 +166,7 @@ export const conversationRouter = router({
     )
     .query(async ({ ctx }) => {
       try {
-        const conversations = await ctx.prisma.conversation.findMany({
+        const chats = await ctx.prisma.chat.findMany({
           take: 30,
           orderBy: { updatedAt: 'desc' },
           include: {
@@ -150,13 +195,13 @@ export const conversationRouter = router({
             },
           },
         });
-        return { conversations };
+        return { chats };
       } catch (err) {
-        handleTRPCError(err, 'Failed to retrieve conversations');
+        handleTRPCError(err, 'Failed to retrieve chats');
       }
     }),
 
-  startGroupConversation: userProcedure
+  createGroup: userProcedure
     .input(
       z.object({
         creator: z.string(),
@@ -166,7 +211,7 @@ export const conversationRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { creator, participants } = input;
 
-      const convo = await ctx.prisma.conversation.create({
+      const convo = await ctx.prisma.chat.create({
         data: {
           creator,
           type: 'GROUP',

@@ -6,7 +6,7 @@ export const sendMessage = async (
   prisma: PrismaClient,
   params: SendMessageInput
 ) => {
-  const { conversationId, sender, type, content, imageUrl } = params;
+  const { chatId, sender, type, content, imageUrl } = params;
 
   return await prisma.message.create({
     data: {
@@ -14,7 +14,7 @@ export const sendMessage = async (
       content,
       imageUrl,
       sender: { connect: { id: sender } },
-      conversation: { connect: { id: conversationId } },
+      conversation: { connect: { id: chatId } },
     },
   });
 };

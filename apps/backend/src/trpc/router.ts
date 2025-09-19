@@ -1,5 +1,5 @@
 import { authRouter } from '../routers/auth';
-import { conversationRouter } from '../routers/conversation';
+import { chatRouter } from '../routers/chat';
 import { friendRequestRouter } from '../routers/friendRequest';
 import { imageRouter } from '../routers/image';
 import { messageRouter } from '../routers/message';
@@ -10,7 +10,7 @@ export const appRouter = router({
   auth: authRouter,
   user: userRouter,
 
-  conversation: conversationRouter,
+  conversation: chatRouter,
   friendRequest: friendRequestRouter,
   message: messageRouter,
 

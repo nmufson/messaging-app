@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Conversation } from './conversation';
+import { Chat } from './chat';
 import { DateTimeSchema, ObjectId } from './primitives';
 import { Message } from './message';
 import { FriendRequest } from './friendRequest';
@@ -20,7 +20,7 @@ export const Profile = z.object({
   messages: z.union([ObjectId, Message]).array(),
 
   get conversations() {
-    return z.union([ObjectId, Conversation]).array();
+    return z.union([ObjectId, Chat]).array();
   },
 
   user: ObjectId,

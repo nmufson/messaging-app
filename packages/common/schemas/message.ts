@@ -10,7 +10,7 @@ export const SendMessageInput = z.object({
   content: z.string().nullable(),
   imageUrl: z.string().nullable(),
   sender: ObjectId,
-  conversationId: ObjectId,
+  chatId: ObjectId,
 });
 export type SendMessageInput = z.infer<typeof SendMessageInput>;
 
@@ -22,7 +22,7 @@ export const Message = z.object({
     return z.union([ObjectId, Profile]);
   },
 
-  conversationId: ObjectId,
+  chatId: ObjectId,
 
   createdAt: DateTimeSchema,
   updatedAt: DateTimeSchema.optional(),

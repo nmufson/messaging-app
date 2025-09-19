@@ -1,12 +1,12 @@
-import { Conversation } from '@/packages/db';
+import { Chat } from '@/packages/db';
 import { PrismaClient } from '@prisma/client';
 
-export const findOrCreateDirectConvo = async (
+export const findOrCreateDirectChat = async (
   prisma: PrismaClient,
   senderId: string,
   receiverId: string
-): Promise<Conversation> => {
-  const existingConvo = await prisma.conversation.findUnique({
+): Promise<Chat> => {
+  const existingChat = await prisma.chat.findUnique({
     where: {
       type: 'DIRECT',
       participants: {
@@ -21,11 +21,11 @@ export const findOrCreateDirectConvo = async (
     include: { participants: true },
   });
 
-  if (existingConvo && existingConvo.participants.length === 2) {
-    return existingConvo;
+  if (existingChat && existingChat.participants.length === 2) {
+    return existingChat;
   }
 
-  const newConvo = await prisma.conversation.create({
+  const newChat = await prisma.chat.create({
     data: {
       type: 'DIRECT',
       creator: senderId,
@@ -35,5 +35,5 @@ export const findOrCreateDirectConvo = async (
     },
   });
 
-  return newConvo;
+  return newChat;
 };

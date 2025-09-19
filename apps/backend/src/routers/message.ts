@@ -1,93 +1,118 @@
-import { router, userProcedure } from '../trpc';
-import { tracked } from '@trpc/server';
-import { z } from 'zod';
-import EventEmitter, { on } from 'events';
-import { observable } from '@trpc/server/observable';
+import { ObjectId } from '@/packages/common/schemas/primitives';
 import { MessageType, SendMessageInput } from '@common/schemas/message';
-import { TRPCError } from '@trpc/server';
-import { findOrCreateDirectConvo } from '../services/conversation';
+import { tracked, TRPCError } from '@trpc/server';
+import { z } from 'zod';
+import { findOrCreateDirectChat } from '../services/chat';
 import { sendMessage } from '../services/message';
-import { Message } from '@/packages/db';
-
-const eventEmitter = new EventEmitter();
+import { router, userProcedure } from '../trpc';
+import { on } from 'events';
+import { eventEmitter } from '../lib/eventBus';
 
 export const messageRouter = router({
   onNewMessage: userProcedure
     .input(
       z.object({
-        conversationId: z.string(),
-        lastEventId: z.string().nullish(),
+        chatId: ObjectId,
+        lastMessageId: ObjectId.nullish(),
       })
     )
     .subscription(async function* ({ input, ctx, signal }) {
-      const { lastEventId, conversationId } = input;
-      if (lastEventId) {
-      }
-      for await (const [data] of on(eventEmitter, 'add', {
-        // Passing the AbortSignal from the request automatically cancels the event emitter when the subscription is aborted
-        signal,
-      })) {
-        const message: Message = data;
+      const { lastMessageId, chatId } = input;
 
+      if (lastMessageId) {
+        const lastMessage = await ctx.prisma.message.findUnique({
+          where: { id: lastMessageId },
+        });
+
+        if (lastMessage) {
+          const missedMessages = await ctx.prisma.message.findMany({
+            where: {
+              chatId,
+              // query all messages created after our lastMessage
+              createdAt: { gt: lastMessage.createdAt },
+            },
+            orderBy: { createdAt: 'asc' },
+          });
+
+          for (const msg of missedMessages) {
+            yield tracked(msg.id, msg);
+          }
+        }
+      }
+
+      for await (const [message] of on(
+        eventEmitter,
+        `addMessageToChat:${chatId}`,
+        {
+          signal,
+        }
+      )) {
         yield tracked(message.id, message);
       }
     }),
-  sendDirectMessage: userProcedure
+  sendDirect: userProcedure
     .input(
       z.object({
-        sender: z.string(),
-        receiver: z.string(),
+        sender: ObjectId,
+        receiver: ObjectId,
         type: MessageType,
         content: z.string().nullable(),
         imageUrl: z.string().nullable(),
       })
     )
+    // TODO: add an event emitter here for add chat
     .mutation(async ({ input, ctx }) => {
       const { sender, receiver, content, imageUrl, type } = input;
 
-      const convo = await findOrCreateDirectConvo(ctx.prisma, sender, receiver);
+      const chat = await findOrCreateDirectChat(ctx.prisma, sender, receiver);
 
-      if (!convo) {
+      if (!chat) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Conversation not found or could not be created',
+          message: 'chat not found or could not be created',
         });
       }
 
       const newDirectMessage = await sendMessage(ctx.prisma, {
         ...input,
-        conversationId: convo.id,
+        chatId: chat.id,
       });
 
-      return { convo, newDirectMessage };
+      return { chat, newDirectMessage };
     }),
-  sendMessageToConversation: userProcedure
+  sendTochat: userProcedure
     .input(SendMessageInput)
     .query(async ({ input, ctx }) => {
-      const { sender, conversationId, content, imageUrl, type } = input;
+      const { sender, chatId, content, imageUrl, type } = input;
 
-      const convo = await ctx.prisma.conversation.findUnique({
-        where: { id: conversationId },
+      const chat = await ctx.prisma.chat.findUnique({
+        where: { id: chatId },
         include: {
           participants: true,
         },
       });
 
-      if (!convo) {
+      if (!chat) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Conversation not found',
+          message: 'chat not found',
         });
       }
 
-      if (!convo.participants.some((p) => p.id === sender)) {
+      if (!chat.participants.some((p) => p.id === sender)) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'User is not a participant in this conversation',
+          message: 'User is not a participant in this chat',
         });
       }
 
       const newMessage = await sendMessage(ctx.prisma, input);
+
+      eventEmitter.emit(`addMessageToChat:${chatId}`, newMessage);
+      eventEmitter.emit(`updateChat`, {
+        chatId: newMessage.chatId,
+        message: newMessage,
+      });
 
       return { newMessage };
     }),
