@@ -1,4 +1,3 @@
-import z from 'zod';
 import { publicProcedure, router, userProcedure } from '../trpc';
 import { getUserByEmail } from '../services/user';
 import passport from 'passport';
@@ -6,7 +5,6 @@ import type { User } from 'express';
 import { LoginInput, RegisterInput } from '@/packages/common/schemas/auth';
 import { hashPassword } from '../services/hash';
 import { TRPCError } from '@trpc/server';
-import { messageRouter } from './message';
 
 export const authRouter = router({
   register: publicProcedure
@@ -45,18 +43,37 @@ export const authRouter = router({
       passport.authenticate('local', (err: Error, user: User, info: object) => {
         if (err) return reject(err);
         if (!user) return reject(new Error('Invalid credentials'));
-
-        ctx.req.login(user, (err: Error) => {
-          if (err) return reject(err);
-          resolve({ user });
-        });
-      })(ctx.req, ctx.res);
+        // !
+        // TODO: figure out better way to handle this
+        // !
+        if ('login' in ctx.req) {
+          ctx.req.login(user, (err: Error) => {
+            if (err) return reject(err);
+            resolve({ user });
+          });
+        } else {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Request object does not support login',
+          });
+        }
+      })(ctx.req, 'res' in ctx ? ctx.res : undefined);
     });
   }),
 
   logout: publicProcedure.mutation(({ ctx }) => {
-    ctx.req.logout(() => {});
-    return { success: true };
+    // !
+    // TODO: figure out better way to handle this
+    // !
+    if ('logout' in ctx.req && typeof ctx.req.logout === 'function') {
+      ctx.req.logout(() => {});
+      return { success: true };
+    } else {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Request object does not support logout',
+      });
+    }
   }),
   me: userProcedure.query(({ ctx }) => {
     if (!ctx.user) {

@@ -31,26 +31,4 @@ export const userRouter = router({
       }
       return user;
     }),
-  // TODO: move this to profile
-  getFriendsOfUser: userProcedure
-    .input(z.object({ userId: z.string() }))
-    .query(async ({ input, ctx }) => {
-      const { userId } = input;
-
-      const friendsOfUser = await ctx.prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          friends: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profilePictureUrl: true,
-            },
-          },
-        },
-      });
-
-      return friendsOfUser;
-    }),
 });

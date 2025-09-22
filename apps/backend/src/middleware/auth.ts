@@ -1,6 +1,3 @@
-import { TRPCError } from '@trpc/server';
-import { t } from '../trpc';
-import session from 'express-session';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { getUserByEmail, getUserById } from '../services/user';
