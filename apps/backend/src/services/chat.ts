@@ -5,7 +5,7 @@ export const findOrCreateDirectChat = async (
   prisma: PrismaClient,
   senderId: string,
   receiverId: string
-): Promise<Chat> => {
+): Promise<{ chat: Chat; isNewChat: boolean }> => {
   const existingChat = await prisma.chat.findUnique({
     where: {
       type: 'DIRECT',
@@ -22,7 +22,7 @@ export const findOrCreateDirectChat = async (
   });
 
   if (existingChat && existingChat.participants.length === 2) {
-    return existingChat;
+    return { chat: existingChat, isNewChat: false };
   }
 
   const newChat = await prisma.chat.create({
@@ -35,5 +35,5 @@ export const findOrCreateDirectChat = async (
     },
   });
 
-  return newChat;
+  return { chat: newChat, isNewChat: true };
 };

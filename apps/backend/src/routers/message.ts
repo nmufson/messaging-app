@@ -64,7 +64,11 @@ export const messageRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { sender, receiver, content, imageUrl, type } = input;
 
-      const chat = await findOrCreateDirectChat(ctx.prisma, sender, receiver);
+      const { chat, isNewChat } = await findOrCreateDirectChat(
+        ctx.prisma,
+        sender,
+        receiver
+      );
 
       if (!chat) {
         throw new TRPCError({
@@ -77,6 +81,11 @@ export const messageRouter = router({
         ...input,
         chatId: chat.id,
       });
+
+      if (isNewChat) {
+        eventEmitter.emit(`newChat:${sender}`, chat);
+        eventEmitter.emit(`newChat:${receiver}`, chat);
+      }
 
       return { chat, newDirectMessage };
     }),
@@ -109,10 +118,6 @@ export const messageRouter = router({
       const newMessage = await sendMessage(ctx.prisma, input);
 
       eventEmitter.emit(`addMessageToChat:${chatId}`, newMessage);
-      eventEmitter.emit(`updateChat`, {
-        chatId: newMessage.chatId,
-        message: newMessage,
-      });
 
       return { newMessage };
     }),

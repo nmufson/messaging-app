@@ -5,6 +5,7 @@ import z from 'zod';
 import { eventEmitter } from '../lib/eventBus';
 import { handleTRPCError } from '../services/error';
 import { publicProcedure, router, userProcedure } from '../trpc';
+import { mergeAsyncIterators } from '@/packages/common/utils/mergeAsyncIterators';
 
 export const chatRouter = router({
   byId: userProcedure
@@ -87,15 +88,29 @@ export const chatRouter = router({
         on(eventEmitter, `addMessageToChat:${id}`, { signal })
       );
 
-      // for (;;) {
-      //   const promises = iterators.map((it) => it.next());
-      //   const result = await Promise.race(promises);
+      for await (const [message] of mergeAsyncIterators(iterators)) {
+        yield tracked(message.id, message);
+      }
+    }),
+  onNewChat: userProcedure
+    .input(
+      z.object({
+        profileId: ObjectId,
+      })
+    )
+    .subscription(async function* ({ input, ctx, signal }) {
+      const { profileId } = input;
+      const { user } = ctx;
 
-      //   if (result.done) break;
+      if (user.id !== profileId && user.role !== 'ADMIN') {
+        throw new TRPCError({ code: 'FORBIDDEN' });
+      }
 
-      //   const [message] = result.value;
-      //   yield tracked(message.id, message);
-      // }
+      for await (const [newChat] of on(eventEmitter, `newChat:${profileId}`, {
+        signal,
+      })) {
+        yield tracked(newChat.id, newChat);
+      }
     }),
   getList: userProcedure
     .input(
@@ -204,14 +219,14 @@ export const chatRouter = router({
   createGroup: userProcedure
     .input(
       z.object({
-        creator: z.string(),
-        participants: z.string().array(),
+        creator: ObjectId,
+        participants: ObjectId.array(),
       })
     )
     .mutation(async ({ input, ctx }) => {
       const { creator, participants } = input;
 
-      const convo = await ctx.prisma.chat.create({
+      const chat = await ctx.prisma.chat.create({
         data: {
           creator,
           type: 'GROUP',
@@ -220,5 +235,11 @@ export const chatRouter = router({
           },
         },
       });
+
+      participants.forEach((userId) => {
+        eventEmitter.emit(`newChat:${userId}`, chat);
+      });
+
+      return chat;
     }),
 });
