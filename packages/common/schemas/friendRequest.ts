@@ -6,7 +6,7 @@ export const FriendRequestStatus = z.enum([
   'PENDING',
   'CANCELLED',
   'DECLINED',
-  'ACCETPED',
+  'ACCEPTED',
 ]);
 
 export const FriendRequest = z.object({

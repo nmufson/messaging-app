@@ -1,5 +1,6 @@
-export async function* mergeAsyncIterators<T>(iterators: AsyncIterable<T>[]) {
-  const readers = iterators.map((it) => it[Symbol.asyncIterator]());
+export async function* mergeAsyncIterators<T>(iterables: AsyncIterable<T>[]) {
+  const readers = iterables.map((it) => it[Symbol.asyncIterator]());
+  // array of promises
   const nexts = readers.map((r, i) => r.next().then((res) => ({ i, res })));
 
   for (;;) {

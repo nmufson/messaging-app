@@ -6,14 +6,16 @@ import { eventEmitter } from '../lib/eventBus';
 import { handleTRPCError } from '../services/error';
 import { publicProcedure, router, userProcedure } from '../trpc';
 import { mergeAsyncIterators } from '@/packages/common/utils/mergeAsyncIterators';
+import { UserRole } from '@/packages/common/schemas/user';
+import { ChatType } from '@/packages/common/schemas/chat';
 
 export const chatRouter = router({
   byId: userProcedure
     .input(
       z.object({
-        chatId: z.string(),
+        chatId: ObjectId,
         limit: z.number().default(100),
-        cursor: z.string().optional(),
+        cursor: ObjectId.optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -83,12 +85,11 @@ export const chatRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND' });
       }
 
-      // TODO: review this
-      const iterators = profile.chats.map(({ id }) =>
+      const iterables = profile.chats.map(({ id }) =>
         on(eventEmitter, `addMessageToChat:${id}`, { signal })
       );
 
-      for await (const [message] of mergeAsyncIterators(iterators)) {
+      for await (const [message] of mergeAsyncIterators(iterables)) {
         yield tracked(message.id, message);
       }
     }),
@@ -102,7 +103,7 @@ export const chatRouter = router({
       const { profileId } = input;
       const { user } = ctx;
 
-      if (user.id !== profileId && user.role !== 'ADMIN') {
+      if (user.id !== profileId && user.role !== UserRole.enum.ADMIN) {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
@@ -123,7 +124,7 @@ export const chatRouter = router({
       const { profileId, limit } = input;
       const { user } = ctx;
 
-      if (user.id !== profileId && user.role !== 'ADMIN') {
+      if (user.id !== profileId && user.role !== UserRole.enum.ADMIN) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: "Not allowed to view this profile's chat",
@@ -229,7 +230,7 @@ export const chatRouter = router({
       const chat = await ctx.prisma.chat.create({
         data: {
           creator,
-          type: 'GROUP',
+          type: ChatType.enum.GROUP,
           participants: {
             connect: participants.map((id) => ({ id })),
           },

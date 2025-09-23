@@ -3,6 +3,7 @@ import { userProcedure, router } from '../trpc';
 
 export const imageRouter = router({
   getImageUploadSignature: userProcedure.mutation(async () => {
+    // TODO: use luxon here
     const timestamp = Math.round(new Date().getTime() / 1000);
 
     const signature = cloudinary.utils.api_sign_request(
