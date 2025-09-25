@@ -25,6 +25,12 @@
       "@db": ["packages/db/index.ts"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "apps/frontend/postcss.config.js"
+  ],
   "exclude": ["node_modules"]
 }

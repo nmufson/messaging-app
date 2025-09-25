@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@theme {
+  --color-brand-DEFAULT: #007ea7;
+  --color-brand-dark: #003459;
+  --color-brand-light: #00a8e8;
+  --color-brand-accent: #00171f;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+.debug-custom-class {
+  border: 5px solid lime !important;
+}
