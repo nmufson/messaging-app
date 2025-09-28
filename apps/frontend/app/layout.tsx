@@ -1,3 +1,4 @@
+import { nunito, rubik } from './fonts';
 import './globals.css';
 
 export const metadata = {

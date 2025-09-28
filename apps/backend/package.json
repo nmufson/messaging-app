@@ -8,13 +8,14 @@
     "start": "node dist/app.js"
   },
   "dependencies": {
+    "@quickChat/common": "workspace:*",
+    "@quickChat/db": "workspace:*",
     "@prisma/client": "^6.16.0",
     "@quixo3/prisma-session-store": "^3.1.13",
     "@trpc/client": "^11.5.0",
     "@trpc/server": "^11.5.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.7.0",
-    "common": "*",
     "connect-pg-simple": "^10.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",

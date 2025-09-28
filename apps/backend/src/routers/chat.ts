@@ -1,7 +1,7 @@
 import { ObjectId } from '@/packages/common/schemas/primitives';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
-import z from 'zod';
+import { z } from '@quickChat/common';
 import { eventEmitter } from '../lib/eventBus';
 import { handleTRPCError } from '../services/error';
 import { publicProcedure, router, userProcedure } from '../trpc';

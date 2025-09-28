@@ -1,4 +1,13 @@
 packages:
-  - 'apps/frontend'
-  - 'apps/backend'
-  - 'packages/*'
+  - apps/frontend
+  - apps/backend
+  - packages/*
+
+ignoredBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - '@tailwindcss/oxide'
+  - bcrypt
+  - prisma
+  - sharp
+  - unrs-resolver

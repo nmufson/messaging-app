@@ -1,4 +1,4 @@
-import type { User } from '@/packages/db';
+import type { User } from '@db';
 import bcrypt from 'bcrypt';
 
 const SALT_ROUNDS = 10;

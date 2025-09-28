@@ -9,9 +9,6 @@ module.exports = {
       colors: {
         brand: {},
       },
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-      },
     },
   },
   plugins: [],

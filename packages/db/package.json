@@ -1,8 +1,9 @@
 {
-  "name": "@messaging-app/db",
+  "name": "@quickChat/db",
   "private": true,
   "main": "index.ts",
   "scripts": {
+    "build": "tsc -b",
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
     "studio": "prisma studio"

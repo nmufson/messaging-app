@@ -1,5 +1,5 @@
 import { Chat } from '@/packages/db';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@quickChat/db';
 
 export const findOrCreateDirectChat = async (
   prisma: PrismaClient,
