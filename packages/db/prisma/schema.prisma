@@ -41,6 +41,7 @@ model Profile {
   receivedFriendRequests      FriendRequest[]   @relation("ReceivedRequests")
   messages                    Message[]         @relation("SentMessages")
   chats                       Chat[]            @relation("ChatParticipants")
+  createdChats                Chat[]            @relation("ChatCreator")
 
   userId                      String            @unique
   user                        User              @relation(fields: [userId], references: [id])
@@ -75,7 +76,8 @@ enum ChatType {
 
 model Chat {
   id              String @id    @default(cuid())
-  creator         String
+  creatorId       String
+  creator         Profile      @relation("ChatCreator", fields: [creatorId], references: [id])
   type            ChatType
   messages        Message[]
   participants    Profile[]     @relation("ChatParticipants")

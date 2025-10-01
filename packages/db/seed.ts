@@ -1,29 +1,60 @@
-import { usersData, profilesData } from './sampleData';
+import { usersData, profilesData, chatsData, messagesData } from './sampleData';
 import { prisma } from './index';
 
 async function main() {
   console.log('Start seeding...');
+  await prisma.message.deleteMany({});
+  await prisma.chat.deleteMany({});
+  await prisma.profile.deleteMany({});
+  await prisma.user.deleteMany({});
 
   // 1️⃣ Create users
-  const createdUsers = [];
-  for (let i = 0; i < usersData.length; i++) {
-    const user = await prisma.user.create({
-      data: usersData[i],
-    });
-    createdUsers.push(user);
+  for (const user of usersData) {
+    await prisma.user.create({ data: user });
   }
-
-  // 2️⃣ Create profiles linked to users
-  for (let i = 0; i < createdUsers.length; i++) {
+  console.log(profilesData);
+  // Create profiles
+  for (const profile of profilesData) {
     await prisma.profile.create({
       data: {
-        ...profilesData[i],
-        userId: createdUsers[i].id, // link profile to user
+        id: profile.id,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        profilePictureUrl: profile.profilePictureUrl,
+        user: {
+          connect: { id: profile.userId },
+        },
       },
     });
   }
 
-  console.log('Seed data created!');
+  // Create chats
+  for (const chat of chatsData) {
+    await prisma.chat.create({
+      data: {
+        id: chat.id,
+        creatorId: chat.creatorId,
+        type: chat.type,
+        participants: {
+          connect: chat.participantIds.map((id) => ({ id })),
+        },
+      },
+    });
+  }
+
+  // Create messages
+  for (const msg of messagesData) {
+    await prisma.message.create({
+      data: {
+        type: msg.type,
+        content: msg.content,
+        senderId: msg.senderId,
+        chatId: msg.chatId,
+      },
+    });
+
+    console.log('Seed data created!');
+  }
 }
 
 main()
