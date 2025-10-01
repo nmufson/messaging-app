@@ -1,14 +1,16 @@
-import { Chat } from '@/packages/db';
-import { PrismaClient } from '@quickChat/db';
+import { ChatType } from '@common/schemas/chat';
+import { Chat } from '@db';
+import { PrismaClient } from '@db';
+import { ObjectId } from '@common/schemas/primitives';
 
 export const findOrCreateDirectChat = async (
   prisma: PrismaClient,
-  senderId: string,
-  receiverId: string
+  senderId: ObjectId,
+  receiverId: ObjectId
 ): Promise<{ chat: Chat; isNewChat: boolean }> => {
-  const existingChat = await prisma.chat.findUnique({
+  const existingChat = await prisma.chat.findFirst({
     where: {
-      type: 'DIRECT',
+      type: ChatType.enum.DIRECT,
       participants: {
         every: {
           id: { in: [senderId, receiverId] },

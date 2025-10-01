@@ -1,6 +1,6 @@
 import { ObjectId } from '@common/schemas/primitives';
 import { router, userProcedure } from '../trpc';
-import { z } from '@quickChat/common';
+import { z } from '@common';
 import { FriendRequestStatus } from '@common/schemas/friendRequest';
 import { TRPCError } from '@trpc/server';
 

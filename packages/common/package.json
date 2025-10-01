@@ -1,5 +1,5 @@
 {
-  "name": "@quickChat/common",
+  "name": "@common",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

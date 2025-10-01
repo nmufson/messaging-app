@@ -10,11 +10,10 @@ export const appRouter = router({
   auth: authRouter,
   user: userRouter,
 
-  conversation: chatRouter,
+  chat: chatRouter,
   friendRequest: friendRequestRouter,
   message: messageRouter,
 
   image: imageRouter,
 });
-
 export type AppRouter = typeof appRouter;

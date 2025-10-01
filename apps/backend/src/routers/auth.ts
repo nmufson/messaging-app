@@ -2,7 +2,7 @@ import { publicProcedure, router, userProcedure } from '../trpc';
 import { getUserByEmail } from '../services/user';
 import passport from 'passport';
 import type { User } from 'express';
-import { LoginInput, RegisterInput } from '@/packages/common/schemas/auth';
+import { LoginInput, RegisterInput } from '@common/schemas/auth';
 import { hashPassword } from '../services/hash';
 import { TRPCError } from '@trpc/server';
 
@@ -29,6 +29,7 @@ export const authRouter = router({
             hashedPassword,
           },
         });
+        console.log(user, 'User created successfully!');
         return { user };
       } catch (err) {
         console.error(err);

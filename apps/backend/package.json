@@ -8,8 +8,8 @@
     "start": "node dist/app.js"
   },
   "dependencies": {
-    "@quickChat/common": "workspace:*",
-    "@quickChat/db": "workspace:*",
+    "@common": "workspace:*",
+    "@db": "workspace:*",
     "@prisma/client": "^6.16.0",
     "@quixo3/prisma-session-store": "^3.1.13",
     "@trpc/client": "^11.5.0",

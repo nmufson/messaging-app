@@ -1,13 +1,18 @@
-import { ObjectId } from '@/packages/common/schemas/primitives';
+import { ObjectId } from '@common/schemas/primitives';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
-import { z } from '@quickChat/common';
+import { z } from '@common';
 import { eventEmitter } from '../lib/eventBus';
 import { handleTRPCError } from '../services/error';
-import { publicProcedure, router, userProcedure } from '../trpc';
-import { mergeAsyncIterators } from '@/packages/common/utils/mergeAsyncIterators';
-import { UserRole } from '@/packages/common/schemas/user';
-import { ChatType } from '@/packages/common/schemas/chat';
+import {
+  adminProcedure,
+  publicProcedure,
+  router,
+  userProcedure,
+} from '../trpc';
+import { mergeAsyncIterators } from '@common/utils/mergeAsyncIterators';
+import { UserRole } from '@common/schemas/user';
+import { ChatType } from '@common/schemas/chat';
 
 export const chatRouter = router({
   byId: userProcedure
@@ -174,7 +179,7 @@ export const chatRouter = router({
       }
       return profile.chats;
     }),
-  getAll: publicProcedure // TODO: change this to admin
+  getAll: adminProcedure
     .input(
       z.object({
         limit: z.number().default(100),

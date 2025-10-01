@@ -1,5 +1,5 @@
 import { MessageType, SendMessageInput } from '@common/schemas/message';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@db';
 import { Send } from 'express';
 
 export const sendMessage = async (
@@ -14,7 +14,7 @@ export const sendMessage = async (
       content,
       imageUrl,
       sender: { connect: { id: sender } },
-      conversation: { connect: { id: chatId } },
+      chat: { connect: { id: chatId } },
     },
   });
 };

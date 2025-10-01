@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { z } from '@quickChat/common';
+import { z } from '@common';
 import { handleTRPCError } from '../services/error';
 import { getUserByEmail, getUserById } from '../services/user';
 import { router, userProcedure } from '../trpc';

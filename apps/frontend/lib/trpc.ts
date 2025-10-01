@@ -1,10 +1,5 @@
-import { createTRPCClient, httpBatchLink } from '@trpc/react-query';
-import type { AppRouter } from '@/apps/backend/src/trpc/router';
+import type { AppRouter } from '@common/trpc/types';
+import { createTRPCContext } from '@trpc/tanstack-react-query';
 
-export const trpc = createTRPCClient<AppRouter>({
-  links: [
-    httpBatchLink({
-      url: 'http://localhost:3000',
-    }),
-  ],
-});
+export const { TRPCProvider, useTRPC, useTRPCClient } =
+  createTRPCContext<AppRouter>();
