@@ -43,6 +43,12 @@ export default function RootLayout({
       links: [
         httpBatchLink({
           url: 'http://localhost:3001/trpc',
+          fetch(url, options) {
+            return fetch(url, {
+              ...options,
+              credentials: 'include',
+            });
+          },
         }),
       ],
     })

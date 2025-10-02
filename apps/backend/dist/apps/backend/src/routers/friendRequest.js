@@ -3,12 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.friendRequestRouter = void 0;
 const primitives_1 = require("@common/schemas/primitives");
 const trpc_1 = require("../trpc");
-const common_1 = require("@quickChat/common");
+const _common_1 = require("@common");
 const friendRequest_1 = require("@common/schemas/friendRequest");
 const server_1 = require("@trpc/server");
 exports.friendRequestRouter = (0, trpc_1.router)({
     sendNew: trpc_1.userProcedure
-        .input(common_1.z.object({
+        .input(_common_1.z.object({
         senderId: primitives_1.ObjectId,
         receiverId: primitives_1.ObjectId,
     }))
@@ -23,7 +23,7 @@ exports.friendRequestRouter = (0, trpc_1.router)({
         return newRequest;
     }),
     update: trpc_1.userProcedure
-        .input(common_1.z.object({
+        .input(_common_1.z.object({
         newStatus: friendRequest_1.FriendRequestStatus,
         senderId: primitives_1.ObjectId,
         receiverId: primitives_1.ObjectId,

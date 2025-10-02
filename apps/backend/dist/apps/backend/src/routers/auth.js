@@ -30,6 +30,7 @@ exports.authRouter = (0, trpc_1.router)({
                     hashedPassword,
                 },
             });
+            console.log(user, 'User created successfully!');
             return { user };
         }
         catch (err) {
@@ -40,8 +41,14 @@ exports.authRouter = (0, trpc_1.router)({
             });
         }
     }),
-    login: trpc_1.publicProcedure.input(auth_1.LoginInput).mutation(async ({ input, ctx }) => {
+    login: trpc_1.publicProcedure.input(auth_1.LogInInput).mutation(async ({ input, ctx }) => {
         return new Promise((resolve, reject) => {
+            if ('body' in ctx.req) {
+                ctx.req.body = {
+                    email: input.email,
+                    password: input.password,
+                };
+            }
             passport_1.default.authenticate('local', (err, user, info) => {
                 if (err)
                     return reject(err);

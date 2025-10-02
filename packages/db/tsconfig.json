@@ -1,8 +1,6 @@
 {
   "compilerOptions": {
+    "outDir": "dist"
   },
-  "include": [
-    ".",
-    "./app/generated/prisma"
-  ]
+  "include": [".", "./app/generated/prisma", "src"]
 }

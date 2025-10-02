@@ -27,7 +27,7 @@ export const RegisterInput = z
     path: ['confirmPassword'],
   });
 
-export const LoginInput = z.object({
+export const LogInInput = z.object({
   email: z.email(),
   password: z.string(),
 });

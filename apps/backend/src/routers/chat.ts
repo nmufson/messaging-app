@@ -12,7 +12,7 @@ import {
 } from '../trpc';
 import { mergeAsyncIterators } from '@common/utils/mergeAsyncIterators';
 import { UserRole } from '@common/schemas/user';
-import { ChatType } from '@common/schemas/chat';
+import { ChatDTO, ChatType } from '@common/schemas/chat';
 
 export const chatRouter = router({
   byId: userProcedure
@@ -188,15 +188,11 @@ export const chatRouter = router({
     .query(async ({ ctx }) => {
       try {
         const chats = await ctx.prisma.chat.findMany({
-          take: 30,
           orderBy: { updatedAt: 'desc' },
           include: {
             messages: {
               orderBy: { createdAt: 'desc' },
               take: 1, // for displaying most recent msg in list
-              select: {
-                content: true,
-              },
               include: {
                 sender: {
                   select: {

@@ -4,7 +4,7 @@ exports.messageRouter = void 0;
 const primitives_1 = require("@common/schemas/primitives");
 const message_1 = require("@common/schemas/message");
 const server_1 = require("@trpc/server");
-const common_1 = require("@quickChat/common");
+const _common_1 = require("@common");
 const chat_1 = require("../services/chat");
 const message_2 = require("../services/message");
 const trpc_1 = require("../trpc");
@@ -12,7 +12,7 @@ const events_1 = require("events");
 const eventBus_1 = require("../lib/eventBus");
 exports.messageRouter = (0, trpc_1.router)({
     onNewMessage: trpc_1.userProcedure
-        .input(common_1.z.object({
+        .input(_common_1.z.object({
         chatId: primitives_1.ObjectId,
         lastMessageId: primitives_1.ObjectId.nullish(),
     }))
@@ -43,12 +43,12 @@ exports.messageRouter = (0, trpc_1.router)({
         }
     }),
     sendDirect: trpc_1.userProcedure
-        .input(common_1.z.object({
+        .input(_common_1.z.object({
         sender: primitives_1.ObjectId,
         receiver: primitives_1.ObjectId,
         type: message_1.MessageType,
-        content: common_1.z.string().nullable(),
-        imageUrl: common_1.z.string().nullable(),
+        content: _common_1.z.string().nullable(),
+        imageUrl: _common_1.z.string().nullable(),
     }))
         // TODO: add an event emitter here for add chat
         .mutation(async ({ input, ctx }) => {

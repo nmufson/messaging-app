@@ -16,9 +16,10 @@ exports.Message = zod_1.z.object({
     type: exports.MessageType,
     content: zod_1.z.string().nullable(),
     imageUrl: zod_1.z.string().nullable(),
-    get sender() {
-        return zod_1.z.union([primitives_1.ObjectId, profile_1.Profile]);
-    },
+    // get sender() {
+    //   return z.union([ObjectId, Profile]);
+    // },
+    sender: zod_1.z.union([primitives_1.ObjectId, profile_1.Profile]),
     chatId: primitives_1.ObjectId,
     createdAt: primitives_1.DateTimeSchema,
     updatedAt: primitives_1.DateTimeSchema.optional(),

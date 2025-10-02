@@ -12,7 +12,7 @@ exports.ChatType = zod_1.default.enum(['GROUP', 'DIRECT']);
 const BaseChat = zod_1.default.object({
     id: primitives_1.ObjectId,
     messages: message_1.Message.array(),
-    get profiles() {
+    get participants() {
         return profile_1.Profile.array();
     },
     createdAt: primitives_1.DateTimeSchema,

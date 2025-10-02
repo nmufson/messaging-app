@@ -9,11 +9,13 @@ const user_1 = require("../services/user");
 const hash_1 = require("../services/hash");
 passport_1.default.use(new passport_local_1.Strategy({ usernameField: 'email' }, async (email, password, done) => {
     const user = await (0, user_1.getUserByEmail)(email);
+    console.log(email, user);
     if (!user)
         return done(null, false, {
             message: 'Account with this email does not exist',
         });
     const validPassword = await (0, hash_1.verifyPassword)(user, password);
+    console.log('Password valid:', validPassword);
     if (!validPassword)
         return done(null, false, { message: 'Incorrect password' });
     return done(null, user);

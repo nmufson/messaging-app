@@ -11,7 +11,7 @@ const _1 = require(".");
 exports.appRouter = (0, _1.router)({
     auth: auth_1.authRouter,
     user: user_1.userRouter,
-    conversation: chat_1.chatRouter,
+    chat: chat_1.chatRouter,
     friendRequest: friendRequest_1.friendRequestRouter,
     message: message_1.messageRouter,
     image: image_1.imageRouter,

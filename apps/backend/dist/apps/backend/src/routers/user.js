@@ -2,13 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userRouter = void 0;
 const server_1 = require("@trpc/server");
-const common_1 = require("@quickChat/common");
+const _common_1 = require("@common");
 const error_1 = require("../services/error");
 const user_1 = require("../services/user");
 const trpc_1 = require("../trpc");
 exports.userRouter = (0, trpc_1.router)({
     getUserById: trpc_1.userProcedure
-        .input(common_1.z.object({ userId: common_1.z.string() }))
+        .input(_common_1.z.object({ userId: _common_1.z.string() }))
         .query(async ({ input, ctx }) => {
         const { userId } = input;
         try {
@@ -20,7 +20,7 @@ exports.userRouter = (0, trpc_1.router)({
         }
     }),
     getUserByEmail: trpc_1.userProcedure
-        .input(common_1.z.object({ email: common_1.z.string().email() }))
+        .input(_common_1.z.object({ email: _common_1.z.string().email() }))
         .query(async ({ input, ctx }) => {
         const user = await (0, user_1.getUserByEmail)(input.email);
         if (!user) {

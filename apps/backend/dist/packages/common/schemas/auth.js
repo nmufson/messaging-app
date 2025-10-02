@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LoginInput = exports.RegisterInput = void 0;
+exports.LogInInput = exports.RegisterInput = void 0;
 const zod_1 = require("zod");
 const Password = zod_1.z
     .string()
@@ -27,7 +27,7 @@ exports.RegisterInput = zod_1.z
     message: 'Passwords do not match',
     path: ['confirmPassword'],
 });
-exports.LoginInput = zod_1.z.object({
+exports.LogInInput = zod_1.z.object({
     email: zod_1.z.email(),
     password: zod_1.z.string(),
 });

@@ -2,7 +2,7 @@ import { publicProcedure, router, userProcedure } from '../trpc';
 import { getUserByEmail } from '../services/user';
 import passport from 'passport';
 import type { User } from 'express';
-import { LoginInput, RegisterInput } from '@common/schemas/auth';
+import { LogInInput, RegisterInput } from '@common/schemas/auth';
 import { hashPassword } from '../services/hash';
 import { TRPCError } from '@trpc/server';
 
@@ -39,8 +39,14 @@ export const authRouter = router({
         });
       }
     }),
-  login: publicProcedure.input(LoginInput).mutation(async ({ input, ctx }) => {
+  login: publicProcedure.input(LogInInput).mutation(async ({ input, ctx }) => {
     return new Promise((resolve, reject) => {
+      if ('body' in ctx.req) {
+        ctx.req.body = {
+          email: input.email,
+          password: input.password,
+        };
+      }
       passport.authenticate('local', (err: Error, user: User, info: object) => {
         if (err) return reject(err);
         if (!user) return reject(new Error('Invalid credentials'));

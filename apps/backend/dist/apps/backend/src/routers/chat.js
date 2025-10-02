@@ -4,7 +4,7 @@ exports.chatRouter = void 0;
 const primitives_1 = require("@common/schemas/primitives");
 const server_1 = require("@trpc/server");
 const events_1 = require("events");
-const common_1 = require("@quickChat/common");
+const _common_1 = require("@common");
 const eventBus_1 = require("../lib/eventBus");
 const error_1 = require("../services/error");
 const trpc_1 = require("../trpc");
@@ -13,9 +13,9 @@ const user_1 = require("@common/schemas/user");
 const chat_1 = require("@common/schemas/chat");
 exports.chatRouter = (0, trpc_1.router)({
     byId: trpc_1.userProcedure
-        .input(common_1.z.object({
+        .input(_common_1.z.object({
         chatId: primitives_1.ObjectId,
-        limit: common_1.z.number().default(100),
+        limit: _common_1.z.number().default(100),
         cursor: primitives_1.ObjectId.optional(),
     }))
         .query(async ({ ctx, input }) => {
@@ -54,7 +54,7 @@ exports.chatRouter = (0, trpc_1.router)({
         return chat;
     }),
     onNewMessageInChat: trpc_1.userProcedure
-        .input(common_1.z.object({
+        .input(_common_1.z.object({
         profileId: primitives_1.ObjectId,
     }))
         .subscription(async function* ({ input, ctx, signal }) {
@@ -82,7 +82,7 @@ exports.chatRouter = (0, trpc_1.router)({
         }
     }),
     onNewChat: trpc_1.userProcedure
-        .input(common_1.z.object({
+        .input(_common_1.z.object({
         profileId: primitives_1.ObjectId,
     }))
         .subscription(async function* ({ input, ctx, signal }) {
@@ -98,9 +98,9 @@ exports.chatRouter = (0, trpc_1.router)({
         }
     }),
     getList: trpc_1.userProcedure
-        .input(common_1.z.object({
-        profileId: common_1.z.string(),
-        limit: common_1.z.number().default(100),
+        .input(_common_1.z.object({
+        profileId: _common_1.z.string(),
+        limit: _common_1.z.number().default(100),
     }))
         .query(async ({ input, ctx }) => {
         const { profileId, limit } = input;
@@ -153,22 +153,18 @@ exports.chatRouter = (0, trpc_1.router)({
         }
         return profile.chats;
     }),
-    getAll: trpc_1.publicProcedure // TODO: change this to admin
-        .input(common_1.z.object({
-        limit: common_1.z.number().default(100),
+    getAll: trpc_1.adminProcedure
+        .input(_common_1.z.object({
+        limit: _common_1.z.number().default(100),
     }))
         .query(async ({ ctx }) => {
         try {
             const chats = await ctx.prisma.chat.findMany({
-                take: 30,
                 orderBy: { updatedAt: 'desc' },
                 include: {
                     messages: {
                         orderBy: { createdAt: 'desc' },
                         take: 1, // for displaying most recent msg in list
-                        select: {
-                            content: true,
-                        },
                         include: {
                             sender: {
                                 select: {
@@ -195,7 +191,7 @@ exports.chatRouter = (0, trpc_1.router)({
         }
     }),
     createGroup: trpc_1.userProcedure
-        .input(common_1.z.object({
+        .input(_common_1.z.object({
         creator: primitives_1.ObjectId,
         participants: primitives_1.ObjectId.array(),
     }))
