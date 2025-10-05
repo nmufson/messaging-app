@@ -30,7 +30,7 @@ export const findOrCreateDirectChat = async (
   const newChat = await prisma.chat.create({
     data: {
       type: 'DIRECT',
-      creator: senderId,
+      creatorId: senderId,
       participants: {
         connect: [{ id: senderId }, { id: receiverId }],
       },

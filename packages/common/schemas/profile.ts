@@ -1,34 +1,31 @@
 import { z } from 'zod';
-import { Chat } from './chat';
-import { DateTimeSchema, ObjectId } from './primitives';
-import { Message } from './message';
-import { FriendRequest } from './friendRequest';
+import { ObjectId } from './primitives';
 
-export const Profile = z.object({
-  id: ObjectId,
-  firstName: z.string(),
-  lastName: z.string(),
-  profilePictureUrl: z.string().nullable(),
+// export const Profile = z.object({
+//   id: ObjectId,
+//   firstName: z.string(),
+//   lastName: z.string(),
+//   profilePictureUrl: z.string().nullable(),
 
-  get friends() {
-    return z.union([ObjectId, Profile]).array();
-  },
+//   get friends() {
+//     return z.union([ObjectId, Profile]).array();
+//   },
 
-  sentFriendRequests: z.union([ObjectId, FriendRequest]).array(),
-  receivedFriendRequests: z.union([ObjectId, FriendRequest]).array(),
+//   sentFriendRequests: z.union([ObjectId, FriendRequest]).array(),
+//   receivedFriendRequests: z.union([ObjectId, FriendRequest]).array(),
 
-  messages: z.union([ObjectId, Message]).array(),
+//   messages: z.union([ObjectId, Message]).array(),
 
-  get conversations() {
-    return z.union([ObjectId, Chat]).array();
-  },
+//   get conversations() {
+//     return z.union([ObjectId, Chat]).array();
+//   },
 
-  user: ObjectId,
+//   user: ObjectId,
 
-  createdAt: DateTimeSchema,
-  updatedAt: DateTimeSchema.optional(),
-});
-export type Profile = z.infer<typeof Profile>;
+//   createdAt: DateTimeSchema,
+//   updatedAt: DateTimeSchema.optional(),
+// });
+// export type Profile = z.infer<typeof Profile>;
 
 export const CreateProfileInput = z.object({
   userId: ObjectId,

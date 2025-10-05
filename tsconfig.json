@@ -21,7 +21,7 @@
     ],
     "paths": {
       "@common/*": ["packages/common/*"],
-      "@db": ["packages/db/index.ts"]
+      "@db": ["packages/db/src/index.ts"]
     }
   },
   "include": [

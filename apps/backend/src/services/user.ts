@@ -1,9 +1,9 @@
-import { prisma } from '@db';
+import { prisma, User } from '@db';
 
-export async function getUserByEmail(email: string) {
+export async function getUserByEmail(email: string): Promise<User | null> {
   return prisma.user.findUnique({ where: { email } });
 }
 
-export async function getUserById(id: string) {
+export async function getUserById(id: string): Promise<User | null> {
   return prisma.user.findUnique({ where: { id } });
 }

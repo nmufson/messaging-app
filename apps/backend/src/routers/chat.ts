@@ -4,15 +4,11 @@ import { on } from 'events';
 import { z } from '@common';
 import { eventEmitter } from '../lib/eventBus';
 import { handleTRPCError } from '../services/error';
-import {
-  adminProcedure,
-  publicProcedure,
-  router,
-  userProcedure,
-} from '../trpc';
+import { adminProcedure, router, userProcedure } from '../trpc';
 import { mergeAsyncIterators } from '@common/utils/mergeAsyncIterators';
 import { UserRole } from '@common/schemas/user';
 import { ChatDTO, ChatType } from '@common/schemas/chat';
+import { logger } from '../lib/pino';
 
 export const chatRouter = router({
   byId: userProcedure
@@ -71,6 +67,8 @@ export const chatRouter = router({
       const { profileId } = input;
       const { user } = ctx;
 
+      if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
+
       if (user.id !== profileId && user.role !== 'ADMIN') {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
@@ -108,6 +106,8 @@ export const chatRouter = router({
       const { profileId } = input;
       const { user } = ctx;
 
+      if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
+
       if (user.id !== profileId && user.role !== UserRole.enum.ADMIN) {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
@@ -128,6 +128,8 @@ export const chatRouter = router({
     .query(async ({ input, ctx }) => {
       const { profileId, limit } = input;
       const { user } = ctx;
+
+      if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
 
       if (user.id !== profileId && user.role !== UserRole.enum.ADMIN) {
         throw new TRPCError({
@@ -179,43 +181,77 @@ export const chatRouter = router({
       }
       return profile.chats;
     }),
+  // TODO: move this to an admin router??
   getAll: adminProcedure
     .input(
       z.object({
         limit: z.number().default(100),
       })
     )
+    .output(ChatDTO.array())
     .query(async ({ ctx }) => {
-      try {
-        const chats = await ctx.prisma.chat.findMany({
-          orderBy: { updatedAt: 'desc' },
-          include: {
-            messages: {
-              orderBy: { createdAt: 'desc' },
-              take: 1, // for displaying most recent msg in list
-              include: {
-                sender: {
-                  select: {
-                    firstName: true,
-                    lastName: true,
-                  },
+      logger.info('Requesting all chats');
+
+      // try {
+      const chats = await ctx.prisma.chat.findMany({
+        orderBy: { updatedAt: 'desc' },
+        include: {
+          messages: {
+            orderBy: { createdAt: 'desc' },
+            take: 1, // display most recent msg in preview
+            include: {
+              sender: {
+                select: {
+                  firstName: true,
+                  lastName: true,
                 },
               },
             },
-            participants: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                profilePictureUrl: true,
-              },
+          },
+          participants: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profilePictureUrl: true,
             },
           },
-        });
-        return { chats };
-      } catch (err) {
-        handleTRPCError(err, 'Failed to retrieve chats');
-      }
+          creator: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      });
+
+      const transformedChats = chats.map((chat) => ({
+        id: chat.id,
+        type: chat.type,
+        createdAt: chat.createdAt.toISOString(), // ✅ Convert Date to string
+        updatedAt: chat.updatedAt?.toISOString(), // ✅ Convert Date to string
+        participants: chat.participants,
+        lastMessage: chat.messages[0]
+          ? {
+              content: chat.messages[0].content || '',
+              sender: chat.messages[0].sender,
+            }
+          : undefined,
+
+        name: chat.name,
+        groupPictureUrl: chat.groupPictureUrl,
+        creator: chat.creator,
+      }));
+      console.log('Transformed chats sample:', transformedChats[0]); // Debug log
+
+      return transformedChats;
+      // } catch (err) {
+      //   handleTRPCError(err, 'Failed to retrieve chats', {
+      //     userId: ctx.user?.id,
+      //     operation: 'getAll',
+      //   });
+      // }
     }),
 
   createGroup: userProcedure
@@ -230,7 +266,7 @@ export const chatRouter = router({
 
       const chat = await ctx.prisma.chat.create({
         data: {
-          creator,
+          creatorId: creator,
           type: ChatType.enum.GROUP,
           participants: {
             connect: participants.map((id) => ({ id })),

@@ -1,23 +1,27 @@
 {
   "name": "@db",
   "private": true,
-  "main": "index.ts",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "prisma"
+  ],
   "scripts": {
-    "build": "tsc -b",
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
-    "studio": "prisma studio"
-  },
-  "prisma": {
-    "seed": "ts-node seed.ts"
+    "studio": "prisma studio",
+    "build": "tsc -b",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@prisma/client": "^5.0.0"
   },
   "devDependencies": {
-    "@types/node": "^24.3.0",
     "prisma": "^5.0.0",
+    "typescript": "^5.9.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "@types/node": "^24.3.0"
   }
 }

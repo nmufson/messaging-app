@@ -1,5 +1,5 @@
 import 'express';
-import { UserRole } from '@db';
+import { UserRole } from '../../../../packages/db/src';
 
 declare module 'express' {
   interface User {

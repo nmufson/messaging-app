@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/lib/eventBus.ts"],"sourcesContent":["import EventEmitter from 'events';\n\nexport const eventEmitter = new EventEmitter();\n"],"mappings":";AAAA,OAAO,kBAAkB;AAElB,IAAM,eAAe,IAAI,aAAa;","names":[]}

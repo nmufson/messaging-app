@@ -8,5 +8,9 @@
     "esModuleInterop": true,
     "strict": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "paths": {
+    "@backend/*": ["../../apps/backend/*"],
+    "@db": ["packages/db/index.ts"]
+  }
 }

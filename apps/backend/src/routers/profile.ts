@@ -25,6 +25,7 @@ export const profileRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { userId, firstName, lastName, profilePictureUrl } = input;
       const { user } = ctx;
+      if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
 
       if (userId !== user.id && user.role !== 'ADMIN') {
         throw new TRPCError({

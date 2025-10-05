@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/trpc/init.ts"],"sourcesContent":["import { initTRPC } from '@trpc/server';\nimport { Context } from './context';\n\nexport const t = initTRPC.context<Context>().create();\n\nexport const router = t.router;\n"],"mappings":";AAAA,SAAS,gBAAgB;AAGlB,IAAM,IAAI,SAAS,QAAiB,EAAE,OAAO;AAE7C,IAAM,SAAS,EAAE;","names":[]}

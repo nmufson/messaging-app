@@ -4,7 +4,7 @@
     "outDir": "dist",
     "paths": {
       "@common/*": ["../../packages/common/*"],
-      "@db": ["../../packages/db/index.ts"]
+      "@db": ["../../packages/db/src/index.ts"]
     },
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -15,7 +15,9 @@
     "target": "ES2020",
     "module": "commonjs",
     "resolveJsonModule": true,
-    "noEmit": false
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": false
   },
   "include": ["src"]
 }

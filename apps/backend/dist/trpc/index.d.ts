@@ -1,0 +1,10 @@
+export { Context, createContext, createWSSContext } from './context.js';
+export { router, t } from './init.js';
+export { isAdmin, isAuthed } from './middleware.js';
+export { adminProcedure, publicProcedure, userProcedure } from './procedures.js';
+import 'express';
+import '@db';
+import '@trpc/server/adapters/express';
+import 'http';
+import '@trpc/server/adapters/ws';
+import '@trpc/server';
