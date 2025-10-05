@@ -10,15 +10,11 @@ export default function Chats() {
   const trpc = useTRPC();
   const queryOptions = trpc.chat.getAll.queryOptions({});
 
-  const { data, isLoading, error } = useQuery(queryOptions);
+  const { data: chats, isLoading, error } = useQuery(queryOptions);
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
-  if (!data || data.length === 0) return <div>No messages found</div>;
-  console.log('Data from backend:', data);
-  console.log('Data type:', typeof data);
-
-  const chats: ChatDTO[] = data;
+  if (!chats || chats.length === 0) return <div>No messages found</div>;
 
   return (
     <div className="bg-blue-500 flex">
@@ -32,7 +28,11 @@ export default function Chats() {
   );
 }
 
-function ChatPreview({ chat }: { chat: ChatDTO }) {
+interface ChatPreviewProps {
+  chat: ChatDTO;
+}
+
+function ChatPreview({ chat }: ChatPreviewProps) {
   const { type, name, participants, lastMessage } = chat;
   const isGroupChat = type === ChatType.enum.GROUP;
   const participantNames = participants.map(

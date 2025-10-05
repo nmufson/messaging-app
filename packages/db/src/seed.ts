@@ -2,11 +2,12 @@ import { usersData, profilesData, chatsData, messagesData } from './sampleData';
 import { prisma } from './index';
 
 async function main() {
-  console.log('Start seeding...');
-  await prisma.message.deleteMany({});
-  await prisma.chat.deleteMany({});
-  await prisma.profile.deleteMany({});
-  await prisma.user.deleteMany({});
+  console.log('🚨 Clearing existing data...');
+
+  await prisma.message.deleteMany();
+  await prisma.chat.deleteMany();
+  await prisma.profile.deleteMany();
+  await prisma.user.deleteMany();
 
   // 1️⃣ Create users
   for (const user of usersData) {

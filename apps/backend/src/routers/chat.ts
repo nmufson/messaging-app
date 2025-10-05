@@ -192,7 +192,6 @@ export const chatRouter = router({
     .query(async ({ ctx }) => {
       logger.info('Requesting all chats');
 
-      // try {
       const chats = await ctx.prisma.chat.findMany({
         orderBy: { updatedAt: 'desc' },
         include: {
@@ -226,32 +225,7 @@ export const chatRouter = router({
         },
       });
 
-      const transformedChats = chats.map((chat) => ({
-        id: chat.id,
-        type: chat.type,
-        createdAt: chat.createdAt.toISOString(), // ✅ Convert Date to string
-        updatedAt: chat.updatedAt?.toISOString(), // ✅ Convert Date to string
-        participants: chat.participants,
-        lastMessage: chat.messages[0]
-          ? {
-              content: chat.messages[0].content || '',
-              sender: chat.messages[0].sender,
-            }
-          : undefined,
-
-        name: chat.name,
-        groupPictureUrl: chat.groupPictureUrl,
-        creator: chat.creator,
-      }));
-      console.log('Transformed chats sample:', transformedChats[0]); // Debug log
-
-      return transformedChats;
-      // } catch (err) {
-      //   handleTRPCError(err, 'Failed to retrieve chats', {
-      //     userId: ctx.user?.id,
-      //     operation: 'getAll',
-      //   });
-      // }
+      return chats;
     }),
 
   createGroup: userProcedure
