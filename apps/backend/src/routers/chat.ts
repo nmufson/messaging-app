@@ -198,11 +198,15 @@ export const chatRouter = router({
           messages: {
             orderBy: { createdAt: 'desc' },
             take: 1, // display most recent msg in preview
-            include: {
+            select: {
+              content: true,
+              createdAt: true,
+              type: true,
               sender: {
                 select: {
                   firstName: true,
                   lastName: true,
+                  profilePictureUrl: true,
                 },
               },
             },
@@ -220,6 +224,7 @@ export const chatRouter = router({
               id: true,
               firstName: true,
               lastName: true,
+              profilePictureUrl: true,
             },
           },
         },

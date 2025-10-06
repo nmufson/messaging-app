@@ -32,6 +32,11 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.z = void 0;
+exports.superjson = exports.z = void 0;
 exports.z = __importStar(require("zod"));
+var superjson_1 = require("./superjson");
+Object.defineProperty(exports, "superjson", { enumerable: true, get: function () { return __importDefault(superjson_1).default; } });

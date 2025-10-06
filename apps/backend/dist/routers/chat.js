@@ -36,7 +36,7 @@ module.exports = __toCommonJS(chat_exports);
 var import_primitives = require("@common/schemas/primitives");
 var import_server3 = require("@trpc/server");
 var import_events2 = require("events");
-var import_common = require("@common");
+var import_common2 = require("@common");
 
 // src/lib/eventBus.ts
 var import_events = __toESM(require("events"));
@@ -47,7 +47,10 @@ var import_db = require("@db");
 
 // src/trpc/init.ts
 var import_server = require("@trpc/server");
-var t = import_server.initTRPC.context().create();
+var import_common = require("@common");
+var t = import_server.initTRPC.context().create({
+  transformer: import_common.superjson
+});
 var router = t.router;
 
 // src/trpc/middleware.ts
@@ -107,9 +110,9 @@ var logger = (0, import_pino.default)({
 // src/routers/chat.ts
 var chatRouter = router({
   byId: userProcedure.input(
-    import_common.z.object({
+    import_common2.z.object({
       chatId: import_primitives.ObjectId,
-      limit: import_common.z.number().default(100),
+      limit: import_common2.z.number().default(100),
       cursor: import_primitives.ObjectId.optional()
     })
   ).query(async ({ ctx, input }) => {
@@ -148,7 +151,7 @@ var chatRouter = router({
     return chat;
   }),
   onNewMessageInChat: userProcedure.input(
-    import_common.z.object({
+    import_common2.z.object({
       profileId: import_primitives.ObjectId
     })
   ).subscription(async function* ({ input, ctx, signal }) {
@@ -179,7 +182,7 @@ var chatRouter = router({
     }
   }),
   onNewChat: userProcedure.input(
-    import_common.z.object({
+    import_common2.z.object({
       profileId: import_primitives.ObjectId
     })
   ).subscription(async function* ({ input, ctx, signal }) {
@@ -196,9 +199,9 @@ var chatRouter = router({
     }
   }),
   getList: userProcedure.input(
-    import_common.z.object({
-      profileId: import_common.z.string(),
-      limit: import_common.z.number().default(100)
+    import_common2.z.object({
+      profileId: import_common2.z.string(),
+      limit: import_common2.z.number().default(100)
     })
   ).query(async ({ input, ctx }) => {
     const { profileId, limit } = input;
@@ -255,8 +258,8 @@ var chatRouter = router({
   }),
   // TODO: move this to an admin router??
   getAll: adminProcedure.input(
-    import_common.z.object({
-      limit: import_common.z.number().default(100)
+    import_common2.z.object({
+      limit: import_common2.z.number().default(100)
     })
   ).output(import_chat.ChatDTO.array()).query(async ({ ctx }) => {
     logger.info("Requesting all chats");
@@ -267,11 +270,15 @@ var chatRouter = router({
           orderBy: { createdAt: "desc" },
           take: 1,
           // display most recent msg in preview
-          include: {
+          select: {
+            content: true,
+            createdAt: true,
+            type: true,
             sender: {
               select: {
                 firstName: true,
-                lastName: true
+                lastName: true,
+                profilePictureUrl: true
               }
             }
           }
@@ -288,32 +295,16 @@ var chatRouter = router({
           select: {
             id: true,
             firstName: true,
-            lastName: true
+            lastName: true,
+            profilePictureUrl: true
           }
         }
       }
     });
-    const transformedChats = chats.map((chat) => ({
-      id: chat.id,
-      type: chat.type,
-      createdAt: chat.createdAt.toISOString(),
-      // ✅ Convert Date to string
-      updatedAt: chat.updatedAt?.toISOString(),
-      // ✅ Convert Date to string
-      participants: chat.participants,
-      lastMessage: chat.messages[0] ? {
-        content: chat.messages[0].content || "",
-        sender: chat.messages[0].sender
-      } : void 0,
-      name: chat.name,
-      groupPictureUrl: chat.groupPictureUrl,
-      creator: chat.creator
-    }));
-    console.log("Transformed chats sample:", transformedChats[0]);
-    return transformedChats;
+    return chats;
   }),
   createGroup: userProcedure.input(
-    import_common.z.object({
+    import_common2.z.object({
       creator: import_primitives.ObjectId,
       participants: import_primitives.ObjectId.array()
     })

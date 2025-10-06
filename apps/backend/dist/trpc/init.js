@@ -25,7 +25,10 @@ __export(init_exports, {
 });
 module.exports = __toCommonJS(init_exports);
 var import_server = require("@trpc/server");
-var t = import_server.initTRPC.context().create();
+var import_common = require("@common");
+var t = import_server.initTRPC.context().create({
+  transformer: import_common.superjson
+});
 var router = t.router;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

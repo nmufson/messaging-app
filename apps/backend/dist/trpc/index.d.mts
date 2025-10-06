@@ -8,3 +8,4 @@ import '@trpc/server/adapters/express';
 import 'http';
 import '@trpc/server/adapters/ws';
 import '@trpc/server';
+import '@common';

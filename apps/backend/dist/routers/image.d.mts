@@ -10,7 +10,7 @@ declare const imageRouter: _trpc_server.TRPCBuiltRouter<{
     ctx: Context;
     meta: object;
     errorShape: _trpc_server.TRPCDefaultErrorShape;
-    transformer: false;
+    transformer: true;
 }, _trpc_server.TRPCDecorateCreateRouterOptions<{
     getImageUploadSignature: _trpc_server.TRPCMutationProcedure<{
         input: void;

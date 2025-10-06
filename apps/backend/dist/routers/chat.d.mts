@@ -12,7 +12,7 @@ declare const chatRouter: _trpc_server.TRPCBuiltRouter<{
     ctx: Context;
     meta: object;
     errorShape: _trpc_server.TRPCDefaultErrorShape;
-    transformer: false;
+    transformer: true;
 }, _trpc_server.TRPCDecorateCreateRouterOptions<{
     byId: _trpc_server.TRPCQueryProcedure<{
         input: {
@@ -36,8 +36,8 @@ declare const chatRouter: _trpc_server.TRPCBuiltRouter<{
         } & {
             name: string | null;
             id: string;
-            createdAt: Date;
             type: _db.$Enums.ChatType;
+            createdAt: Date;
             updatedAt: Date | null;
             groupPictureUrl: string | null;
             creatorId: string;
@@ -78,19 +78,19 @@ declare const chatRouter: _trpc_server.TRPCBuiltRouter<{
                 };
             } & {
                 id: string;
-                createdAt: Date;
                 type: _db.$Enums.MessageType;
+                createdAt: Date;
+                chatId: string;
                 updatedAt: Date | null;
                 content: string | null;
-                chatId: string;
                 imageUrl: string | null;
                 senderId: string;
             })[];
         } & {
             name: string | null;
             id: string;
-            createdAt: Date;
             type: _db.$Enums.ChatType;
+            createdAt: Date;
             updatedAt: Date | null;
             groupPictureUrl: string | null;
             creatorId: string;
@@ -104,7 +104,8 @@ declare const chatRouter: _trpc_server.TRPCBuiltRouter<{
         output: {
             id: string;
             type: "GROUP" | "DIRECT";
-            createdAt: luxon.DateTime<true>;
+            createdAt: luxon.DateTime<boolean>;
+            updatedAt: unknown;
             participants: {
                 id: string;
                 firstName: string;
@@ -113,18 +114,20 @@ declare const chatRouter: _trpc_server.TRPCBuiltRouter<{
             }[];
             name: string | null;
             groupPictureUrl: string | null;
-            updatedAt?: luxon.DateTime<true> | undefined;
             lastMessage?: {
                 content: string;
+                createdAt: luxon.DateTime<boolean>;
                 sender: {
                     firstName: string;
                     lastName: string;
+                    profilePictureUrl: string | null;
                 };
             } | undefined;
             creator?: {
                 id: string;
                 firstName: string;
                 lastName: string;
+                profilePictureUrl: string | null;
             } | undefined;
         }[];
         meta: object;
@@ -137,8 +140,8 @@ declare const chatRouter: _trpc_server.TRPCBuiltRouter<{
         output: {
             name: string | null;
             id: string;
-            createdAt: Date;
             type: _db.$Enums.ChatType;
+            createdAt: Date;
             updatedAt: Date | null;
             groupPictureUrl: string | null;
             creatorId: string;

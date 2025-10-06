@@ -62,7 +62,10 @@ import { prisma as prisma2 } from "@db";
 
 // src/trpc/init.ts
 import { initTRPC } from "@trpc/server";
-var t = initTRPC.context().create();
+import { superjson } from "@common";
+var t = initTRPC.context().create({
+  transformer: superjson
+});
 var router = t.router;
 
 // src/trpc/middleware.ts

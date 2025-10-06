@@ -30,7 +30,10 @@ var import_db = require("@db");
 
 // src/trpc/init.ts
 var import_server = require("@trpc/server");
-var t = import_server.initTRPC.context().create();
+var import_common = require("@common");
+var t = import_server.initTRPC.context().create({
+  transformer: import_common.superjson
+});
 var router = t.router;
 
 // src/trpc/middleware.ts
@@ -61,12 +64,12 @@ var userProcedure = t.procedure.use(isAuthed);
 var adminProcedure = t.procedure.use(isAuthed).use(isAdmin);
 
 // src/routers/friendRequest.ts
-var import_common = require("@common");
+var import_common2 = require("@common");
 var import_friendRequest = require("@common/schemas/friendRequest");
 var import_server3 = require("@trpc/server");
 var friendRequestRouter = router({
   sendNew: userProcedure.input(
-    import_common.z.object({
+    import_common2.z.object({
       senderId: import_primitives.ObjectId,
       receiverId: import_primitives.ObjectId
     })
@@ -81,7 +84,7 @@ var friendRequestRouter = router({
     return newRequest;
   }),
   update: userProcedure.input(
-    import_common.z.object({
+    import_common2.z.object({
       newStatus: import_friendRequest.FriendRequestStatus,
       senderId: import_primitives.ObjectId,
       receiverId: import_primitives.ObjectId

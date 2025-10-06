@@ -34,7 +34,7 @@ __export(user_exports, {
 });
 module.exports = __toCommonJS(user_exports);
 var import_server4 = require("@trpc/server");
-var import_common = require("@common");
+var import_common2 = require("@common");
 
 // src/services/error.ts
 var import_server = require("@trpc/server");
@@ -96,7 +96,10 @@ var import_db2 = require("@db");
 
 // src/trpc/init.ts
 var import_server2 = require("@trpc/server");
-var t = import_server2.initTRPC.context().create();
+var import_common = require("@common");
+var t = import_server2.initTRPC.context().create({
+  transformer: import_common.superjson
+});
 var router = t.router;
 
 // src/trpc/middleware.ts
@@ -128,7 +131,7 @@ var adminProcedure = t.procedure.use(isAuthed).use(isAdmin);
 
 // src/routers/user.ts
 var userRouter = router({
-  getUserById: userProcedure.input(import_common.z.object({ userId: import_common.z.string() })).query(async ({ input, ctx }) => {
+  getUserById: userProcedure.input(import_common2.z.object({ userId: import_common2.z.string() })).query(async ({ input, ctx }) => {
     const { userId } = input;
     try {
       const user = getUserById(userId);
@@ -137,7 +140,7 @@ var userRouter = router({
       handleTRPCError(err, "Failed to retrieve user");
     }
   }),
-  getUserByEmail: userProcedure.input(import_common.z.object({ email: import_common.z.string().email() })).query(async ({ input, ctx }) => {
+  getUserByEmail: userProcedure.input(import_common2.z.object({ email: import_common2.z.string().email() })).query(async ({ input, ctx }) => {
     const user = await getUserByEmail(input.email);
     if (!user) {
       throw new import_server4.TRPCError({

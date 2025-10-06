@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { AppRouter } from '@common/trpc/types';
 import { TRPCProvider } from '../lib/trpc';
+import { superjson } from '@common';
 
 function makeQueryClient() {
   return new QueryClient({
@@ -42,6 +43,7 @@ export default function RootLayout({
     createTRPCClient<AppRouter>({
       links: [
         httpBatchLink({
+          transformer: superjson,
           url: 'http://localhost:3001/trpc',
           fetch(url, options) {
             return fetch(url, {

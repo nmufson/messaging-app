@@ -47,7 +47,10 @@ function createContext({
 
 // src/trpc/init.ts
 import { initTRPC } from "@trpc/server";
-var t = initTRPC.context().create();
+import { superjson } from "@common";
+var t = initTRPC.context().create({
+  transformer: superjson
+});
 var router = t.router;
 
 // src/trpc/middleware.ts
@@ -376,11 +379,15 @@ var chatRouter = router({
           orderBy: { createdAt: "desc" },
           take: 1,
           // display most recent msg in preview
-          include: {
+          select: {
+            content: true,
+            createdAt: true,
+            type: true,
             sender: {
               select: {
                 firstName: true,
-                lastName: true
+                lastName: true,
+                profilePictureUrl: true
               }
             }
           }
@@ -397,29 +404,13 @@ var chatRouter = router({
           select: {
             id: true,
             firstName: true,
-            lastName: true
+            lastName: true,
+            profilePictureUrl: true
           }
         }
       }
     });
-    const transformedChats = chats.map((chat) => ({
-      id: chat.id,
-      type: chat.type,
-      createdAt: chat.createdAt.toISOString(),
-      // ✅ Convert Date to string
-      updatedAt: chat.updatedAt?.toISOString(),
-      // ✅ Convert Date to string
-      participants: chat.participants,
-      lastMessage: chat.messages[0] ? {
-        content: chat.messages[0].content || "",
-        sender: chat.messages[0].sender
-      } : void 0,
-      name: chat.name,
-      groupPictureUrl: chat.groupPictureUrl,
-      creator: chat.creator
-    }));
-    console.log("Transformed chats sample:", transformedChats[0]);
-    return transformedChats;
+    return chats;
   }),
   createGroup: userProcedure.input(
     z.object({

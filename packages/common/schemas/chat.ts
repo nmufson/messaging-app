@@ -2,6 +2,7 @@ import { Dir } from 'fs';
 import z from 'zod';
 
 import { DateTimeSchema, ObjectId } from './primitives';
+import { profile } from 'console';
 
 export const ChatType = z.enum(['GROUP', 'DIRECT']);
 
@@ -33,7 +34,7 @@ export const ChatDTO = z.object({
   id: ObjectId,
   type: ChatType,
   createdAt: DateTimeSchema,
-  updatedAt: DateTimeSchema.optional(),
+  updatedAt: DateTimeSchema.nullable,
   participants: z.array(
     z.object({
       id: ObjectId,
@@ -45,9 +46,11 @@ export const ChatDTO = z.object({
   lastMessage: z
     .object({
       content: z.string(),
+      createdAt: DateTimeSchema,
       sender: z.object({
         firstName: z.string(),
         lastName: z.string(),
+        profilePictureUrl: z.string().nullable(),
       }),
     })
     .optional(),
@@ -59,6 +62,7 @@ export const ChatDTO = z.object({
       id: ObjectId,
       firstName: z.string(),
       lastName: z.string(),
+      profilePictureUrl: z.string().nullable(),
     })
     .optional(),
 });

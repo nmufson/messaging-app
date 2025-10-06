@@ -30,7 +30,10 @@ var import_db = require("@db");
 
 // src/trpc/init.ts
 var import_server = require("@trpc/server");
-var t = import_server.initTRPC.context().create();
+var import_common = require("@common");
+var t = import_server.initTRPC.context().create({
+  transformer: import_common.superjson
+});
 var router = t.router;
 
 // src/trpc/middleware.ts
@@ -61,12 +64,12 @@ var userProcedure = t.procedure.use(isAuthed);
 var adminProcedure = t.procedure.use(isAuthed).use(isAdmin);
 
 // src/routers/profile.ts
-var import_common = require("@common");
+var import_common2 = require("@common");
 var import_profile = require("@common/schemas/profile");
 var import_server3 = require("@trpc/server");
 var profileRouter = router({
   byId: userProcedure.input(
-    import_common.z.object({
+    import_common2.z.object({
       profileId: import_primitives.ObjectId
     })
   ).query(async ({ input, ctx }) => {
@@ -107,7 +110,7 @@ var profileRouter = router({
     });
     return updatedProfile;
   }),
-  getFriends: userProcedure.input(import_common.z.object({ profileId: import_primitives.ObjectId })).query(async ({ input, ctx }) => {
+  getFriends: userProcedure.input(import_common2.z.object({ profileId: import_primitives.ObjectId })).query(async ({ input, ctx }) => {
     const { profileId } = input;
     const friends = await ctx.prisma.profile.findUnique({
       where: { id: profileId },

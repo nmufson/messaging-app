@@ -80,7 +80,7 @@ model Chat {
   creator             Profile      @relation("ChatCreator", fields: [creatorId], references: [id])
   type                ChatType
   name                String?
-  groupPictureUrl    String?
+  groupPictureUrl     String?
   messages            Message[]
   participants        Profile[]     @relation("ChatParticipants")
 

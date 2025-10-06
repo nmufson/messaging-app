@@ -28,7 +28,10 @@ module.exports = __toCommonJS(procedures_exports);
 
 // src/trpc/init.ts
 var import_server = require("@trpc/server");
-var t = import_server.initTRPC.context().create();
+var import_common = require("@common");
+var t = import_server.initTRPC.context().create({
+  transformer: import_common.superjson
+});
 var router = t.router;
 
 // src/trpc/middleware.ts

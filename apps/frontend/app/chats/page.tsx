@@ -33,13 +33,18 @@ interface ChatPreviewProps {
 }
 
 function ChatPreview({ chat }: ChatPreviewProps) {
-  const { type, name, participants, lastMessage } = chat;
+  const { type, name, participants, lastMessage, groupPictureUrl } = chat;
   const isGroupChat = type === ChatType.enum.GROUP;
   const participantNames = participants.map(
     (p) => `${p.firstName} ${p.lastName}`
   );
-  const chatDisplayName =
-    isGroupChat && name ? name : participantNames.join(', ');
+  const displayName = isGroupChat && name ? name : participantNames.join(', ');
+
+  // TODO: make this show multiple user pics similar to Messages
+  const displayPicture =
+    groupPictureUrl || lastMessage?.sender.profilePictureUrl;
+
+  const timeToShow = lastMessage;
 
   return (
     <div className="">

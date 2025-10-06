@@ -64,7 +64,10 @@ function createContext({
 
 // src/trpc/init.ts
 var import_server = require("@trpc/server");
-var t = import_server.initTRPC.context().create();
+var import_common = require("@common");
+var t = import_server.initTRPC.context().create({
+  transformer: import_common.superjson
+});
 var router = t.router;
 
 // src/trpc/middleware.ts
@@ -197,7 +200,7 @@ var authRouter = router({
 var import_primitives = require("@common/schemas/primitives");
 var import_server4 = require("@trpc/server");
 var import_events2 = require("events");
-var import_common = require("@common");
+var import_common2 = require("@common");
 
 // src/lib/eventBus.ts
 var import_events = __toESM(require("events"));
@@ -233,9 +236,9 @@ var logger = (0, import_pino.default)({
 // src/routers/chat.ts
 var chatRouter = router({
   byId: userProcedure.input(
-    import_common.z.object({
+    import_common2.z.object({
       chatId: import_primitives.ObjectId,
-      limit: import_common.z.number().default(100),
+      limit: import_common2.z.number().default(100),
       cursor: import_primitives.ObjectId.optional()
     })
   ).query(async ({ ctx, input }) => {
@@ -274,7 +277,7 @@ var chatRouter = router({
     return chat;
   }),
   onNewMessageInChat: userProcedure.input(
-    import_common.z.object({
+    import_common2.z.object({
       profileId: import_primitives.ObjectId
     })
   ).subscription(async function* ({ input, ctx, signal }) {
@@ -305,7 +308,7 @@ var chatRouter = router({
     }
   }),
   onNewChat: userProcedure.input(
-    import_common.z.object({
+    import_common2.z.object({
       profileId: import_primitives.ObjectId
     })
   ).subscription(async function* ({ input, ctx, signal }) {
@@ -322,9 +325,9 @@ var chatRouter = router({
     }
   }),
   getList: userProcedure.input(
-    import_common.z.object({
-      profileId: import_common.z.string(),
-      limit: import_common.z.number().default(100)
+    import_common2.z.object({
+      profileId: import_common2.z.string(),
+      limit: import_common2.z.number().default(100)
     })
   ).query(async ({ input, ctx }) => {
     const { profileId, limit } = input;
@@ -381,8 +384,8 @@ var chatRouter = router({
   }),
   // TODO: move this to an admin router??
   getAll: adminProcedure.input(
-    import_common.z.object({
-      limit: import_common.z.number().default(100)
+    import_common2.z.object({
+      limit: import_common2.z.number().default(100)
     })
   ).output(import_chat.ChatDTO.array()).query(async ({ ctx }) => {
     logger.info("Requesting all chats");
@@ -393,11 +396,15 @@ var chatRouter = router({
           orderBy: { createdAt: "desc" },
           take: 1,
           // display most recent msg in preview
-          include: {
+          select: {
+            content: true,
+            createdAt: true,
+            type: true,
             sender: {
               select: {
                 firstName: true,
-                lastName: true
+                lastName: true,
+                profilePictureUrl: true
               }
             }
           }
@@ -414,32 +421,16 @@ var chatRouter = router({
           select: {
             id: true,
             firstName: true,
-            lastName: true
+            lastName: true,
+            profilePictureUrl: true
           }
         }
       }
     });
-    const transformedChats = chats.map((chat) => ({
-      id: chat.id,
-      type: chat.type,
-      createdAt: chat.createdAt.toISOString(),
-      // ✅ Convert Date to string
-      updatedAt: chat.updatedAt?.toISOString(),
-      // ✅ Convert Date to string
-      participants: chat.participants,
-      lastMessage: chat.messages[0] ? {
-        content: chat.messages[0].content || "",
-        sender: chat.messages[0].sender
-      } : void 0,
-      name: chat.name,
-      groupPictureUrl: chat.groupPictureUrl,
-      creator: chat.creator
-    }));
-    console.log("Transformed chats sample:", transformedChats[0]);
-    return transformedChats;
+    return chats;
   }),
   createGroup: userProcedure.input(
-    import_common.z.object({
+    import_common2.z.object({
       creator: import_primitives.ObjectId,
       participants: import_primitives.ObjectId.array()
     })
@@ -463,12 +454,12 @@ var chatRouter = router({
 
 // src/routers/friendRequest.ts
 var import_primitives2 = require("@common/schemas/primitives");
-var import_common2 = require("@common");
+var import_common3 = require("@common");
 var import_friendRequest = require("@common/schemas/friendRequest");
 var import_server5 = require("@trpc/server");
 var friendRequestRouter = router({
   sendNew: userProcedure.input(
-    import_common2.z.object({
+    import_common3.z.object({
       senderId: import_primitives2.ObjectId,
       receiverId: import_primitives2.ObjectId
     })
@@ -483,7 +474,7 @@ var friendRequestRouter = router({
     return newRequest;
   }),
   update: userProcedure.input(
-    import_common2.z.object({
+    import_common3.z.object({
       newStatus: import_friendRequest.FriendRequestStatus,
       senderId: import_primitives2.ObjectId,
       receiverId: import_primitives2.ObjectId
@@ -534,7 +525,7 @@ var imageRouter = router({
 var import_primitives3 = require("@common/schemas/primitives");
 var import_message = require("@common/schemas/message");
 var import_server6 = require("@trpc/server");
-var import_common3 = require("@common");
+var import_common4 = require("@common");
 
 // src/services/chat.ts
 var import_chat2 = require("@common/schemas/chat");
@@ -586,7 +577,7 @@ var sendMessage = async (prisma4, params) => {
 var import_events3 = require("events");
 var messageRouter = router({
   onNewMessage: userProcedure.input(
-    import_common3.z.object({
+    import_common4.z.object({
       chatId: import_primitives3.ObjectId,
       lastMessageId: import_primitives3.ObjectId.nullish()
     })
@@ -621,12 +612,12 @@ var messageRouter = router({
     }
   }),
   sendDirect: userProcedure.input(
-    import_common3.z.object({
+    import_common4.z.object({
       sender: import_primitives3.ObjectId,
       receiver: import_primitives3.ObjectId,
       type: import_message.MessageType,
-      content: import_common3.z.string().nullable(),
-      imageUrl: import_common3.z.string().nullable()
+      content: import_common4.z.string().nullable(),
+      imageUrl: import_common4.z.string().nullable()
     })
   ).mutation(async ({ input, ctx }) => {
     const { sender, receiver, content, imageUrl, type } = input;
@@ -679,7 +670,7 @@ var messageRouter = router({
 
 // src/routers/user.ts
 var import_server8 = require("@trpc/server");
-var import_common4 = require("@common");
+var import_common5 = require("@common");
 
 // src/services/error.ts
 var import_server7 = require("@trpc/server");
@@ -705,7 +696,7 @@ function handleTRPCError(err, fallbackMessage = "An error occured", context) {
 
 // src/routers/user.ts
 var userRouter = router({
-  getUserById: userProcedure.input(import_common4.z.object({ userId: import_common4.z.string() })).query(async ({ input, ctx }) => {
+  getUserById: userProcedure.input(import_common5.z.object({ userId: import_common5.z.string() })).query(async ({ input, ctx }) => {
     const { userId } = input;
     try {
       const user = getUserById(userId);
@@ -714,7 +705,7 @@ var userRouter = router({
       handleTRPCError(err, "Failed to retrieve user");
     }
   }),
-  getUserByEmail: userProcedure.input(import_common4.z.object({ email: import_common4.z.string().email() })).query(async ({ input, ctx }) => {
+  getUserByEmail: userProcedure.input(import_common5.z.object({ email: import_common5.z.string().email() })).query(async ({ input, ctx }) => {
     const user = await getUserByEmail(input.email);
     if (!user) {
       throw new import_server8.TRPCError({

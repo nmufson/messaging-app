@@ -36,7 +36,7 @@ module.exports = __toCommonJS(message_exports);
 var import_primitives = require("@common/schemas/primitives");
 var import_message = require("@common/schemas/message");
 var import_server3 = require("@trpc/server");
-var import_common = require("@common");
+var import_common2 = require("@common");
 
 // src/services/chat.ts
 var import_chat = require("@common/schemas/chat");
@@ -89,7 +89,10 @@ var import_db = require("@db");
 
 // src/trpc/init.ts
 var import_server = require("@trpc/server");
-var t = import_server.initTRPC.context().create();
+var import_common = require("@common");
+var t = import_server.initTRPC.context().create({
+  transformer: import_common.superjson
+});
 var router = t.router;
 
 // src/trpc/middleware.ts
@@ -129,7 +132,7 @@ var eventEmitter = new import_events.default();
 // src/routers/message.ts
 var messageRouter = router({
   onNewMessage: userProcedure.input(
-    import_common.z.object({
+    import_common2.z.object({
       chatId: import_primitives.ObjectId,
       lastMessageId: import_primitives.ObjectId.nullish()
     })
@@ -164,12 +167,12 @@ var messageRouter = router({
     }
   }),
   sendDirect: userProcedure.input(
-    import_common.z.object({
+    import_common2.z.object({
       sender: import_primitives.ObjectId,
       receiver: import_primitives.ObjectId,
       type: import_message.MessageType,
-      content: import_common.z.string().nullable(),
-      imageUrl: import_common.z.string().nullable()
+      content: import_common2.z.string().nullable(),
+      imageUrl: import_common2.z.string().nullable()
     })
   ).mutation(async ({ input, ctx }) => {
     const { sender, receiver, content, imageUrl, type } = input;

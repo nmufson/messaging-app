@@ -10,7 +10,7 @@ declare const userRouter: _trpc_server.TRPCBuiltRouter<{
     ctx: Context;
     meta: object;
     errorShape: _trpc_server.TRPCDefaultErrorShape;
-    transformer: false;
+    transformer: true;
 }, _trpc_server.TRPCDecorateCreateRouterOptions<{
     getUserById: _trpc_server.TRPCQueryProcedure<{
         input: {
