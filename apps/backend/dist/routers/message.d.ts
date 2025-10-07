@@ -33,19 +33,19 @@ declare const messageRouter: _trpc_server.TRPCBuiltRouter<{
             chat: {
                 name: string | null;
                 id: string;
-                type: _db.$Enums.ChatType;
                 createdAt: Date;
+                type: _db.$Enums.ChatType;
                 updatedAt: Date | null;
                 groupPictureUrl: string | null;
                 creatorId: string;
             };
             newDirectMessage: {
                 id: string;
-                type: _db.$Enums.MessageType;
                 createdAt: Date;
-                chatId: string;
+                type: _db.$Enums.MessageType;
                 updatedAt: Date | null;
                 content: string | null;
+                chatId: string;
                 imageUrl: string | null;
                 senderId: string;
             };
@@ -63,11 +63,11 @@ declare const messageRouter: _trpc_server.TRPCBuiltRouter<{
         output: {
             newMessage: {
                 id: string;
-                type: _db.$Enums.MessageType;
                 createdAt: Date;
-                chatId: string;
+                type: _db.$Enums.MessageType;
                 updatedAt: Date | null;
                 content: string | null;
+                chatId: string;
                 imageUrl: string | null;
                 senderId: string;
             };

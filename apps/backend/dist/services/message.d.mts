@@ -4,11 +4,11 @@ import { SendMessageInput } from '@common/schemas/message';
 
 declare const sendMessage: (prisma: PrismaClient, params: SendMessageInput) => Promise<{
     id: string;
-    type: _db.$Enums.MessageType;
     createdAt: Date;
-    chatId: string;
+    type: _db.$Enums.MessageType;
     updatedAt: Date | null;
     content: string | null;
+    chatId: string;
     imageUrl: string | null;
     senderId: string;
 }>;

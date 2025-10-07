@@ -57,14 +57,12 @@ export const ChatDTO = z.object({
   // Group-specific fields
   name: z.string().nullable(),
   groupPictureUrl: z.string().nullable(),
-  creator: z
-    .object({
-      id: ObjectId,
-      firstName: z.string(),
-      lastName: z.string(),
-      profilePictureUrl: z.string().nullable(),
-    })
-    .optional(),
+  creator: z.object({
+    id: ObjectId,
+    firstName: z.string(),
+    lastName: z.string(),
+    profilePictureUrl: z.string().nullable(),
+  }),
 });
 export type ChatDTO = z.infer<typeof ChatDTO>;
 

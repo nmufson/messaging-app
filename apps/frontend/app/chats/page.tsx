@@ -2,6 +2,7 @@
 import { RouterOutputs, useTRPC } from '../../lib/trpc';
 import { useQuery } from '@tanstack/react-query';
 import { ChatDTO, ChatType } from '@common/schemas/chat';
+import { last } from 'remeda';
 
 type Chats = RouterOutputs['chat']['getAll'];
 type Chat = RouterOutputs['chat']['byId'];
@@ -33,7 +34,16 @@ interface ChatPreviewProps {
 }
 
 function ChatPreview({ chat }: ChatPreviewProps) {
-  const { type, name, participants, lastMessage, groupPictureUrl } = chat;
+  const {
+    type,
+    name,
+    creator,
+    participants,
+    lastMessage,
+    groupPictureUrl,
+    createdAt: chatCreatedAt,
+  } = chat;
+
   const isGroupChat = type === ChatType.enum.GROUP;
   const participantNames = participants.map(
     (p) => `${p.firstName} ${p.lastName}`
@@ -44,7 +54,10 @@ function ChatPreview({ chat }: ChatPreviewProps) {
   const displayPicture =
     groupPictureUrl || lastMessage?.sender.profilePictureUrl;
 
-  const timeToShow = lastMessage;
+  const displayMessage = lastMessage
+    ? lastMessage.content
+    : `Chat created by ${creator?.firstName} ${creator?.lastName}`;
+  const timeToShow = lastMessage ? lastMessage.createdAt : chatCreatedAt;
 
   return (
     <div className="">

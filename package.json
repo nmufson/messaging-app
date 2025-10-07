@@ -8,7 +8,11 @@
     "packages/*"
   ],
   "scripts": {
-    "lint": "eslint"
+    "lint": "eslint",
+    "dev": "concurrently \"npm:dev-*\"",
+    "dev-frontend": "npm --workspace=apps/frontend run dev",
+    "dev-backend": "npm --workspace=apps/backend run dev",
+    "dev-common": "npm --workspace=packages/common run dev"
   },
   "dependencies": {
     "remeda": "^2.32.0"
@@ -20,6 +24,7 @@
     "@types/luxon": "^3.7.1",
     "@types/node": "^20",
     "@types/qs": "^6.14.0",
+    "concurrently": "^9.0.0",
     "eslint": "^9",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
