@@ -1,28 +1,49 @@
 import { ChatType, MessageType, UserRole } from '@prisma/client';
+import { randomUUID } from 'crypto';
 
 const PROFILE_PIC_URL = 'https://example.com/profile-pic.png';
 
+const userIds = {
+  alice: randomUUID(),
+  bob: randomUUID(),
+  charlie: randomUUID(),
+  diana: randomUUID(),
+};
+
+const profileIds = {
+  alice: randomUUID(),
+  bob: randomUUID(),
+  charlie: randomUUID(),
+  diana: randomUUID(),
+};
+
+const chatIds = {
+  ketchupStains: randomUUID(),
+  coolestKats: randomUUID(),
+  groupChat1: randomUUID(),
+  bigGroup2: randomUUID(),
+};
 export const usersData = [
   {
-    id: 'user-alice',
+    id: userIds.alice,
     email: 'alice@example.com',
     hashedPassword: 'hashedpassword1',
     role: UserRole.USER,
   },
   {
-    id: 'user-bob',
+    id: userIds.bob,
     email: 'bob@example.com',
     hashedPassword: 'hashedpassword2',
     role: UserRole.USER,
   },
   {
-    id: 'user-charlie',
+    id: userIds.charlie,
     email: 'charlie@example.com',
     hashedPassword: 'hashedpassword3',
     role: UserRole.USER,
   },
   {
-    id: 'user-diana',
+    id: userIds.diana,
     email: 'diana@example.com',
     hashedPassword: 'hashedpassword4',
     role: UserRole.USER,
@@ -31,88 +52,94 @@ export const usersData = [
 
 export const profilesData = [
   {
-    id: 'profile-alice',
+    id: profileIds.alice,
     firstName: 'Alice',
     lastName: 'Smith',
     profilePictureUrl: PROFILE_PIC_URL,
-    userId: 'user-alice',
+    userId: userIds.alice,
   },
   {
-    id: 'profile-bob',
+    id: profileIds.bob,
     firstName: 'Bob',
     lastName: 'Jones',
     profilePictureUrl: PROFILE_PIC_URL,
-    userId: 'user-bob',
+    userId: userIds.bob,
   },
   {
-    id: 'profile-charlie',
+    id: profileIds.charlie,
     firstName: 'Charlie',
     lastName: 'Brown',
-    userId: 'user-charlie',
+    profilePictureUrl: PROFILE_PIC_URL,
+    userId: userIds.charlie,
   },
   {
-    id: 'profile-diana',
+    id: profileIds.diana,
     firstName: 'Diana',
     lastName: 'Prince',
-    userId: 'user-diana',
+    profilePictureUrl: PROFILE_PIC_URL,
+    userId: userIds.diana,
   },
 ];
 
 export const chatsData = [
   {
-    id: 'Ketchup Stains',
-    creatorId: 'profile-alice',
+    id: chatIds.ketchupStains,
+    name: 'Ketchup Stains',
+    creatorId: profileIds.alice,
     type: ChatType.DIRECT,
-    participantIds: ['profile-alice', 'profile-bob'],
+    participantIds: [profileIds.alice, profileIds.bob],
     groupPictureUrl: 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp',
   },
   {
-    id: 'The Coolest Kats',
-    creatorId: 'profile-charlie',
+    id: chatIds.coolestKats,
+    name: 'The Coolest Kats',
+    creatorId: profileIds.charlie,
     type: ChatType.DIRECT,
-    participantIds: ['profile-charlie', 'profile-diana'],
+    participantIds: [profileIds.charlie, profileIds.diana],
     groupPictureUrl: 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp',
   },
   {
-    id: 'GROUP CHAT 1',
-    creatorId: 'profile-charlie',
+    id: chatIds.groupChat1,
+    name: 'GROUP CHAT 1',
+    creatorId: profileIds.charlie,
     type: ChatType.GROUP,
     participantIds: [
-      'profile-charlie',
-      'profile-diana',
-      'profile-alice',
-      'profile-bob',
+      profileIds.charlie,
+      profileIds.diana,
+      profileIds.alice,
+      profileIds.bob,
     ],
     groupPictureUrl: 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp',
   },
   {
-    id: 'biggroup2',
-    creatorId: 'profile-charlie',
+    id: chatIds.bigGroup2,
+    name: 'Big Group 2',
+    creatorId: profileIds.charlie,
     type: ChatType.GROUP,
-    participantIds: ['profile-charlie', 'profile-diana', 'profile-alice'],
+    participantIds: [profileIds.charlie, profileIds.diana, profileIds.alice],
   },
 ];
 
 export const messagesData = [
   {
-    id: 'msg-1',
+    id: randomUUID(),
     type: MessageType.TEXT,
     content: 'Hey Bob!',
-    senderId: 'profile-alice',
-    chatId: 'Ketchup Stains',
+    senderId: profileIds.alice,
+    chatId: chatIds.ketchupStains,
   },
   {
-    id: 'msg-2',
+    id: randomUUID(),
     type: MessageType.TEXT,
     content: 'Hi Alice!',
-    senderId: 'profile-bob',
-    chatId: 'GROUP CHAT 1',
+    senderId: profileIds.bob,
+    chatId: chatIds.groupChat1,
   },
   {
-    id: 'msg-3',
+    id: randomUUID(),
     type: MessageType.TEXT,
     content: 'Hello Diana!',
-    senderId: 'profile-charlie',
-    chatId: 'biggroup2',
+    senderId: profileIds.charlie,
+    chatId: chatIds.bigGroup2,
   },
 ];

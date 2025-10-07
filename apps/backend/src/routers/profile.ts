@@ -1,10 +1,10 @@
-import { ObjectId } from '@common/schemas/primitives';
+import { ObjectId } from '@common/src/schemas/primitives';
 import { router, userProcedure } from '../trpc';
 import { z } from '@common';
 import {
   CreateProfileInput,
   UpdateProfileInput,
-} from '@common/schemas/profile';
+} from '@common/src/schemas/profile';
 import { TRPCBuilder, TRPCError } from '@trpc/server';
 
 export const profileRouter = router({

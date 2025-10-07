@@ -36,6 +36,7 @@ async function main() {
         id: chat.id,
         creatorId: chat.creatorId,
         type: chat.type,
+        groupPictureUrl: chat.groupPictureUrl,
         participants: {
           connect: chat.participantIds.map((id) => ({ id })),
         },

@@ -1,5 +1,5 @@
-import { ObjectId } from '@common/schemas/primitives';
-import { MessageType, SendMessageInput } from '@common/schemas/message';
+import { ObjectId } from '@common/src/schemas/primitives';
+import { MessageType, SendMessageInput } from '@common/src/schemas/message';
 import { tracked, TRPCError } from '@trpc/server';
 import { z } from '@common';
 import { findOrCreateDirectChat } from '../services/chat';

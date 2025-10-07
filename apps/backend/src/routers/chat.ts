@@ -1,4 +1,4 @@
-import { ObjectId } from '@common/schemas/primitives';
+import { ObjectId } from '@common/src/schemas/primitives';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
 import { z } from '@common';
@@ -6,11 +6,12 @@ import { eventEmitter } from '../lib/eventBus';
 import { handleTRPCError } from '../services/error';
 import { adminProcedure, router, userProcedure } from '../trpc';
 import { mergeAsyncIterators } from '@common/utils/mergeAsyncIterators';
-import { UserRole } from '@common/schemas/user';
-import { ChatDTO, ChatType } from '@common/schemas/chat';
+import { UserRole } from '@common/src/schemas/user';
+import { ChatDTO, ChatType } from '@common/src/schemas/chat';
 import { logger } from '../lib/pino';
 
 export const chatRouter = router({
+  // TODO: add something for loading more messages in chat
   byId: userProcedure
     .input(
       z.object({
@@ -229,8 +230,11 @@ export const chatRouter = router({
           },
         },
       });
+      const validatedChats: ChatDTO[] = chats.map((chat) =>
+        ChatDTO.parse(chat)
+      );
 
-      return chats;
+      return validatedChats;
     }),
 
   createGroup: userProcedure
