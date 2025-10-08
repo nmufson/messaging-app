@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { AppRouter } from '@common/trpc/types';
 import { TRPCProvider } from '../lib/trpc';
 import { superjson } from '@common';
+import { AuthProvider } from '../context/AuthContext';
 
 function makeQueryClient() {
   return new QueryClient({
@@ -61,7 +62,7 @@ export default function RootLayout({
       <body className="min-h-screen">
         <QueryClientProvider client={queryClient}>
           <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
-            {children}
+            <AuthProvider>{children}</AuthProvider>
           </TRPCProvider>
         </QueryClientProvider>
       </body>

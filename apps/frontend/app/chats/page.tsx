@@ -3,9 +3,13 @@ import { RouterOutputs, useTRPC } from '../../lib/trpc';
 import { useQuery } from '@tanstack/react-query';
 import { ChatDTO, ChatType } from '@common/src/schemas/chat';
 import { last } from 'remeda';
-import { DateTime } from 'luxon';
 import * as R from 'remeda';
 import Link from 'next/link';
+import {
+  formatMessageTime,
+  getChatName,
+  slugify,
+} from '../../utils/formatting';
 
 type Chats = RouterOutputs['chat']['getAll'];
 type Chat = RouterOutputs['chat']['byId'];
@@ -48,11 +52,7 @@ function ChatPreview({ chat }: ChatPreviewProps) {
     createdAt: chatCreatedAt,
   } = chat;
   const lastMessage = messages.length ? messages[0] : null;
-  const isGroupChat = type === ChatType.enum.GROUP;
-  const participantNames = participants.map(
-    (p) => `${p.firstName} ${p.lastName}`
-  );
-  const displayName = isGroupChat && name ? name : participantNames.join(', ');
+  const displayName = getChatName({ type, name, participants });
 
   // TODO: make this show multiple user pics similar to Messages
   const displayPicture =
@@ -100,27 +100,4 @@ export function MessageSearchBar() {
       <input></input>
     </div>
   );
-}
-
-export function formatMessageTime(dt: DateTime) {
-  const now = DateTime.now();
-  const diffInDays = now.startOf('day').diff(dt.startOf('day'), 'days').days;
-
-  if (dt.hasSame(now, 'day')) {
-    return dt.toFormat('h:mm a');
-  } else if (diffInDays === 1) {
-    return 'Yesterday';
-  } else if (diffInDays < 7) {
-    return dt.toFormat('cccc'); //  "Monday"
-  } else {
-    // Older than a week
-    return dt.toFormat('MM/dd/yyyy');
-  }
-}
-
-export function slugify(str: string) {
-  return str
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '');
 }
