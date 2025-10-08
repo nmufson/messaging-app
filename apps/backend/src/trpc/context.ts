@@ -6,7 +6,7 @@ import type { IncomingMessage } from 'http';
 import { CreateWSSContextFnOptions } from '@trpc/server/adapters/ws';
 
 interface BaseContext {
-  user?: User; // Replace with your actual User type
+  user?: User;
   prisma: typeof prisma;
 }
 

@@ -2,14 +2,15 @@
 import { useParams } from 'next/navigation';
 import { useTRPC } from '../../../lib/trpc';
 import { skipToken, useQuery } from '@tanstack/react-query';
-import { skip } from 'node:test';
 import { extractUUIDFromSlug, getChatName } from '../../../utils';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function Chat() {
   const trpc = useTRPC();
+  const { user } = useAuth();
   const params = useParams();
   const slug = params.slug as string;
-
+  console.log(user);
   const chatId = extractUUIDFromSlug(slug);
 
   if (!chatId) {

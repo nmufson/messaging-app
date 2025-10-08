@@ -2,9 +2,12 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useTRPC } from '../lib/trpc';
 import { useQuery } from '@tanstack/react-query';
-import { query } from 'express';
+import { UserRole } from '@common/src/schemas/primitives';
 
-type User = { id: string; email: string; name: string } | null;
+type User = {
+  id: string;
+  role: UserRole;
+} | null;
 
 const AuthContext = createContext<{ user: User }>({
   user: null,
