@@ -10,9 +10,9 @@ import {
   getChatName,
   slugify,
 } from '../../utils/formatting';
+import { useAuth } from '../../context/AuthContext';
 
 type Chats = RouterOutputs['chat']['getAll'];
-type Chat = RouterOutputs['chat']['byId'];
 
 export default function Chats() {
   const trpc = useTRPC();
@@ -45,19 +45,28 @@ function ChatPreview({ chat }: ChatPreviewProps) {
     id: chatId,
     type,
     name,
-    creator,
+    creatorId,
     participants,
     messages,
     groupPictureUrl,
     createdAt: chatCreatedAt,
   } = chat;
+  const { user } = useAuth();
   const lastMessage = messages.length ? messages[0] : null;
-  const displayName = getChatName({ type, name, participants });
+  const displayName = getChatName({
+    type,
+    name,
+    participants,
+    userId: user?.id,
+  });
 
   // TODO: make this show multiple user pics similar to Messages
+  const lastSender = participants.find((p) => p.id === lastMessage?.senderId);
+  const creator = participants.find((p) => p.id === creatorId);
+
   const displayPicture =
     groupPictureUrl ||
-    lastMessage?.sender.profilePictureUrl ||
+    lastSender?.profilePictureUrl ||
     'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Flag_of_Germany_%28RGB%29.svg/330px-Flag_of_Germany_%28RGB%29.svg.png';
 
   const displayMessage = lastMessage

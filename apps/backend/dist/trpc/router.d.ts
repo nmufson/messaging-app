@@ -1,43 +1,28 @@
-import * as luxon from 'luxon';
-import * as _trpc_server_dist_unstable_core_do_not_import_d_DKRHq4OJ_cjs from '@trpc/server/dist/unstable-core-do-not-import.d-DKRHq4OJ.cjs';
-import * as express from 'express';
-import * as _db from '@db';
-import * as _trpc_server from '@trpc/server';
-import { Context } from './context.js';
-import '@trpc/server/adapters/express';
-import 'http';
-import '@trpc/server/adapters/ws';
-
-declare const appRouter: _trpc_server.TRPCBuiltRouter<{
-    ctx: Context;
+import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
+export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
+    ctx: import("./context").Context;
     meta: object;
-    errorShape: _trpc_server.TRPCDefaultErrorShape;
-    transformer: true;
-}, _trpc_server.TRPCDecorateCreateRouterOptions<{
-    auth: _trpc_server.TRPCBuiltRouter<{
-        ctx: Context;
+    errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+    transformer: any;
+}, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+    auth: import("@trpc/server").TRPCBuiltRouter<{
+        ctx: import("./context").Context;
         meta: object;
-        errorShape: _trpc_server.TRPCDefaultErrorShape;
-        transformer: true;
-    }, _trpc_server.TRPCDecorateCreateRouterOptions<{
-        register: _trpc_server.TRPCMutationProcedure<{
+        errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+        transformer: any;
+    }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+        register: import("@trpc/server").TRPCMutationProcedure<{
             input: {
                 email: string;
                 password: string;
                 confirmPassword: string;
             };
             output: {
-                user: {
-                    id: string;
-                    email: string;
-                    hashedPassword: string;
-                    role: _db.$Enums.UserRole;
-                    createdAt: Date;
-                };
+                user: any;
             };
             meta: object;
         }>;
-        login: _trpc_server.TRPCMutationProcedure<{
+        login: import("@trpc/server").TRPCMutationProcedure<{
             input: {
                 email: string;
                 password: string;
@@ -45,67 +30,51 @@ declare const appRouter: _trpc_server.TRPCBuiltRouter<{
             output: unknown;
             meta: object;
         }>;
-        logout: _trpc_server.TRPCMutationProcedure<{
+        logout: import("@trpc/server").TRPCMutationProcedure<{
             input: void;
             output: {
                 success: boolean;
             };
             meta: object;
         }>;
-        me: _trpc_server.TRPCQueryProcedure<{
+        me: import("@trpc/server").TRPCQueryProcedure<{
             input: void;
-            output: express.User;
+            output: any;
             meta: object;
         }>;
     }>>;
-    user: _trpc_server.TRPCBuiltRouter<{
-        ctx: Context;
+    user: import("@trpc/server").TRPCBuiltRouter<{
+        ctx: import("./context").Context;
         meta: object;
-        errorShape: _trpc_server.TRPCDefaultErrorShape;
-        transformer: true;
-    }, _trpc_server.TRPCDecorateCreateRouterOptions<{
-        getUserById: _trpc_server.TRPCQueryProcedure<{
-            input: {
-                userId: string;
-            };
+        errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+        transformer: any;
+    }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+        getUserById: import("@trpc/server").TRPCQueryProcedure<{
+            input: any;
             output: {
-                user: Promise<{
-                    id: string;
-                    email: string;
-                    hashedPassword: string;
-                    role: _db.$Enums.UserRole;
-                    createdAt: Date;
-                } | null>;
+                user: Promise<any>;
             };
             meta: object;
         }>;
-        getUserByEmail: _trpc_server.TRPCQueryProcedure<{
-            input: {
-                email: string;
-            };
+        getUserByEmail: import("@trpc/server").TRPCQueryProcedure<{
+            input: any;
+            output: any;
+            meta: object;
+        }>;
+    }>>;
+    chat: import("@trpc/server").TRPCBuiltRouter<{
+        ctx: import("./context").Context;
+        meta: object;
+        errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+        transformer: any;
+    }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+        byId: import("@trpc/server").TRPCQueryProcedure<{
+            input: any;
             output: {
                 id: string;
-                email: string;
-                hashedPassword: string;
-                role: _db.$Enums.UserRole;
-                createdAt: Date;
-            };
-            meta: object;
-        }>;
-    }>>;
-    chat: _trpc_server.TRPCBuiltRouter<{
-        ctx: Context;
-        meta: object;
-        errorShape: _trpc_server.TRPCDefaultErrorShape;
-        transformer: true;
-    }, _trpc_server.TRPCDecorateCreateRouterOptions<{
-        byId: _trpc_server.TRPCQueryProcedure<{
-            input: {
-                chatId: string;
-                limit?: number | undefined;
-                cursor?: string | undefined;
-            };
-            output: {
+                type: "GROUP" | "DIRECT";
+                createdAt: import("luxon").DateTime<boolean>;
+                updatedAt: import("luxon").DateTime<boolean> | null;
                 participants: {
                     id: string;
                     firstName: string;
@@ -113,211 +82,85 @@ declare const appRouter: _trpc_server.TRPCBuiltRouter<{
                     profilePictureUrl: string | null;
                 }[];
                 messages: {
-                    type: _db.$Enums.MessageType;
+                    id: string;
+                    type: "TEXT" | "IMAGE";
                     content: string | null;
                     imageUrl: string | null;
+                    createdAt: import("luxon").DateTime<boolean>;
+                    updatedAt: import("luxon").DateTime<boolean> | null;
                     senderId: string;
                 }[];
-            } & {
                 name: string | null;
-                id: string;
-                createdAt: Date;
-                type: _db.$Enums.ChatType;
-                updatedAt: Date | null;
                 groupPictureUrl: string | null;
                 creatorId: string;
             };
             meta: object;
         }>;
-        onNewMessageInChat: _trpc_server.TRPCSubscriptionProcedure<{
-            input: {
-                profileId: string;
-            };
-            output: AsyncIterable<_trpc_server_dist_unstable_core_do_not_import_d_DKRHq4OJ_cjs.TrackedData<any>, void, any>;
+        onNewMessageInChat: import("@trpc/server").TRPCSubscriptionProcedure<{
+            input: any;
+            output: AsyncIterable<import("@trpc/server/dist/unstable-core-do-not-import.d-DKRHq4OJ.cjs").TrackedData<any>, void, any>;
             meta: object;
         }>;
-        onNewChat: _trpc_server.TRPCSubscriptionProcedure<{
-            input: {
-                profileId: string;
-            };
-            output: AsyncIterable<_trpc_server_dist_unstable_core_do_not_import_d_DKRHq4OJ_cjs.TrackedData<any>, void, any>;
+        onNewChat: import("@trpc/server").TRPCSubscriptionProcedure<{
+            input: any;
+            output: AsyncIterable<import("@trpc/server/dist/unstable-core-do-not-import.d-DKRHq4OJ.cjs").TrackedData<any>, void, any>;
             meta: object;
         }>;
-        getList: _trpc_server.TRPCQueryProcedure<{
-            input: {
-                profileId: string;
-                limit?: number | undefined;
-            };
-            output: ({
-                participants: {
-                    id: string;
-                    firstName: string;
-                    lastName: string;
-                    profilePictureUrl: string | null;
-                }[];
-                messages: ({
-                    content: string | null;
-                    sender: {
-                        firstName: string;
-                        lastName: string;
-                    };
-                } & {
-                    id: string;
-                    createdAt: Date;
-                    type: _db.$Enums.MessageType;
-                    updatedAt: Date | null;
-                    content: string | null;
-                    chatId: string;
-                    imageUrl: string | null;
-                    senderId: string;
-                })[];
-            } & {
-                name: string | null;
-                id: string;
-                createdAt: Date;
-                type: _db.$Enums.ChatType;
-                updatedAt: Date | null;
-                groupPictureUrl: string | null;
-                creatorId: string;
-            })[];
+        getList: import("@trpc/server").TRPCQueryProcedure<{
+            input: any;
+            output: any;
             meta: object;
         }>;
-        getAll: _trpc_server.TRPCQueryProcedure<{
-            input: {
-                limit?: number | undefined;
-            };
+        getAll: import("@trpc/server").TRPCQueryProcedure<{
+            input: any;
             output: {
-                id: string;
-                type: "GROUP" | "DIRECT";
-                createdAt: luxon.DateTime<boolean>;
-                updatedAt: unknown;
-                participants: {
-                    id: string;
-                    firstName: string;
-                    lastName: string;
-                    profilePictureUrl: string | null;
-                }[];
-                name: string | null;
-                groupPictureUrl: string | null;
-                creator: {
-                    id: string;
-                    firstName: string;
-                    lastName: string;
-                    profilePictureUrl: string | null;
-                };
-                lastMessage?: {
-                    content: string;
-                    createdAt: luxon.DateTime<boolean>;
-                    sender: {
-                        firstName: string;
-                        lastName: string;
-                        profilePictureUrl: string | null;
-                    };
-                } | undefined;
-            }[];
+                message: string;
+            };
             meta: object;
         }>;
-        createGroup: _trpc_server.TRPCMutationProcedure<{
-            input: {
-                creator: string;
-                participants: string[];
-            };
-            output: {
-                name: string | null;
-                id: string;
-                createdAt: Date;
-                type: _db.$Enums.ChatType;
-                updatedAt: Date | null;
-                groupPictureUrl: string | null;
-                creatorId: string;
-            };
+        createGroup: import("@trpc/server").TRPCMutationProcedure<{
+            input: any;
+            output: any;
             meta: object;
         }>;
     }>>;
-    friendRequest: _trpc_server.TRPCBuiltRouter<{
-        ctx: Context;
+    friendRequest: import("@trpc/server").TRPCBuiltRouter<{
+        ctx: import("./context").Context;
         meta: object;
-        errorShape: _trpc_server.TRPCDefaultErrorShape;
-        transformer: true;
-    }, _trpc_server.TRPCDecorateCreateRouterOptions<{
-        sendNew: _trpc_server.TRPCMutationProcedure<{
-            input: {
-                senderId: string;
-                receiverId: string;
-            };
-            output: {
-                id: string;
-                createdAt: Date;
-                updatedAt: Date | null;
-                senderId: string;
-                receiverId: string;
-                status: _db.$Enums.FriendRequestStatus;
-            };
+        errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+        transformer: any;
+    }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+        sendNew: import("@trpc/server").TRPCMutationProcedure<{
+            input: any;
+            output: any;
             meta: object;
         }>;
-        update: _trpc_server.TRPCMutationProcedure<{
-            input: {
-                newStatus: "PENDING" | "CANCELLED" | "DECLINED" | "ACCEPTED";
-                senderId: string;
-                receiverId: string;
-            };
-            output: {
-                id: string;
-                createdAt: Date;
-                updatedAt: Date | null;
-                senderId: string;
-                receiverId: string;
-                status: _db.$Enums.FriendRequestStatus;
-            };
+        update: import("@trpc/server").TRPCMutationProcedure<{
+            input: any;
+            output: any;
             meta: object;
         }>;
     }>>;
-    message: _trpc_server.TRPCBuiltRouter<{
-        ctx: Context;
+    message: import("@trpc/server").TRPCBuiltRouter<{
+        ctx: import("./context").Context;
         meta: object;
-        errorShape: _trpc_server.TRPCDefaultErrorShape;
-        transformer: true;
-    }, _trpc_server.TRPCDecorateCreateRouterOptions<{
-        onNewMessage: _trpc_server.TRPCSubscriptionProcedure<{
-            input: {
-                chatId: string;
-                lastMessageId?: string | null | undefined;
-            };
-            output: AsyncIterable<_trpc_server_dist_unstable_core_do_not_import_d_DKRHq4OJ_cjs.TrackedData<any>, void, any>;
+        errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+        transformer: any;
+    }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+        onNewMessage: import("@trpc/server").TRPCSubscriptionProcedure<{
+            input: any;
+            output: AsyncIterable<import("@trpc/server/dist/unstable-core-do-not-import.d-DKRHq4OJ.cjs").TrackedData<any>, void, any>;
             meta: object;
         }>;
-        sendDirect: _trpc_server.TRPCMutationProcedure<{
-            input: {
-                sender: string;
-                receiver: string;
-                type: "TEXT" | "IMAGE";
-                content: string | null;
-                imageUrl: string | null;
-            };
+        sendDirect: import("@trpc/server").TRPCMutationProcedure<{
+            input: any;
             output: {
-                chat: {
-                    name: string | null;
-                    id: string;
-                    createdAt: Date;
-                    type: _db.$Enums.ChatType;
-                    updatedAt: Date | null;
-                    groupPictureUrl: string | null;
-                    creatorId: string;
-                };
-                newDirectMessage: {
-                    id: string;
-                    createdAt: Date;
-                    type: _db.$Enums.MessageType;
-                    updatedAt: Date | null;
-                    content: string | null;
-                    chatId: string;
-                    imageUrl: string | null;
-                    senderId: string;
-                };
+                chat: any;
+                newDirectMessage: any;
             };
             meta: object;
         }>;
-        sendTochat: _trpc_server.TRPCQueryProcedure<{
+        sendTochat: import("@trpc/server").TRPCQueryProcedure<{
             input: {
                 type: "TEXT" | "IMAGE";
                 content: string | null;
@@ -326,27 +169,18 @@ declare const appRouter: _trpc_server.TRPCBuiltRouter<{
                 chatId: string;
             };
             output: {
-                newMessage: {
-                    id: string;
-                    createdAt: Date;
-                    type: _db.$Enums.MessageType;
-                    updatedAt: Date | null;
-                    content: string | null;
-                    chatId: string;
-                    imageUrl: string | null;
-                    senderId: string;
-                };
+                newMessage: any;
             };
             meta: object;
         }>;
     }>>;
-    image: _trpc_server.TRPCBuiltRouter<{
-        ctx: Context;
+    image: import("@trpc/server").TRPCBuiltRouter<{
+        ctx: import("./context").Context;
         meta: object;
-        errorShape: _trpc_server.TRPCDefaultErrorShape;
-        transformer: true;
-    }, _trpc_server.TRPCDecorateCreateRouterOptions<{
-        getImageUploadSignature: _trpc_server.TRPCMutationProcedure<{
+        errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+        transformer: any;
+    }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+        getImageUploadSignature: import("@trpc/server").TRPCMutationProcedure<{
             input: void;
             output: {
                 timestamp: number;
@@ -358,6 +192,6 @@ declare const appRouter: _trpc_server.TRPCBuiltRouter<{
         }>;
     }>>;
 }>>;
-type AppRouter = typeof appRouter;
-
-export { type AppRouter, appRouter };
+export type AppRouter = typeof appRouter;
+export type RouterInputs = inferRouterInputs<AppRouter>;
+export type RouterOutputs = inferRouterOutputs<AppRouter>;

@@ -1,34 +1,21 @@
-import { Dir } from 'fs';
 import z from 'zod';
-
 import { DateTimeSchema, ObjectId } from './primitives';
-import { profile } from 'console';
+import { MessageType } from './message';
 
 export const ChatType = z.enum(['GROUP', 'DIRECT']);
 
-// const BaseChat = z.object({
-//   id: ObjectId,
-//   messages: Message.array(),
-//   get participants() {
-//     return Profile.array();
-//   },
-//   createdAt: DateTimeSchema,
-//   updatedAt: DateTimeSchema.optional(),
-// });
+export const MessageDTO = z.object({
+  id: ObjectId,
+  type: MessageType,
+  content: z.string().nullable(),
+  imageUrl: z.string().nullable(),
+  createdAt: DateTimeSchema,
+  updatedAt: DateTimeSchema.nullable(),
+  senderId: ObjectId,
+});
+export type MessageDTO = z.infer<typeof MessageDTO>;
 
-// const DirectChat = BaseChat.extend({
-//   type: ChatType.enum.DIRECT,
-// });
-
-// const GroupChat = BaseChat.extend({
-//   type: ChatType.enum.GROUP,
-//   name: z.string().nullable(),
-//   groupPictureUrl: z.string().nullable(),
-//   creator: z.union([ObjectId, Profile]),
-// });
-
-// export const Chat = z.discriminatedUnion('type', [DirectChat, GroupChat]);
-// export type Chat = z.infer<typeof Chat>;
+// ? may need to separate ChatDetailDTO and ChatListItemDTO
 
 export const ChatDTO = z.object({
   id: ObjectId,
@@ -43,28 +30,15 @@ export const ChatDTO = z.object({
       profilePictureUrl: z.string().nullable(),
     })
   ),
-  messages: z
-    .object({
-      content: z.string(),
-      createdAt: DateTimeSchema,
-      sender: z.object({
-        firstName: z.string(),
-        lastName: z.string(),
-        profilePictureUrl: z.string().nullable(),
-      }),
-    })
-    .array(),
+  messages: MessageDTO.array(),
   // Group-specific fields
   name: z.string().nullable(),
   groupPictureUrl: z.string().nullable(),
-  creator: z.object({
-    id: ObjectId,
-    firstName: z.string(),
-    lastName: z.string(),
-    profilePictureUrl: z.string().nullable(),
-  }),
+  creatorId: ObjectId,
 });
 export type ChatDTO = z.infer<typeof ChatDTO>;
+
+export const ChatDetailDTO = ChatDTO.extend({});
 
 // export const ChatDetailDTO = ChatDTO.extend({
 //   messages: Message.array(),

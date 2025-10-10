@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { t } from './init';
-import { User } from '@db';
+import { User } from '@repo/db';
 
 export const isAuthed = t.middleware<{ ctx: { user: User } }>(
   ({ ctx, next }) => {

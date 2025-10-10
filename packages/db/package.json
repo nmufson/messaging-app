@@ -1,5 +1,5 @@
 {
-  "name": "@db",
+  "name": "@repo/db",
   "private": true,
   "version": "1.0.0",
   "main": "dist/index.js",
@@ -13,6 +13,8 @@
     "migrate": "prisma migrate dev",
     "studio": "prisma studio",
     "build": "tsc -b",
+    "dev": "tsc -b --watch --preserveWatchOutput",
+    "prep": "npm run generate && npm run build",
     "clean": "rm -rf dist"
   },
   "dependencies": {

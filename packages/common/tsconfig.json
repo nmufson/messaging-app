@@ -1,18 +1,17 @@
 {
   "compilerOptions": {
-    "composite": true,
-    "outDir": "dist",
-    "rootDir": "src",
-    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
     "declarationMap": true,
     "module": "commonjs",
     "target": "ES2019",
     "esModuleInterop": true,
-    "strict": true
+    "strict": true,
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "composite": true,
+    "declaration": true
   },
-  "include": ["src"],
-  "paths": {
-    "@backend/*": ["../../apps/backend/*"],
-    "@db": ["packages/db/index.ts"]
-  }
+  "include": ["./src/**/*"]
 }

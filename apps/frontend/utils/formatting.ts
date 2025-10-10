@@ -1,4 +1,5 @@
 import { ChatDTO } from '@common/src/schemas/chat';
+import { ObjectId } from '@common/src/schemas/primitives';
 import { ChatType } from '@db/dist';
 import { DateTime } from 'luxon';
 
@@ -24,17 +25,32 @@ export function slugify(str: string) {
     .replace(/[^a-z0-9-]/g, '');
 }
 
+interface ChatParticipant {
+  id: ObjectId;
+  firstName: string;
+  lastName: string;
+  profilePictureUrl: string | null;
+}
+
 interface GetChatNameParams {
   type: ChatType;
   name: string | null;
-  participants: Array<{ firstName: string; lastName: string }>;
+  participants: ChatParticipant[];
+  userId?: ObjectId;
 }
 
 export function getChatName(params: GetChatNameParams): string {
-  const { type, name, participants } = params;
-  const isGroupChat = type === ChatType.GROUP;
+  const { type, name, participants, userId } = params;
+  const isDirectChat = type === ChatType.DIRECT;
 
-  if (isGroupChat && name) {
+  if (isDirectChat) {
+    const otherParticipant = participants.find((p) => p.id !== userId);
+    if (!otherParticipant) return 'Unknown User';
+    return `${otherParticipant.firstName} ${otherParticipant.lastName}`;
+  }
+
+  // group chat
+  if (name) {
     return name;
   }
 

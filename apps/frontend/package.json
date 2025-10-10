@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "@repo/frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -15,8 +15,7 @@
     "@common": "workspace:*",
     "@db": "workspace:*",
     "@tanstack/react-query": "^5.85.5",
-    "@trpc/client": "^11.5.0",
-    "@trpc/react-query": "^11.5.0",
+    "@trpc/client": "^11.6.0",
     "@trpc/tanstack-react-query": "^11.6.0",
     "next": "15.5.0",
     "react": "19.1.0",

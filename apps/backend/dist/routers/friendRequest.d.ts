@@ -1,48 +1,17 @@
-import * as _db from '@db';
-import * as _trpc_server from '@trpc/server';
-import { Context } from '../trpc/context.js';
-import 'express';
-import '@trpc/server/adapters/express';
-import 'http';
-import '@trpc/server/adapters/ws';
-
-declare const friendRequestRouter: _trpc_server.TRPCBuiltRouter<{
-    ctx: Context;
+export declare const friendRequestRouter: import("@trpc/server").TRPCBuiltRouter<{
+    ctx: import("../trpc").Context;
     meta: object;
-    errorShape: _trpc_server.TRPCDefaultErrorShape;
-    transformer: true;
-}, _trpc_server.TRPCDecorateCreateRouterOptions<{
-    sendNew: _trpc_server.TRPCMutationProcedure<{
-        input: {
-            senderId: string;
-            receiverId: string;
-        };
-        output: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date | null;
-            senderId: string;
-            receiverId: string;
-            status: _db.$Enums.FriendRequestStatus;
-        };
+    errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+    transformer: any;
+}, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+    sendNew: import("@trpc/server").TRPCMutationProcedure<{
+        input: any;
+        output: any;
         meta: object;
     }>;
-    update: _trpc_server.TRPCMutationProcedure<{
-        input: {
-            newStatus: "PENDING" | "CANCELLED" | "DECLINED" | "ACCEPTED";
-            senderId: string;
-            receiverId: string;
-        };
-        output: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date | null;
-            senderId: string;
-            receiverId: string;
-            status: _db.$Enums.FriendRequestStatus;
-        };
+    update: import("@trpc/server").TRPCMutationProcedure<{
+        input: any;
+        output: any;
         meta: object;
     }>;
 }>>;
-
-export { friendRequestRouter };

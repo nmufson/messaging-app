@@ -1,38 +1,10 @@
 "use strict";
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// src/trpc/init.ts
-var init_exports = {};
-__export(init_exports, {
-  router: () => router,
-  t: () => t
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.router = exports.t = void 0;
+const server_1 = require("@trpc/server");
+const common_1 = require("@repo/common");
+exports.t = server_1.initTRPC.context().create({
+    transformer: common_1.superjson,
 });
-module.exports = __toCommonJS(init_exports);
-var import_server = require("@trpc/server");
-var import_common = require("@common");
-var t = import_server.initTRPC.context().create({
-  transformer: import_common.superjson
-});
-var router = t.router;
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  router,
-  t
-});
+exports.router = exports.t.router;
 //# sourceMappingURL=init.js.map

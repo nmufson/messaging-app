@@ -1,5 +1,5 @@
 import { initTRPC } from '@trpc/server';
-import { superjson } from '@common';
+import { superjson } from '@repo/common';
 import { Context } from './context';
 import { DateTime } from 'luxon';
 

@@ -1,18 +1,26 @@
 {
-  "name": "backend",
+  "name": "@repo/backend",
   "version": "0.1.0",
   "private": true,
+  "main": "./dist/app.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./trpcRouter": {
+      "types": "./src/trpc/exports.ts"
+    }
+  },
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
-    "build": "tsup src --dts --format esm,cjs --out-dir dist",
+    "dev:types": "tsc -b --watch --preserveWatchOutput",
+    "build": "tsup",
     "start": "node dist/app.js"
   },
   "dependencies": {
-    "@common": "workspace:*",
-    "@db": "workspace:*",
+    "@repo/common": "workspace:*",
+    "@repo/db": "workspace:*",
     "@quixo3/prisma-session-store": "^3.1.13",
-    "@trpc/client": "^11.5.0",
-    "@trpc/server": "^11.5.0",
+    "@trpc/client": "^11.6.0",
+    "@trpc/server": "^11.6.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.7.0",
     "connect-pg-simple": "^10.0.0",

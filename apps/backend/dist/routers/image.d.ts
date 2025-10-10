@@ -1,18 +1,10 @@
-import * as _trpc_server from '@trpc/server';
-import { Context } from '../trpc/context.js';
-import 'express';
-import '@db';
-import '@trpc/server/adapters/express';
-import 'http';
-import '@trpc/server/adapters/ws';
-
-declare const imageRouter: _trpc_server.TRPCBuiltRouter<{
-    ctx: Context;
+export declare const imageRouter: import("@trpc/server").TRPCBuiltRouter<{
+    ctx: import("../trpc").Context;
     meta: object;
-    errorShape: _trpc_server.TRPCDefaultErrorShape;
-    transformer: true;
-}, _trpc_server.TRPCDecorateCreateRouterOptions<{
-    getImageUploadSignature: _trpc_server.TRPCMutationProcedure<{
+    errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+    transformer: any;
+}, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+    getImageUploadSignature: import("@trpc/server").TRPCMutationProcedure<{
         input: void;
         output: {
             timestamp: number;
@@ -23,5 +15,3 @@ declare const imageRouter: _trpc_server.TRPCBuiltRouter<{
         meta: object;
     }>;
 }>>;
-
-export { imageRouter };

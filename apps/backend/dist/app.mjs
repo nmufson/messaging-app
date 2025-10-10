@@ -1,48 +1,19 @@
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __reExport = (target, mod, secondTarget) => (__copyProps(target, mod, "default"), secondTarget && __copyProps(secondTarget, mod, "default"));
-
 // src/app.ts
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
 import { PrismaSessionStore } from "@quixo3/prisma-session-store";
-
-// ../../packages/db/src/index.ts
-var src_exports = {};
-__export(src_exports, {
-  prisma: () => prisma
-});
-__reExport(src_exports, client_star);
-import { PrismaClient } from "@prisma/client";
-import * as client_star from "@prisma/client";
-var prisma = new PrismaClient();
-
-// src/app.ts
+import { prisma as prisma4 } from "@db";
 import cors from "cors";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 
 // src/trpc/context.ts
-import { prisma as prisma2 } from "@db";
+import { prisma } from "@db";
 function createContext({
   req,
   res
 }) {
-  return { req, res, user: req.user, prisma: prisma2 };
+  return { req, res, user: req.user, prisma };
 }
 
 // src/trpc/init.ts
@@ -81,17 +52,17 @@ var userProcedure = t.procedure.use(isAuthed);
 var adminProcedure = t.procedure.use(isAuthed).use(isAdmin);
 
 // src/services/user.ts
-import { prisma as prisma3 } from "@db";
+import { prisma as prisma2 } from "@db";
 async function getUserByEmail(email) {
-  return prisma3.user.findUnique({ where: { email } });
+  return prisma2.user.findUnique({ where: { email } });
 }
 async function getUserById(id) {
-  return prisma3.user.findUnique({ where: { id } });
+  return prisma2.user.findUnique({ where: { id } });
 }
 
 // src/routers/auth.ts
 import passport from "passport";
-import { LogInInput, RegisterInput } from "@common/schemas/auth";
+import { LogInInput, RegisterInput } from "@common/src/schemas/auth";
 
 // src/services/hash.ts
 import { hash, compare } from "bcrypt";
@@ -180,7 +151,7 @@ var authRouter = router({
 });
 
 // src/routers/chat.ts
-import { ObjectId } from "@common/schemas/primitives";
+import { ObjectId } from "@common/src/schemas/primitives";
 import { tracked, TRPCError as TRPCError3 } from "@trpc/server";
 import { on } from "events";
 import { z } from "@common";
@@ -191,8 +162,8 @@ var eventEmitter = new EventEmitter();
 
 // src/routers/chat.ts
 import { mergeAsyncIterators } from "@common/utils/mergeAsyncIterators";
-import { UserRole } from "@common/schemas/user";
-import { ChatDTO, ChatType } from "@common/schemas/chat";
+import { UserRole } from "@common/src/schemas/user";
+import { ChatDTO, ChatType } from "@common/src/schemas/chat";
 
 // src/lib/pino.ts
 import pino from "pino";
@@ -218,25 +189,36 @@ var logger = pino({
 
 // src/routers/chat.ts
 var chatRouter = router({
+  // TODO: add something for loading more messages in chat
   byId: userProcedure.input(
     z.object({
       chatId: ObjectId,
       limit: z.number().default(100),
       cursor: ObjectId.optional()
     })
-  ).query(async ({ ctx, input }) => {
+  ).output(ChatDTO).query(async ({ ctx, input }) => {
     const { chatId, limit, cursor } = input;
     const chat = await ctx.prisma.chat.findUnique({
       where: { id: chatId },
-      include: {
+      select: {
+        id: true,
+        type: true,
+        name: true,
+        groupPictureUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        creatorId: true,
         messages: {
           take: limit,
           skip: cursor ? 1 : 0,
           cursor: cursor ? { id: cursor } : void 0,
           orderBy: { createdAt: "desc" },
           select: {
+            id: true,
             type: true,
             content: true,
+            createdAt: true,
+            updatedAt: true,
             imageUrl: true,
             senderId: true
           }
@@ -257,7 +239,9 @@ var chatRouter = router({
         message: "Chat not found"
       });
     }
-    return chat;
+    console.log(chat);
+    const validatedChat = ChatDTO.parse(chat);
+    return validatedChat;
   }),
   onNewMessageInChat: userProcedure.input(
     z.object({
@@ -370,37 +354,25 @@ var chatRouter = router({
     z.object({
       limit: z.number().default(100)
     })
-  ).output(ChatDTO.array()).query(async ({ ctx }) => {
+  ).query(async ({ ctx }) => {
     logger.info("Requesting all chats");
     const chats = await ctx.prisma.chat.findMany({
       orderBy: { updatedAt: "desc" },
       include: {
-        messages: {
-          orderBy: { createdAt: "desc" },
-          take: 1,
-          // display most recent msg in preview
-          select: {
-            content: true,
-            createdAt: true,
-            type: true,
-            sender: {
-              select: {
-                firstName: true,
-                lastName: true,
-                profilePictureUrl: true
-              }
-            }
-          }
-        },
+        // messages: {
+        //   orderBy: { createdAt: 'desc' },
+        //   take: 1, // display most recent msg in preview
+        //   select: {
+        //     id: true,
+        //     type: true,
+        //     content: true,
+        //     imageUrl: true,
+        //     createdAt: true,
+        //     updatedAt: true,
+        //     senderId: true,
+        //   },
+        // },
         participants: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profilePictureUrl: true
-          }
-        },
-        creator: {
           select: {
             id: true,
             firstName: true,
@@ -410,7 +382,11 @@ var chatRouter = router({
         }
       }
     });
-    return chats;
+    logger.info({ chats }, "Queried all chats");
+    const validatedChats = chats.map(
+      (chat) => ChatDTO.parse(chat)
+    );
+    return { message: "test" };
   }),
   createGroup: userProcedure.input(
     z.object({
@@ -436,9 +412,9 @@ var chatRouter = router({
 });
 
 // src/routers/friendRequest.ts
-import { ObjectId as ObjectId2 } from "@common/schemas/primitives";
+import { ObjectId as ObjectId2 } from "@common/src/schemas/primitives";
 import { z as z2 } from "@common";
-import { FriendRequestStatus } from "@common/schemas/friendRequest";
+import { FriendRequestStatus } from "@common/src/schemas/friendRequest";
 import { TRPCError as TRPCError4 } from "@trpc/server";
 var friendRequestRouter = router({
   sendNew: userProcedure.input(
@@ -505,15 +481,15 @@ var imageRouter = router({
 });
 
 // src/routers/message.ts
-import { ObjectId as ObjectId3 } from "@common/schemas/primitives";
-import { MessageType, SendMessageInput } from "@common/schemas/message";
+import { ObjectId as ObjectId3 } from "@common/src/schemas/primitives";
+import { MessageType, SendMessageInput } from "@common/src/schemas/message";
 import { tracked as tracked2, TRPCError as TRPCError5 } from "@trpc/server";
 import { z as z3 } from "@common";
 
 // src/services/chat.ts
-import { ChatType as ChatType2 } from "@common/schemas/chat";
-var findOrCreateDirectChat = async (prisma4, senderId, receiverId) => {
-  const existingChat = await prisma4.chat.findFirst({
+import { ChatType as ChatType2 } from "@common/src/schemas/chat";
+var findOrCreateDirectChat = async (prisma5, senderId, receiverId) => {
+  const existingChat = await prisma5.chat.findFirst({
     where: {
       type: ChatType2.enum.DIRECT,
       participants: {
@@ -530,7 +506,7 @@ var findOrCreateDirectChat = async (prisma4, senderId, receiverId) => {
   if (existingChat && existingChat.participants.length === 2) {
     return { chat: existingChat, isNewChat: false };
   }
-  const newChat = await prisma4.chat.create({
+  const newChat = await prisma5.chat.create({
     data: {
       type: "DIRECT",
       creatorId: senderId,
@@ -543,9 +519,9 @@ var findOrCreateDirectChat = async (prisma4, senderId, receiverId) => {
 };
 
 // src/services/message.ts
-var sendMessage = async (prisma4, params) => {
+var sendMessage = async (prisma5, params) => {
   const { chatId, sender, type, content, imageUrl } = params;
-  return await prisma4.message.create({
+  return await prisma5.message.create({
     data: {
       type,
       content,
@@ -716,27 +692,39 @@ import passport3 from "passport";
 // src/middleware/auth.ts
 import passport2 from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { prisma as prisma3 } from "@db";
 passport2.use(
   new LocalStrategy(
     { usernameField: "email" },
     async (email, password, done) => {
       const user = await getUserByEmail(email);
-      console.log(email, user);
-      if (!user)
+      if (!user) {
         return done(null, false, {
           message: "Account with this email does not exist"
         });
+      }
       const validPassword = await verifyPassword(user, password);
-      console.log("Password valid:", validPassword);
-      if (!validPassword)
+      if (!validPassword) {
         return done(null, false, { message: "Incorrect password" });
-      return done(null, user);
+      }
+      return done(null, {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      });
     }
   )
 );
 passport2.serializeUser((user, done) => done(null, user.id));
 passport2.deserializeUser(async (id, done) => {
-  const user = await getUserById(id);
+  const user = await prisma3.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      email: true,
+      role: true
+    }
+  });
   done(null, user || false);
 });
 
@@ -759,7 +747,7 @@ app.use(
     secret: "secret keyyy",
     resave: false,
     saveUninitialized: false,
-    store: new PrismaSessionStore(prisma, {
+    store: new PrismaSessionStore(prisma4, {
       checkPeriod: 2 * 60 * 1e3,
       //ms
       dbRecordIdIsSessionId: true,

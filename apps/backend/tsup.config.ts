@@ -1,7 +1,10 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/app.ts'],
+  entry: {
+    app: 'src/app.ts',
+    'trpc/exports': 'src/trpc/exports.ts',
+  },
   dts: true,
   format: ['cjs', 'esm'],
   outDir: 'dist',

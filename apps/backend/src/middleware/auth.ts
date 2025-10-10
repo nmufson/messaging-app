@@ -2,7 +2,7 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { getUserByEmail, getUserById } from '../services/user';
 import { verifyPassword } from '../services/hash';
-import { prisma } from '@db';
+import { prisma } from '@repo/db';
 
 passport.use(
   new LocalStrategy(

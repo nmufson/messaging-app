@@ -1,35 +1,22 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "baseUrl": ".",
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
     "strict": true,
-    "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@common/*": ["packages/common/*"],
-      "@db": ["packages/db/src/index.ts"]
-    }
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "apps/frontend/postcss.config.js"
-  ],
-  "exclude": ["node_modules"]
+
+  "references": [
+    { "path": "./apps/backend" },
+    { "path": "./apps/frontend" },
+
+    { "path": "./packages/common" },
+    { "path": "./packages/db" },
+    { "path": "./packages/trpc" }
+  ]
 }

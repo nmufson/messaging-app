@@ -5,10 +5,11 @@ import { z } from '@common';
 import { eventEmitter } from '../lib/eventBus';
 import { handleTRPCError } from '../services/error';
 import { adminProcedure, router, userProcedure } from '../trpc';
-import { mergeAsyncIterators } from '@common/utils/mergeAsyncIterators';
+import { mergeAsyncIterators } from '@repo/common/utils/mergeAsyncIterators';
 import { UserRole } from '@common/src/schemas/user';
 import { ChatDTO, ChatType } from '@common/src/schemas/chat';
 import { logger } from '../lib/pino';
+import { Chat } from '@db';
 
 export const chatRouter = router({
   // TODO: add something for loading more messages in chat
@@ -20,20 +21,31 @@ export const chatRouter = router({
         cursor: ObjectId.optional(),
       })
     )
+    .output(ChatDTO)
     .query(async ({ ctx, input }) => {
       const { chatId, limit, cursor } = input;
 
       const chat = await ctx.prisma.chat.findUnique({
         where: { id: chatId },
-        include: {
+        select: {
+          id: true,
+          type: true,
+          name: true,
+          groupPictureUrl: true,
+          createdAt: true,
+          updatedAt: true,
+          creatorId: true,
           messages: {
             take: limit,
             skip: cursor ? 1 : 0,
             cursor: cursor ? { id: cursor } : undefined,
             orderBy: { createdAt: 'desc' },
             select: {
+              id: true,
               type: true,
               content: true,
+              createdAt: true,
+              updatedAt: true,
               imageUrl: true,
               senderId: true,
             },
@@ -55,8 +67,9 @@ export const chatRouter = router({
           message: 'Chat not found',
         });
       }
-
-      return chat;
+      console.log(chat);
+      const validatedChat = ChatDTO.parse(chat);
+      return validatedChat;
     }),
   onNewMessageInChat: userProcedure
     .input(
@@ -189,38 +202,27 @@ export const chatRouter = router({
         limit: z.number().default(100),
       })
     )
-    .output(ChatDTO.array())
+    // .output(ChatDTO.array())
     .query(async ({ ctx }) => {
       logger.info('Requesting all chats');
 
       const chats = await ctx.prisma.chat.findMany({
         orderBy: { updatedAt: 'desc' },
         include: {
-          messages: {
-            orderBy: { createdAt: 'desc' },
-            take: 1, // display most recent msg in preview
-            select: {
-              content: true,
-              createdAt: true,
-              type: true,
-              sender: {
-                select: {
-                  firstName: true,
-                  lastName: true,
-                  profilePictureUrl: true,
-                },
-              },
-            },
-          },
+          // messages: {
+          //   orderBy: { createdAt: 'desc' },
+          //   take: 1, // display most recent msg in preview
+          //   select: {
+          //     id: true,
+          //     type: true,
+          //     content: true,
+          //     imageUrl: true,
+          //     createdAt: true,
+          //     updatedAt: true,
+          //     senderId: true,
+          //   },
+          // },
           participants: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              profilePictureUrl: true,
-            },
-          },
-          creator: {
             select: {
               id: true,
               firstName: true,
@@ -230,11 +232,12 @@ export const chatRouter = router({
           },
         },
       });
+      logger.info({ chats }, 'Queried all chats');
       const validatedChats: ChatDTO[] = chats.map((chat) =>
         ChatDTO.parse(chat)
       );
 
-      return validatedChats;
+      return { message: 'test' };
     }),
 
   createGroup: userProcedure

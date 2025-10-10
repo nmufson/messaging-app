@@ -1,45 +1,19 @@
-import * as _db from '@db';
-import * as _trpc_server from '@trpc/server';
-import { Context } from '../trpc/context.js';
-import 'express';
-import '@trpc/server/adapters/express';
-import 'http';
-import '@trpc/server/adapters/ws';
-
-declare const userRouter: _trpc_server.TRPCBuiltRouter<{
-    ctx: Context;
+export declare const userRouter: import("@trpc/server").TRPCBuiltRouter<{
+    ctx: import("../trpc").Context;
     meta: object;
-    errorShape: _trpc_server.TRPCDefaultErrorShape;
-    transformer: true;
-}, _trpc_server.TRPCDecorateCreateRouterOptions<{
-    getUserById: _trpc_server.TRPCQueryProcedure<{
-        input: {
-            userId: string;
-        };
+    errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+    transformer: any;
+}, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+    getUserById: import("@trpc/server").TRPCQueryProcedure<{
+        input: any;
         output: {
-            user: Promise<{
-                id: string;
-                email: string;
-                hashedPassword: string;
-                role: _db.$Enums.UserRole;
-                createdAt: Date;
-            } | null>;
+            user: Promise<any>;
         };
         meta: object;
     }>;
-    getUserByEmail: _trpc_server.TRPCQueryProcedure<{
-        input: {
-            email: string;
-        };
-        output: {
-            id: string;
-            email: string;
-            hashedPassword: string;
-            role: _db.$Enums.UserRole;
-            createdAt: Date;
-        };
+    getUserByEmail: import("@trpc/server").TRPCQueryProcedure<{
+        input: any;
+        output: any;
         meta: object;
     }>;
 }>>;
-
-export { userRouter };

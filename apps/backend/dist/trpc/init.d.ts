@@ -1,25 +1,15 @@
-import * as _trpc_server from '@trpc/server';
-import { superjson } from '@common';
-import { Context } from './context.js';
-import 'express';
-import '@db';
-import '@trpc/server/adapters/express';
-import 'http';
-import '@trpc/server/adapters/ws';
-
-declare const t: _trpc_server.TRPCRootObject<Context, object, {
-    transformer: typeof superjson;
+import { Context } from './context';
+export declare const t: import("@trpc/server").TRPCRootObject<Context, object, {
+    transformer: any;
 }, {
     ctx: Context;
     meta: object;
-    errorShape: _trpc_server.TRPCDefaultErrorShape;
-    transformer: true;
+    errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+    transformer: any;
 }>;
-declare const router: _trpc_server.TRPCRouterBuilder<{
+export declare const router: import("@trpc/server").TRPCRouterBuilder<{
     ctx: Context;
     meta: object;
-    errorShape: _trpc_server.TRPCDefaultErrorShape;
-    transformer: true;
+    errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+    transformer: any;
 }>;
-
-export { router, t };

@@ -1,21 +1,11 @@
-import * as _db from '@db';
-import * as _trpc_server from '@trpc/server';
-import { Context } from './context.js';
-import 'express';
-import '@trpc/server/adapters/express';
-import 'http';
-import '@trpc/server/adapters/ws';
-
-declare const publicProcedure: _trpc_server.TRPCProcedureBuilder<Context, object, object, _trpc_server.TRPCUnsetMarker, _trpc_server.TRPCUnsetMarker, _trpc_server.TRPCUnsetMarker, _trpc_server.TRPCUnsetMarker, false>;
-declare const userProcedure: _trpc_server.TRPCProcedureBuilder<Context, object, {
+export declare const publicProcedure: import("@trpc/server").TRPCProcedureBuilder<import("./context").Context, object, object, import("@trpc/server").TRPCUnsetMarker, import("@trpc/server").TRPCUnsetMarker, import("@trpc/server").TRPCUnsetMarker, import("@trpc/server").TRPCUnsetMarker, false>;
+export declare const userProcedure: import("@trpc/server").TRPCProcedureBuilder<import("./context").Context, object, {
     ctx: {
-        user: _db.User;
+        user: User;
     };
-}, _trpc_server.TRPCUnsetMarker, _trpc_server.TRPCUnsetMarker, _trpc_server.TRPCUnsetMarker, _trpc_server.TRPCUnsetMarker, false>;
-declare const adminProcedure: _trpc_server.TRPCProcedureBuilder<Context, object, {
+}, import("@trpc/server").TRPCUnsetMarker, import("@trpc/server").TRPCUnsetMarker, import("@trpc/server").TRPCUnsetMarker, import("@trpc/server").TRPCUnsetMarker, false>;
+export declare const adminProcedure: import("@trpc/server").TRPCProcedureBuilder<import("./context").Context, object, {
     ctx: {
-        user: _db.User;
+        user: User;
     };
-}, _trpc_server.TRPCUnsetMarker, _trpc_server.TRPCUnsetMarker, _trpc_server.TRPCUnsetMarker, _trpc_server.TRPCUnsetMarker, false>;
-
-export { adminProcedure, publicProcedure, userProcedure };
+}, import("@trpc/server").TRPCUnsetMarker, import("@trpc/server").TRPCUnsetMarker, import("@trpc/server").TRPCUnsetMarker, import("@trpc/server").TRPCUnsetMarker, false>;

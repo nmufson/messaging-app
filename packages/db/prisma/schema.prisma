@@ -20,7 +20,7 @@ enum UserRole {
 }
 
 model User {
-  id                          String            @id @default(cuid())
+  id                          String            @id @default(uuid())
   email                       String            @unique
   hashedPassword              String
   role                        UserRole          @default(USER)
@@ -30,7 +30,7 @@ model User {
 }
 
 model Profile {
-  id                          String            @id @default(cuid())
+  id                          String            @id @default(uuid())
   firstName                   String 
   lastName                    String
   profilePictureUrl           String?
@@ -58,7 +58,7 @@ enum FriendRequestStatus {
 }
 
 model FriendRequest {
-  id          String                @id @default(cuid())
+  id          String                @id @default(uuid())
   status      FriendRequestStatus   @default(PENDING)
   senderId    String
   sender      Profile               @relation("SentRequests", fields: [senderId], references: [id])
@@ -75,7 +75,7 @@ enum ChatType {
 }
 
 model Chat {
-  id                  String @id    @default(cuid())
+  id                  String @id    @default(uuid())
   creatorId           String
   creator             Profile      @relation("ChatCreator", fields: [creatorId], references: [id])
   type                ChatType
@@ -94,7 +94,7 @@ enum MessageType {
 }
 
 model Message {
-  id                String          @id @default(cuid())
+  id                String          @id @default(uuid())
   type              MessageType
   content           String?
   imageUrl          String?

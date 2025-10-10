@@ -1,49 +1,17 @@
 "use strict";
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// src/trpc/context.ts
-var context_exports = {};
-__export(context_exports, {
-  createContext: () => createContext,
-  createWSSContext: () => createWSSContext
-});
-module.exports = __toCommonJS(context_exports);
-var import_db = require("@db");
-function createContext({
-  req,
-  res
-}) {
-  return { req, res, user: req.user, prisma: import_db.prisma };
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.createContext = createContext;
+exports.createWSSContext = createWSSContext;
+const _db_1 = require("@db");
+function createContext({ req, res, }) {
+    return { req, res, user: req.user, prisma: _db_1.prisma };
 }
-function createWSSContext({
-  req
-}) {
-  return {
-    req,
-    user: void 0,
-    // TODO: implement ws auth logic?
-    prisma: import_db.prisma
-  };
+function createWSSContext({ req, }) {
+    return {
+        req,
+        user: undefined, // TODO: implement ws auth logic?
+        prisma: // TODO: implement ws auth logic?
+        _db_1.prisma,
+    };
 }
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  createContext,
-  createWSSContext
-});
 //# sourceMappingURL=context.js.map

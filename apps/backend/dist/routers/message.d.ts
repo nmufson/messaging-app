@@ -1,58 +1,23 @@
-import * as _db from '@db';
-import * as _trpc_server_dist_unstable_core_do_not_import_d_DKRHq4OJ_cjs from '@trpc/server/dist/unstable-core-do-not-import.d-DKRHq4OJ.cjs';
-import * as _trpc_server from '@trpc/server';
-import { Context } from '../trpc/context.js';
-import 'express';
-import '@trpc/server/adapters/express';
-import 'http';
-import '@trpc/server/adapters/ws';
-
-declare const messageRouter: _trpc_server.TRPCBuiltRouter<{
-    ctx: Context;
+export declare const messageRouter: import("@trpc/server").TRPCBuiltRouter<{
+    ctx: import("../trpc").Context;
     meta: object;
-    errorShape: _trpc_server.TRPCDefaultErrorShape;
-    transformer: true;
-}, _trpc_server.TRPCDecorateCreateRouterOptions<{
-    onNewMessage: _trpc_server.TRPCSubscriptionProcedure<{
-        input: {
-            chatId: string;
-            lastMessageId?: string | null | undefined;
-        };
-        output: AsyncIterable<_trpc_server_dist_unstable_core_do_not_import_d_DKRHq4OJ_cjs.TrackedData<any>, void, any>;
+    errorShape: import("@trpc/server").TRPCDefaultErrorShape;
+    transformer: any;
+}, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
+    onNewMessage: import("@trpc/server").TRPCSubscriptionProcedure<{
+        input: any;
+        output: AsyncIterable<import("@trpc/server/dist/unstable-core-do-not-import.d-DKRHq4OJ.cjs").TrackedData<any>, void, any>;
         meta: object;
     }>;
-    sendDirect: _trpc_server.TRPCMutationProcedure<{
-        input: {
-            sender: string;
-            receiver: string;
-            type: "TEXT" | "IMAGE";
-            content: string | null;
-            imageUrl: string | null;
-        };
+    sendDirect: import("@trpc/server").TRPCMutationProcedure<{
+        input: any;
         output: {
-            chat: {
-                name: string | null;
-                id: string;
-                createdAt: Date;
-                type: _db.$Enums.ChatType;
-                updatedAt: Date | null;
-                groupPictureUrl: string | null;
-                creatorId: string;
-            };
-            newDirectMessage: {
-                id: string;
-                createdAt: Date;
-                type: _db.$Enums.MessageType;
-                updatedAt: Date | null;
-                content: string | null;
-                chatId: string;
-                imageUrl: string | null;
-                senderId: string;
-            };
+            chat: any;
+            newDirectMessage: any;
         };
         meta: object;
     }>;
-    sendTochat: _trpc_server.TRPCQueryProcedure<{
+    sendTochat: import("@trpc/server").TRPCQueryProcedure<{
         input: {
             type: "TEXT" | "IMAGE";
             content: string | null;
@@ -61,19 +26,8 @@ declare const messageRouter: _trpc_server.TRPCBuiltRouter<{
             chatId: string;
         };
         output: {
-            newMessage: {
-                id: string;
-                createdAt: Date;
-                type: _db.$Enums.MessageType;
-                updatedAt: Date | null;
-                content: string | null;
-                chatId: string;
-                imageUrl: string | null;
-                senderId: string;
-            };
+            newMessage: any;
         };
         meta: object;
     }>;
 }>>;
-
-export { messageRouter };
