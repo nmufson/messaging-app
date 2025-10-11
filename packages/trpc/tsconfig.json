@@ -15,7 +15,11 @@
     "sourceMap": true,
 
     "composite": true,
-    "declaration": true
+    "declaration": true,
+    "paths": {
+      "@repo/backend": ["../../apps/backend/src/*"]
+    }
   },
-  "include": ["./src/**/*"]
+  "include": ["./src/**/*"],
+  "references": [{ "path": "../../apps/backend" }]
 }

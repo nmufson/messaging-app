@@ -1,6 +1,6 @@
-import { User } from 'express';
+import type { User } from '@repo/db';
 import { Request, Response } from 'express';
-import { prisma } from '@db';
+import { prisma } from '@repo/db';
 import { CreateExpressContextOptions } from '@trpc/server/adapters/express';
 import type { IncomingMessage } from 'http';
 import { CreateWSSContextFnOptions } from '@trpc/server/adapters/ws';
@@ -26,7 +26,8 @@ export function createContext({
   req,
   res,
 }: CreateExpressContextOptions): HTTPContext {
-  return { req, res, user: req.user, prisma };
+  // TODO imrpove this
+  return { req, res, user: req.user as User, prisma };
 }
 
 export function createWSSContext({

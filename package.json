@@ -8,14 +8,14 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "tsc -b",
-    "build:watch": "tsc -b -w",
-    "lint": "eslint",
+    "build": "pnpm run build:packages",
+    "build:packages": "pnpm --filter '@repo/common' build && pnpm --filter '@repo/db' build && pnpm --filter '@repo/backend' build",
+    "build:clean": "pnpm --filter '@repo/common' clean && pnpm --filter '@repo/db' clean && pnpm --filter '@repo/backend' clean",
     "dev": "concurrently \"npm:dev-*\"",
     "dev-frontend": "npm --workspace=apps/frontend run dev",
     "dev-backend": "npm --workspace=apps/backend run dev",
-    "dev-backend-types": "npm --workspace=apps/backend run dev:types",
-    "dev-common": "npm --workspace=packages/common run dev"
+    "dev-common": "npm --workspace=packages/common run dev",
+    "dev-db": "npm --workspace=packages/db run dev"
   },
   "dependencies": {
     "remeda": "^2.32.0"

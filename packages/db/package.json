@@ -4,6 +4,13 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
   "files": [
     "dist",
     "prisma"
@@ -12,8 +19,8 @@
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
     "studio": "prisma studio",
-    "build": "tsc -b",
-    "dev": "tsc -b --watch --preserveWatchOutput",
+    "build": "npm run generate && tsup",
+    "dev": "npm run generate && tsup --watch",
     "prep": "npm run generate && npm run build",
     "clean": "rm -rf dist"
   },
@@ -21,9 +28,10 @@
     "@prisma/client": "^5.0.0"
   },
   "devDependencies": {
+    "@types/node": "^24.3.0",
     "prisma": "^5.0.0",
-    "typescript": "^5.9.2",
     "ts-node": "^10.9.2",
-    "@types/node": "^24.3.0"
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
   }
 }

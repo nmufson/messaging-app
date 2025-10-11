@@ -1,15 +1,13 @@
 import { ObjectId } from '@common/src/schemas/primitives';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
-import { z } from '@common';
+import { z } from '@repo/common';
 import { eventEmitter } from '../lib/eventBus';
-import { handleTRPCError } from '../services/error';
 import { adminProcedure, router, userProcedure } from '../trpc';
-import { mergeAsyncIterators } from '@repo/common/utils/mergeAsyncIterators';
+import { mergeAsyncIterators } from '@repo/common';
 import { UserRole } from '@common/src/schemas/user';
 import { ChatDTO, ChatType } from '@common/src/schemas/chat';
 import { logger } from '../lib/pino';
-import { Chat } from '@db';
 
 export const chatRouter = router({
   // TODO: add something for loading more messages in chat
@@ -209,19 +207,19 @@ export const chatRouter = router({
       const chats = await ctx.prisma.chat.findMany({
         orderBy: { updatedAt: 'desc' },
         include: {
-          // messages: {
-          //   orderBy: { createdAt: 'desc' },
-          //   take: 1, // display most recent msg in preview
-          //   select: {
-          //     id: true,
-          //     type: true,
-          //     content: true,
-          //     imageUrl: true,
-          //     createdAt: true,
-          //     updatedAt: true,
-          //     senderId: true,
-          //   },
-          // },
+          messages: {
+            orderBy: { createdAt: 'desc' },
+            take: 1, // display most recent msg in preview
+            select: {
+              id: true,
+              type: true,
+              content: true,
+              imageUrl: true,
+              createdAt: true,
+              updatedAt: true,
+              senderId: true,
+            },
+          },
           participants: {
             select: {
               id: true,
@@ -236,8 +234,7 @@ export const chatRouter = router({
       const validatedChats: ChatDTO[] = chats.map((chat) =>
         ChatDTO.parse(chat)
       );
-
-      return { message: 'test' };
+      return validatedChats;
     }),
 
   createGroup: userProcedure

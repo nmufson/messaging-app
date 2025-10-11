@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/index.ts"],"sourcesContent":["import { PrismaClient } from '@prisma/client';\n\nexport const prisma = new PrismaClient();\n\nexport type { User, Chat, Message } from '@prisma/client';\n\nexport * from '@prisma/client';\n"],"mappings":";;;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA,oBAA6B;AAM7B,0BAAc,2BANd;AAEO,IAAM,SAAS,IAAI,2BAAa;","names":[]}

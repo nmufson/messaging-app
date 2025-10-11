@@ -1,5 +1,5 @@
 import { SendMessageInput } from '@common/src/schemas/message';
-import { PrismaClient } from '@db';
+import { PrismaClient } from '@repo/db';
 
 export const sendMessage = async (
   prisma: PrismaClient,

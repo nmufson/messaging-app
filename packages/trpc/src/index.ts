@@ -1,1 +1,5 @@
-export type * from '@repo/backend/trpcRouter';
+export type {
+  AppRouter,
+  RouterInputs,
+  RouterOutputs,
+} from '@repo/backend/src/trpc/exports';

@@ -8,15 +8,12 @@
 
     "target": "ES2022",
     "module": "NodeNext",
-    "moduleResolution": "NodeNext"
+    "moduleResolution": "NodeNext",
+
+    "composite": true,
+    "declaration": true,
+    "incremental": true
   },
 
-  "references": [
-    { "path": "./apps/backend" },
-    { "path": "./apps/frontend" },
-
-    { "path": "./packages/common" },
-    { "path": "./packages/db" },
-    { "path": "./packages/trpc" }
-  ]
+  "references": []
 }

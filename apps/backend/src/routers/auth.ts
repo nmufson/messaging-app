@@ -1,7 +1,7 @@
 import { publicProcedure, router, userProcedure } from '../trpc';
 import { getUserByEmail } from '../services/user';
 import passport from 'passport';
-import type { User } from 'express';
+import type { User } from '@repo/db';
 import { LogInInput, RegisterInput } from '@common/src/schemas/auth';
 import { hashPassword } from '../services/hash';
 import { TRPCError } from '@trpc/server';

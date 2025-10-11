@@ -12,8 +12,9 @@
     "init:tailwind": "tailwindcss init -p"
   },
   "dependencies": {
-    "@common": "workspace:*",
-    "@db": "workspace:*",
+    "@repo/common": "workspace:*",
+    "@repo/db": "workspace:*",
+    "@repo/trpc": "workspace:*",
     "@tanstack/react-query": "^5.85.5",
     "@trpc/client": "^11.6.0",
     "@trpc/tanstack-react-query": "^11.6.0",

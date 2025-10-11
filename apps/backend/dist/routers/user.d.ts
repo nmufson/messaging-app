@@ -5,15 +5,31 @@ export declare const userRouter: import("@trpc/server").TRPCBuiltRouter<{
     transformer: any;
 }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
     getUserById: import("@trpc/server").TRPCQueryProcedure<{
-        input: any;
+        input: {
+            userId: string;
+        };
         output: {
-            user: Promise<any>;
+            user: Promise<{
+                id: string;
+                email: string;
+                hashedPassword: string;
+                role: import("@prisma/client").$Enums.UserRole;
+                createdAt: Date;
+            } | null>;
         };
         meta: object;
     }>;
     getUserByEmail: import("@trpc/server").TRPCQueryProcedure<{
-        input: any;
-        output: any;
+        input: {
+            email: string;
+        };
+        output: {
+            id: string;
+            email: string;
+            hashedPassword: string;
+            role: import("@prisma/client").$Enums.UserRole;
+            createdAt: Date;
+        };
         meta: object;
     }>;
 }>>;

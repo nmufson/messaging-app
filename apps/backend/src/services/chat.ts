@@ -1,6 +1,6 @@
 import { ChatType } from '@common/src/schemas/chat';
-import { Chat } from '@db';
-import { PrismaClient } from '@db';
+import { Chat } from '@repo/db';
+import { PrismaClient } from '@repo/db';
 import { ObjectId } from '@common/src/schemas/primitives';
 
 export const findOrCreateDirectChat = async (

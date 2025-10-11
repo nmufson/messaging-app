@@ -5,21 +5,20 @@ export declare const authRouter: import("@trpc/server").TRPCBuiltRouter<{
     transformer: any;
 }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
     register: import("@trpc/server").TRPCMutationProcedure<{
-        input: {
-            email: string;
-            password: string;
-            confirmPassword: string;
-        };
+        input: any;
         output: {
-            user: any;
+            user: {
+                id: string;
+                email: string;
+                hashedPassword: string;
+                role: import("@repo/db").$Enums.UserRole;
+                createdAt: Date;
+            };
         };
         meta: object;
     }>;
     login: import("@trpc/server").TRPCMutationProcedure<{
-        input: {
-            email: string;
-            password: string;
-        };
+        input: any;
         output: unknown;
         meta: object;
     }>;

@@ -5,33 +5,58 @@ export declare const profileRouter: import("@trpc/server").TRPCBuiltRouter<{
     transformer: any;
 }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
     byId: import("@trpc/server").TRPCQueryProcedure<{
-        input: any;
-        output: any;
+        input: {
+            profileId: string;
+        };
+        output: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date | null;
+            firstName: string;
+            lastName: string;
+            profilePictureUrl: string | null;
+            userId: string;
+        } | null;
         meta: object;
     }>;
     create: import("@trpc/server").TRPCMutationProcedure<{
-        input: {
-            userId: string;
+        input: any;
+        output: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date | null;
             firstName: string;
             lastName: string;
-            profilePictureUrl?: string | undefined;
+            profilePictureUrl: string | null;
+            userId: string;
         };
-        output: any;
         meta: object;
     }>;
     update: import("@trpc/server").TRPCMutationProcedure<{
-        input: {
-            profileId: string;
-            firstName?: string | undefined;
-            lastName?: string | undefined;
-            profilePictureUrl?: string | undefined;
+        input: any;
+        output: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date | null;
+            firstName: string;
+            lastName: string;
+            profilePictureUrl: string | null;
+            userId: string;
         };
-        output: any;
         meta: object;
     }>;
     getFriends: import("@trpc/server").TRPCQueryProcedure<{
-        input: any;
-        output: any;
+        input: {
+            profileId: string;
+        };
+        output: {
+            friends: {
+                id: string;
+                firstName: string;
+                lastName: string;
+                profilePictureUrl: string | null;
+            }[];
+        } | null;
         meta: object;
     }>;
 }>>;

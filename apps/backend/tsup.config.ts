@@ -5,10 +5,10 @@ export default defineConfig({
     app: 'src/app.ts',
     'trpc/exports': 'src/trpc/exports.ts',
   },
-  dts: true,
+  dts: false,
   format: ['cjs', 'esm'],
   outDir: 'dist',
-  external: ['@prisma/client', '.prisma/client'],
   splitting: false,
   sourcemap: true,
+  external: ['@prisma/client', '.prisma/client', '@repo/common', '@repo/db'],
 });

@@ -12,21 +12,20 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
         transformer: any;
     }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
         register: import("@trpc/server").TRPCMutationProcedure<{
-            input: {
-                email: string;
-                password: string;
-                confirmPassword: string;
-            };
+            input: any;
             output: {
-                user: any;
+                user: {
+                    id: string;
+                    email: string;
+                    hashedPassword: string;
+                    role: import("@prisma/client").$Enums.UserRole;
+                    createdAt: Date;
+                };
             };
             meta: object;
         }>;
         login: import("@trpc/server").TRPCMutationProcedure<{
-            input: {
-                email: string;
-                password: string;
-            };
+            input: any;
             output: unknown;
             meta: object;
         }>;
@@ -50,15 +49,31 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
         transformer: any;
     }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
         getUserById: import("@trpc/server").TRPCQueryProcedure<{
-            input: any;
+            input: {
+                userId: string;
+            };
             output: {
-                user: Promise<any>;
+                user: Promise<{
+                    id: string;
+                    email: string;
+                    hashedPassword: string;
+                    role: import("@prisma/client").$Enums.UserRole;
+                    createdAt: Date;
+                } | null>;
             };
             meta: object;
         }>;
         getUserByEmail: import("@trpc/server").TRPCQueryProcedure<{
-            input: any;
-            output: any;
+            input: {
+                email: string;
+            };
+            output: {
+                id: string;
+                email: string;
+                hashedPassword: string;
+                role: import("@prisma/client").$Enums.UserRole;
+                createdAt: Date;
+            };
             meta: object;
         }>;
     }>>;
@@ -69,58 +84,90 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
         transformer: any;
     }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
         byId: import("@trpc/server").TRPCQueryProcedure<{
-            input: any;
-            output: {
-                id: string;
-                type: "GROUP" | "DIRECT";
-                createdAt: import("luxon").DateTime<boolean>;
-                updatedAt: import("luxon").DateTime<boolean> | null;
+            input: {
+                chatId: string;
+                limit?: number | undefined;
+                cursor?: string | undefined;
+            };
+            output: any;
+            meta: object;
+        }>;
+        onNewMessageInChat: import("@trpc/server").TRPCSubscriptionProcedure<{
+            input: {
+                profileId: string;
+            };
+            output: AsyncIterable<import("node_modules/@trpc/server/dist/unstable-core-do-not-import.d-DKRHq4OJ.cjs").TrackedData<any>, void, any>;
+            meta: object;
+        }>;
+        onNewChat: import("@trpc/server").TRPCSubscriptionProcedure<{
+            input: {
+                profileId: string;
+            };
+            output: AsyncIterable<import("node_modules/@trpc/server/dist/unstable-core-do-not-import.d-DKRHq4OJ.cjs").TrackedData<any>, void, any>;
+            meta: object;
+        }>;
+        getList: import("@trpc/server").TRPCQueryProcedure<{
+            input: {
+                profileId: string;
+                limit?: number | undefined;
+            };
+            output: ({
                 participants: {
                     id: string;
                     firstName: string;
                     lastName: string;
                     profilePictureUrl: string | null;
                 }[];
-                messages: {
+                messages: ({
+                    content: string | null;
+                    sender: {
+                        firstName: string;
+                        lastName: string;
+                    };
+                } & {
                     id: string;
-                    type: "TEXT" | "IMAGE";
+                    createdAt: Date;
+                    chatId: string;
+                    type: import("@prisma/client").$Enums.MessageType;
+                    updatedAt: Date | null;
                     content: string | null;
                     imageUrl: string | null;
-                    createdAt: import("luxon").DateTime<boolean>;
-                    updatedAt: import("luxon").DateTime<boolean> | null;
                     senderId: string;
-                }[];
+                })[];
+            } & {
                 name: string | null;
-                groupPictureUrl: string | null;
+                id: string;
+                createdAt: Date;
                 creatorId: string;
-            };
-            meta: object;
-        }>;
-        onNewMessageInChat: import("@trpc/server").TRPCSubscriptionProcedure<{
-            input: any;
-            output: AsyncIterable<import("@trpc/server/dist/unstable-core-do-not-import.d-DKRHq4OJ.cjs").TrackedData<any>, void, any>;
-            meta: object;
-        }>;
-        onNewChat: import("@trpc/server").TRPCSubscriptionProcedure<{
-            input: any;
-            output: AsyncIterable<import("@trpc/server/dist/unstable-core-do-not-import.d-DKRHq4OJ.cjs").TrackedData<any>, void, any>;
-            meta: object;
-        }>;
-        getList: import("@trpc/server").TRPCQueryProcedure<{
-            input: any;
-            output: any;
+                type: import("@prisma/client").$Enums.ChatType;
+                groupPictureUrl: string | null;
+                updatedAt: Date | null;
+            })[];
             meta: object;
         }>;
         getAll: import("@trpc/server").TRPCQueryProcedure<{
-            input: any;
+            input: {
+                limit?: number | undefined;
+            };
             output: {
                 message: string;
             };
             meta: object;
         }>;
         createGroup: import("@trpc/server").TRPCMutationProcedure<{
-            input: any;
-            output: any;
+            input: {
+                creator: string;
+                participants: string[];
+            };
+            output: {
+                name: string | null;
+                id: string;
+                createdAt: Date;
+                creatorId: string;
+                type: import("@prisma/client").$Enums.ChatType;
+                groupPictureUrl: string | null;
+                updatedAt: Date | null;
+            };
             meta: object;
         }>;
     }>>;
@@ -131,13 +178,34 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
         transformer: any;
     }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
         sendNew: import("@trpc/server").TRPCMutationProcedure<{
-            input: any;
-            output: any;
+            input: {
+                senderId: string;
+                receiverId: string;
+            };
+            output: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date | null;
+                senderId: string;
+                receiverId: string;
+                status: import("@prisma/client").$Enums.FriendRequestStatus;
+            };
             meta: object;
         }>;
         update: import("@trpc/server").TRPCMutationProcedure<{
-            input: any;
-            output: any;
+            input: {
+                [x: string]: any;
+                senderId: string;
+                receiverId: string;
+            };
+            output: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date | null;
+                senderId: string;
+                receiverId: string;
+                status: import("@prisma/client").$Enums.FriendRequestStatus;
+            };
             meta: object;
         }>;
     }>>;
@@ -148,28 +216,57 @@ export declare const appRouter: import("@trpc/server").TRPCBuiltRouter<{
         transformer: any;
     }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
         onNewMessage: import("@trpc/server").TRPCSubscriptionProcedure<{
-            input: any;
-            output: AsyncIterable<import("@trpc/server/dist/unstable-core-do-not-import.d-DKRHq4OJ.cjs").TrackedData<any>, void, any>;
+            input: {
+                chatId: string;
+                lastMessageId?: string | null | undefined;
+            };
+            output: AsyncIterable<import("node_modules/@trpc/server/dist/unstable-core-do-not-import.d-DKRHq4OJ.cjs").TrackedData<any>, void, any>;
             meta: object;
         }>;
         sendDirect: import("@trpc/server").TRPCMutationProcedure<{
-            input: any;
+            input: {
+                [x: string]: any;
+                sender: string;
+                receiver: string;
+                content: string | null;
+                imageUrl: string | null;
+            };
             output: {
-                chat: any;
-                newDirectMessage: any;
+                chat: {
+                    name: string | null;
+                    id: string;
+                    createdAt: Date;
+                    creatorId: string;
+                    type: import("@prisma/client").$Enums.ChatType;
+                    groupPictureUrl: string | null;
+                    updatedAt: Date | null;
+                };
+                newDirectMessage: {
+                    id: string;
+                    createdAt: Date;
+                    chatId: string;
+                    type: import("@prisma/client").$Enums.MessageType;
+                    updatedAt: Date | null;
+                    content: string | null;
+                    imageUrl: string | null;
+                    senderId: string;
+                };
             };
             meta: object;
         }>;
         sendTochat: import("@trpc/server").TRPCQueryProcedure<{
-            input: {
-                type: "TEXT" | "IMAGE";
-                content: string | null;
-                imageUrl: string | null;
-                sender: string;
-                chatId: string;
-            };
+            input: any;
             output: {
-                newMessage: any;
+                newMessage: {
+                    id: string;
+                    createdAt: Date;
+                    chatId: string;
+                    type: import("@prisma/client").$Enums.MessageType;
+                    updatedAt: Date | null;
+                    content: string | null;
+                    imageUrl: string | null;
+                    senderId: string;
+                };
             };
             meta: object;
         }>;

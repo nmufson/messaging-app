@@ -1,6 +1,6 @@
 import { ObjectId } from '@common/src/schemas/primitives';
 import { router, userProcedure } from '../trpc';
-import { z } from '@common';
+import { z } from '@repo/common';
 import { FriendRequestStatus } from '@common/src/schemas/friendRequest';
 import { TRPCError } from '@trpc/server';
 

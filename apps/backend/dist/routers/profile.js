@@ -3,12 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.profileRouter = void 0;
 const primitives_1 = require("@common/src/schemas/primitives");
 const trpc_1 = require("../trpc");
-const _common_1 = require("@common");
+const common_1 = require("@repo/common");
 const profile_1 = require("@common/src/schemas/profile");
 const server_1 = require("@trpc/server");
 exports.profileRouter = (0, trpc_1.router)({
     byId: trpc_1.userProcedure
-        .input(_common_1.z.object({
+        .input(common_1.z.object({
         profileId: primitives_1.ObjectId,
     }))
         .query(async ({ input, ctx }) => {
@@ -55,7 +55,7 @@ exports.profileRouter = (0, trpc_1.router)({
         return updatedProfile;
     }),
     getFriends: trpc_1.userProcedure
-        .input(_common_1.z.object({ profileId: primitives_1.ObjectId }))
+        .input(common_1.z.object({ profileId: primitives_1.ObjectId }))
         .query(async ({ input, ctx }) => {
         const { profileId } = input;
         const friends = await ctx.prisma.profile.findUnique({

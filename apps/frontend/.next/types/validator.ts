@@ -36,45 +36,45 @@ type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
 }
 
 
-// Validate ../../app/about/page.tsx
+// Validate ../../src/app/about/page.tsx
 {
-  const handler = {} as typeof import("../../app/about/page.js")
+  const handler = {} as typeof import("../../src/app/about/page.js")
   handler satisfies AppPageConfig<"/about">
 }
 
-// Validate ../../app/chat/[slug]/page.tsx
+// Validate ../../src/app/chat/[slug]/page.tsx
 {
-  const handler = {} as typeof import("../../app/chat/[slug]/page.js")
+  const handler = {} as typeof import("../../src/app/chat/[slug]/page.js")
   handler satisfies AppPageConfig<"/chat/[slug]">
 }
 
-// Validate ../../app/chats/page.tsx
+// Validate ../../src/app/chats/page.tsx
 {
-  const handler = {} as typeof import("../../app/chats/page.js")
+  const handler = {} as typeof import("../../src/app/chats/page.js")
   handler satisfies AppPageConfig<"/chats">
 }
 
-// Validate ../../app/login/page.tsx
+// Validate ../../src/app/login/page.tsx
 {
-  const handler = {} as typeof import("../../app/login/page.js")
+  const handler = {} as typeof import("../../src/app/login/page.js")
   handler satisfies AppPageConfig<"/login">
 }
 
-// Validate ../../app/page.tsx
+// Validate ../../src/app/page.tsx
 {
-  const handler = {} as typeof import("../../app/page.js")
+  const handler = {} as typeof import("../../src/app/page.js")
   handler satisfies AppPageConfig<"/">
 }
 
-// Validate ../../app/profile/page.tsx
+// Validate ../../src/app/profile/page.tsx
 {
-  const handler = {} as typeof import("../../app/profile/page.js")
+  const handler = {} as typeof import("../../src/app/profile/page.js")
   handler satisfies AppPageConfig<"/profile">
 }
 
-// Validate ../../app/signup/page.tsx
+// Validate ../../src/app/signup/page.tsx
 {
-  const handler = {} as typeof import("../../app/signup/page.js")
+  const handler = {} as typeof import("../../src/app/signup/page.js")
   handler satisfies AppPageConfig<"/signup">
 }
 
@@ -84,8 +84,8 @@ type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
 
 
 
-// Validate ../../app/layout.tsx
+// Validate ../../src/app/layout.tsx
 {
-  const handler = {} as typeof import("../../app/layout.js")
+  const handler = {} as typeof import("../../src/app/layout.js")
   handler satisfies LayoutConfig<"/">
 }

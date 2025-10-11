@@ -5,28 +5,57 @@ export declare const messageRouter: import("@trpc/server").TRPCBuiltRouter<{
     transformer: any;
 }, import("@trpc/server").TRPCDecorateCreateRouterOptions<{
     onNewMessage: import("@trpc/server").TRPCSubscriptionProcedure<{
-        input: any;
-        output: AsyncIterable<import("@trpc/server/dist/unstable-core-do-not-import.d-DKRHq4OJ.cjs").TrackedData<any>, void, any>;
+        input: {
+            chatId: string;
+            lastMessageId?: string | null | undefined;
+        };
+        output: AsyncIterable<import("node_modules/@trpc/server/dist/unstable-core-do-not-import.d-DKRHq4OJ.cjs").TrackedData<any>, void, any>;
         meta: object;
     }>;
     sendDirect: import("@trpc/server").TRPCMutationProcedure<{
-        input: any;
+        input: {
+            [x: string]: any;
+            sender: string;
+            receiver: string;
+            content: string | null;
+            imageUrl: string | null;
+        };
         output: {
-            chat: any;
-            newDirectMessage: any;
+            chat: {
+                name: string | null;
+                id: string;
+                createdAt: Date;
+                creatorId: string;
+                type: import("@prisma/client").$Enums.ChatType;
+                groupPictureUrl: string | null;
+                updatedAt: Date | null;
+            };
+            newDirectMessage: {
+                id: string;
+                createdAt: Date;
+                chatId: string;
+                type: import("@prisma/client").$Enums.MessageType;
+                updatedAt: Date | null;
+                content: string | null;
+                imageUrl: string | null;
+                senderId: string;
+            };
         };
         meta: object;
     }>;
     sendTochat: import("@trpc/server").TRPCQueryProcedure<{
-        input: {
-            type: "TEXT" | "IMAGE";
-            content: string | null;
-            imageUrl: string | null;
-            sender: string;
-            chatId: string;
-        };
+        input: any;
         output: {
-            newMessage: any;
+            newMessage: {
+                id: string;
+                createdAt: Date;
+                chatId: string;
+                type: import("@prisma/client").$Enums.MessageType;
+                updatedAt: Date | null;
+                content: string | null;
+                imageUrl: string | null;
+                senderId: string;
+            };
         };
         meta: object;
     }>;

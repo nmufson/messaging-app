@@ -4,19 +4,19 @@ exports.chatRouter = void 0;
 const primitives_1 = require("@common/src/schemas/primitives");
 const server_1 = require("@trpc/server");
 const events_1 = require("events");
-const _common_1 = require("@common");
+const common_1 = require("@repo/common");
 const eventBus_1 = require("../lib/eventBus");
 const trpc_1 = require("../trpc");
-const mergeAsyncIterators_1 = require("@repo/common/utils/mergeAsyncIterators");
+const common_2 = require("@repo/common");
 const user_1 = require("@common/src/schemas/user");
 const chat_1 = require("@common/src/schemas/chat");
 const pino_1 = require("../lib/pino");
 exports.chatRouter = (0, trpc_1.router)({
     // TODO: add something for loading more messages in chat
     byId: trpc_1.userProcedure
-        .input(_common_1.z.object({
+        .input(common_1.z.object({
         chatId: primitives_1.ObjectId,
-        limit: _common_1.z.number().default(100),
+        limit: common_1.z.number().default(100),
         cursor: primitives_1.ObjectId.optional(),
     }))
         .output(chat_1.ChatDTO)
@@ -68,7 +68,7 @@ exports.chatRouter = (0, trpc_1.router)({
         return validatedChat;
     }),
     onNewMessageInChat: trpc_1.userProcedure
-        .input(_common_1.z.object({
+        .input(common_1.z.object({
         profileId: primitives_1.ObjectId,
     }))
         .subscription(async function* ({ input, ctx, signal }) {
@@ -93,12 +93,12 @@ exports.chatRouter = (0, trpc_1.router)({
             throw new server_1.TRPCError({ code: 'NOT_FOUND' });
         }
         const iterables = profile.chats.map(({ id }) => (0, events_1.on)(eventBus_1.eventEmitter, `addMessageToChat:${id}`, { signal }));
-        for await (const [message] of (0, mergeAsyncIterators_1.mergeAsyncIterators)(iterables)) {
+        for await (const [message] of (0, common_2.mergeAsyncIterators)(iterables)) {
             yield (0, server_1.tracked)(message.id, message);
         }
     }),
     onNewChat: trpc_1.userProcedure
-        .input(_common_1.z.object({
+        .input(common_1.z.object({
         profileId: primitives_1.ObjectId,
     }))
         .subscription(async function* ({ input, ctx, signal }) {
@@ -116,9 +116,9 @@ exports.chatRouter = (0, trpc_1.router)({
         }
     }),
     getList: trpc_1.userProcedure
-        .input(_common_1.z.object({
-        profileId: _common_1.z.string(),
-        limit: _common_1.z.number().default(100),
+        .input(common_1.z.object({
+        profileId: common_1.z.string(),
+        limit: common_1.z.number().default(100),
     }))
         .query(async ({ input, ctx }) => {
         const { profileId, limit } = input;
@@ -175,8 +175,8 @@ exports.chatRouter = (0, trpc_1.router)({
     }),
     // TODO: move this to an admin router??
     getAll: trpc_1.adminProcedure
-        .input(_common_1.z.object({
-        limit: _common_1.z.number().default(100),
+        .input(common_1.z.object({
+        limit: common_1.z.number().default(100),
     }))
         // .output(ChatDTO.array())
         .query(async ({ ctx }) => {
@@ -212,7 +212,7 @@ exports.chatRouter = (0, trpc_1.router)({
         return { message: 'test' };
     }),
     createGroup: trpc_1.userProcedure
-        .input(_common_1.z.object({
+        .input(common_1.z.object({
         creator: primitives_1.ObjectId,
         participants: primitives_1.ObjectId.array(),
     }))

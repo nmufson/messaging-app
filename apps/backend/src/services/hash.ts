@@ -1,4 +1,4 @@
-import type { User } from '@db';
+import type { User } from '@repo/db';
 import { hash, compare } from 'bcrypt';
 
 const SALT_ROUNDS = 10;

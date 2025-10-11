@@ -1,1 +1,1 @@
-{"version":3,"file":"exports.js","sourceRoot":"","sources":["../../src/trpc/exports.ts"],"names":[],"mappings":""}
+{"version":3,"sources":["../../src/trpc/exports.ts"],"sourcesContent":["export type { AppRouter, RouterInputs, RouterOutputs } from './router';\n"],"mappings":";;;;;;;;;;;;;;;;AAAA;AAAA;","names":[]}
