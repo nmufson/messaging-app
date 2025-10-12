@@ -82,10 +82,32 @@ export const authRouter = router({
       });
     }
   }),
-  me: userProcedure.query(({ ctx }) => {
+  me: userProcedure.query(async ({ ctx }) => {
     if (!ctx.user) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
-    return ctx.user;
+    const profile = await ctx.prisma.profile.findUnique({
+      where: { userId: ctx.user.id },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        profilePictureUrl: true,
+      },
+    });
+
+    if (!profile) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Profile not found',
+      });
+    }
+    const user = {
+      id: ctx.user.id,
+      email: ctx.user.email,
+      role: ctx.user.role,
+    };
+
+    return { user, profile };
   }),
 });

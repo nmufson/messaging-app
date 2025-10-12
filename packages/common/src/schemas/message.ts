@@ -13,16 +13,13 @@ export const SendMessageInput = z.object({
 });
 export type SendMessageInput = z.infer<typeof SendMessageInput>;
 
-// export const Message = z.object({
-//   type: MessageType,
-//   content: z.string().nullable(),
-//   imageUrl: z.string().nullable(),
-//   get sender() {
-//     return z.union([ObjectId, Profile]);
-//   },
-
-//   chatId: ObjectId,
-
-//   createdAt: DateTimeSchema,
-//   updatedAt: DateTimeSchema.optional(),
-// });
+export const MessageDTO = z.object({
+  id: ObjectId,
+  type: MessageType,
+  content: z.string().nullable(),
+  imageUrl: z.string().nullable(),
+  createdAt: DateTimeSchema,
+  updatedAt: DateTimeSchema.nullable(),
+  senderId: ObjectId,
+});
+export type MessageDTO = z.infer<typeof MessageDTO>;

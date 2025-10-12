@@ -1,5 +1,6 @@
 import { usersData, profilesData, chatsData, messagesData } from './sampleData';
 import { prisma } from './index';
+import { hash } from 'bcrypt';
 
 async function main() {
   console.log('🚨 Clearing existing data...');
@@ -11,7 +12,12 @@ async function main() {
 
   // 1️⃣ Create users
   for (const user of usersData) {
-    await prisma.user.create({ data: user });
+    const { password, ...userWithoutPassword } = user;
+    const updatedUser = {
+      ...userWithoutPassword,
+      hashedPassword: await hash(password, 10),
+    };
+    await prisma.user.create({ data: updatedUser });
   }
   console.log(profilesData);
   // Create profiles

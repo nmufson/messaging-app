@@ -37,7 +37,7 @@ export const chatRouter = router({
             take: limit,
             skip: cursor ? 1 : 0,
             cursor: cursor ? { id: cursor } : undefined,
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: 'asc' },
             select: {
               id: true,
               type: true,
@@ -65,7 +65,7 @@ export const chatRouter = router({
           message: 'Chat not found',
         });
       }
-      console.log(chat);
+
       const validatedChat = ChatDTO.parse(chat);
       return validatedChat;
     }),

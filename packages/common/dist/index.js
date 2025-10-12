@@ -67,7 +67,8 @@ var dateTime = import_zod.z.custom(import_luxon.DateTime.isDateTime, {
   params: { name: "DateTime" }
 });
 var dateToDateTime = import_zod.z.date().transform((date) => import_luxon.DateTime.fromJSDate(date));
-var DateTimeSchema = import_zod.z.union([dateTime, dateToDateTime]).pipe(dateTime);
+var stringToDateTime = import_zod.z.string().transform((str) => import_luxon.DateTime.fromISO(str));
+var DateTimeSchema = import_zod.z.union([dateTime, dateToDateTime, stringToDateTime]).pipe(dateTime);
 
 // src/schemas/user.ts
 var import_zod2 = __toESM(require("zod"));
@@ -83,19 +84,19 @@ var SendMessageInput = import_zod3.z.object({
   sender: ObjectId,
   chatId: ObjectId
 });
-
-// src/schemas/chat.ts
-var import_zod4 = __toESM(require("zod"));
-var ChatType = import_zod4.default.enum(["GROUP", "DIRECT"]);
-var MessageDTO = import_zod4.default.object({
+var MessageDTO = import_zod3.z.object({
   id: ObjectId,
   type: MessageType,
-  content: import_zod4.default.string().nullable(),
-  imageUrl: import_zod4.default.string().nullable(),
+  content: import_zod3.z.string().nullable(),
+  imageUrl: import_zod3.z.string().nullable(),
   createdAt: DateTimeSchema,
   updatedAt: DateTimeSchema.nullable(),
   senderId: ObjectId
 });
+
+// src/schemas/chat.ts
+var import_zod4 = __toESM(require("zod"));
+var ChatType = import_zod4.default.enum(["GROUP", "DIRECT"]);
 var ChatDTO = import_zod4.default.object({
   id: ObjectId,
   type: ChatType,

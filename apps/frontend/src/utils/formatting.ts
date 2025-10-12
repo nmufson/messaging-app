@@ -1,20 +1,25 @@
-import { ObjectId } from '@repo/common';
+import { DateTimeSchema, ObjectId } from '@repo/common';
 import { ChatType } from '@repo/db';
 import { DateTime } from 'luxon';
 
 export function formatMessageTime(dt: DateTime) {
-  const now = DateTime.now();
-  const diffInDays = now.startOf('day').diff(dt.startOf('day'), 'days').days;
+  const parsedDateTime = toDateTime(dt);
+  if (!parsedDateTime) return '';
 
-  if (dt.hasSame(now, 'day')) {
-    return dt.toFormat('h:mm a');
+  const now = DateTime.now();
+  const diffInDays = now
+    .startOf('day')
+    .diff(parsedDateTime.startOf('day'), 'days').days;
+
+  if (parsedDateTime.hasSame(now, 'day')) {
+    return parsedDateTime.toFormat('h:mm a');
   } else if (diffInDays === 1) {
     return 'Yesterday';
   } else if (diffInDays < 7) {
-    return dt.toFormat('cccc'); //  "Monday"
+    return parsedDateTime.toFormat('cccc'); //  "Monday"
   } else {
     // Older than a week
-    return dt.toFormat('MM/dd/yyyy');
+    return parsedDateTime.toFormat('MM/dd/yyyy');
   }
 }
 export function slugify(str: string) {
@@ -35,15 +40,15 @@ interface GetChatNameParams {
   type: ChatType;
   name: string | null;
   participants: ChatParticipant[];
-  userId?: ObjectId;
+  profileId?: ObjectId;
 }
 
 export function getChatName(params: GetChatNameParams): string {
-  const { type, name, participants, userId } = params;
+  const { type, name, participants, profileId } = params;
   const isDirectChat = type === ChatType.DIRECT;
 
   if (isDirectChat) {
-    const otherParticipant = participants.find((p) => p.id !== userId);
+    const otherParticipant = participants.find((p) => p.id !== profileId);
     if (!otherParticipant) return 'Unknown User';
     return `${otherParticipant.firstName} ${otherParticipant.lastName}`;
   }
@@ -58,4 +63,8 @@ export function getChatName(params: GetChatNameParams): string {
   );
 
   return participantNames.join(', ');
+}
+
+export function toDateTime(date: unknown): DateTime | null {
+  return DateTimeSchema.parse(date);
 }

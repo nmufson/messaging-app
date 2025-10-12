@@ -16,10 +16,10 @@ export default function Chats() {
   const queryOptions = trpc.chat.getAll.queryOptions({});
 
   const { data: chats, isLoading, error } = useQuery(queryOptions);
-
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
   if (!chats || chats.length === 0) return <div>No messages found</div>;
+  console.log(chats);
 
   return (
     <div className="bg-blue-500 flex">
@@ -67,12 +67,13 @@ function ChatPreview({ chat }: ChatPreviewProps) {
     'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Flag_of_Germany_%28RGB%29.svg/330px-Flag_of_Germany_%28RGB%29.svg.png';
 
   const displayMessage = lastMessage
-    ? lastMessage.content
+    ? lastMessage.content ||
+      `${lastSender?.firstName} ${lastSender?.lastName} sent a photo`
     : `Chat created by ${creator?.firstName} ${creator?.lastName}`;
 
   const timeToShow = lastMessage ? lastMessage.createdAt : chatCreatedAt;
   const displayTime = formatMessageTime(timeToShow);
-
+  console.log(displayTime);
   const formattedDisplayName = R.truncate(displayName, 20);
   const formattedDisplayMessage = R.truncate(displayMessage, 40);
 
@@ -81,11 +82,9 @@ function ChatPreview({ chat }: ChatPreviewProps) {
   return (
     <Link href={chatLink}>
       <div className="chat-preview-container flex items-center cursor-pointer">
-        <img
-          alt="Chat"
-          className="w-12 h-12 rounded-full object-cover mr-3"
-          src={displayPicture}
-        />
+        <div className="rounded-full w-10  overflow-hidden flex items-center justify-center bg-gray-200 mr-3">
+          <img alt="Chat" className="w-10 object-cover" src={displayPicture} />
+        </div>
         <div className="flex flex-col w-full">
           <div className="flex justify-between">
             <h6>{formattedDisplayName}</h6>

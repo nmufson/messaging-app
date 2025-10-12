@@ -1,19 +1,8 @@
 import z from 'zod';
 import { DateTimeSchema, ObjectId } from './primitives';
-import { MessageType } from './message';
+import { MessageDTO } from './message';
 
 export const ChatType = z.enum(['GROUP', 'DIRECT']);
-
-export const MessageDTO = z.object({
-  id: ObjectId,
-  type: MessageType,
-  content: z.string().nullable(),
-  imageUrl: z.string().nullable(),
-  createdAt: DateTimeSchema,
-  updatedAt: DateTimeSchema.nullable(),
-  senderId: ObjectId,
-});
-export type MessageDTO = z.infer<typeof MessageDTO>;
 
 // ? may need to separate ChatDetailDTO and ChatListItemDTO
 

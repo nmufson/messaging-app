@@ -15,10 +15,10 @@
     "@repo/backend": "workspace:*",
     "@repo/common": "workspace:*",
     "@repo/db": "workspace:*",
-    "@repo/trpc": "workspace:*",
     "@tanstack/react-query": "^5.85.5",
     "@trpc/client": "^11.6.0",
     "@trpc/tanstack-react-query": "^11.6.0",
+    "bootstrap-icons": "^1.13.1",
     "next": "15.5.0",
     "react": "19.1.0",
     "react-dom": "19.1.0"

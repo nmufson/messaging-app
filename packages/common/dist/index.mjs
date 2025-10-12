@@ -20,7 +20,8 @@ var dateTime = z.custom(DateTime.isDateTime, {
   params: { name: "DateTime" }
 });
 var dateToDateTime = z.date().transform((date) => DateTime.fromJSDate(date));
-var DateTimeSchema = z.union([dateTime, dateToDateTime]).pipe(dateTime);
+var stringToDateTime = z.string().transform((str) => DateTime.fromISO(str));
+var DateTimeSchema = z.union([dateTime, dateToDateTime, stringToDateTime]).pipe(dateTime);
 
 // src/schemas/user.ts
 import z2 from "zod";
@@ -36,19 +37,19 @@ var SendMessageInput = z3.object({
   sender: ObjectId,
   chatId: ObjectId
 });
-
-// src/schemas/chat.ts
-import z4 from "zod";
-var ChatType = z4.enum(["GROUP", "DIRECT"]);
-var MessageDTO = z4.object({
+var MessageDTO = z3.object({
   id: ObjectId,
   type: MessageType,
-  content: z4.string().nullable(),
-  imageUrl: z4.string().nullable(),
+  content: z3.string().nullable(),
+  imageUrl: z3.string().nullable(),
   createdAt: DateTimeSchema,
   updatedAt: DateTimeSchema.nullable(),
   senderId: ObjectId
 });
+
+// src/schemas/chat.ts
+import z4 from "zod";
+var ChatType = z4.enum(["GROUP", "DIRECT"]);
 var ChatDTO = z4.object({
   id: ObjectId,
   type: ChatType,

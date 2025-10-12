@@ -4,7 +4,7 @@ import './globals.css';
 import { createTRPCClient, httpBatchLink } from '@trpc/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
-import { TRPCProvider } from '../lib/trpc';
+import { AppRouter, TRPCProvider } from '../lib/trpc';
 import { superjson } from '@repo/common';
 import { AuthProvider } from '../context/AuthContext';
 
@@ -58,7 +58,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className="min-h-screen">
+      <body className="overflow-hidden h-screen w-screen">
         <QueryClientProvider client={queryClient}>
           <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
             <AuthProvider>{children}</AuthProvider>
