@@ -5,20 +5,20 @@
   "main": "./dist/app.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "./trpcRouter": {
-      "types": "./src/trpc/exports.ts"
+    "./trpc/exports": {
+      "types": "./dist/trpc/exports.d.ts",
+      "import": "./dist/trpc/exports.mjs",
+      "require": "./dist/trpc/exports.js"
     }
   },
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
-    "dev:types": "tsc -b --watch --preserveWatchOutput",
-    "build": "tsup",
-    "start": "node dist/app.js"
+    "dev": "tsx watch src/app.ts",
+    "build": "tsup"
   },
   "dependencies": {
+    "@quixo3/prisma-session-store": "^3.1.13",
     "@repo/common": "workspace:*",
     "@repo/db": "workspace:*",
-    "@quixo3/prisma-session-store": "^3.1.13",
     "@trpc/client": "^11.6.0",
     "@trpc/server": "^11.6.0",
     "bcrypt": "^6.0.0",
@@ -44,6 +44,7 @@
     "@types/ws": "^8.18.1",
     "ts-node-dev": "^2.0.0",
     "tsup": "^8.5.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
 }

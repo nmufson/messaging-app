@@ -1,8 +1,7 @@
 'use client';
-import { RouterOutputs, useTRPC } from '../../lib/trpc';
+import { useTRPC } from '../../lib/trpc';
 import { useQuery } from '@tanstack/react-query';
-import { ChatDTO, ChatType } from '@common/src/schemas/chat';
-import { last } from 'remeda';
+import { ChatDTO, ChatType } from '@repo/common';
 import * as R from 'remeda';
 import Link from 'next/link';
 import {
@@ -11,8 +10,7 @@ import {
   slugify,
 } from '../../utils/formatting';
 import { useAuth } from '../../context/AuthContext';
-
-type Chats = RouterOutputs['chat']['getAll'];
+import { RouterOutputs } from '@repo/trpc';
 
 export default function Chats() {
   const trpc = useTRPC();

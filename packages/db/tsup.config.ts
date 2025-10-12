@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup';
+import { defineConfig, type Options } from 'tsup';
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -8,4 +8,4 @@ export default defineConfig({
   external: ['@prisma/client', '.prisma/client'],
   splitting: false,
   sourcemap: true,
-});
+} satisfies Options);

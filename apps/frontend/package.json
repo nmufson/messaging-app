@@ -12,6 +12,7 @@
     "init:tailwind": "tailwindcss init -p"
   },
   "dependencies": {
+    "@repo/backend": "workspace:*",
     "@repo/common": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/trpc": "workspace:*",

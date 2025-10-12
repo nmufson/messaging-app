@@ -207,19 +207,19 @@ export const chatRouter = router({
       const chats = await ctx.prisma.chat.findMany({
         orderBy: { updatedAt: 'desc' },
         include: {
-          messages: {
-            orderBy: { createdAt: 'desc' },
-            take: 1, // display most recent msg in preview
-            select: {
-              id: true,
-              type: true,
-              content: true,
-              imageUrl: true,
-              createdAt: true,
-              updatedAt: true,
-              senderId: true,
-            },
-          },
+          // messages: {
+          //   orderBy: { createdAt: 'desc' },
+          //   take: 1, // display most recent msg in preview
+          //   select: {
+          //     id: true,
+          //     type: true,
+          //     content: true,
+          //     imageUrl: true,
+          //     createdAt: true,
+          //     updatedAt: true,
+          //     senderId: true,
+          //   },
+          // },
           participants: {
             select: {
               id: true,
@@ -231,10 +231,11 @@ export const chatRouter = router({
         },
       });
       logger.info({ chats }, 'Queried all chats');
+      return chats;
       const validatedChats: ChatDTO[] = chats.map((chat) =>
         ChatDTO.parse(chat)
       );
-      return validatedChats;
+      // return validatedChats;
     }),
 
   createGroup: userProcedure

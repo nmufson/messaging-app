@@ -22,7 +22,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@repo/common": ["../../packages/common/src"],
-      "@repo/trpc": ["../../packages/trpc/src"]
+      "@repo/trpc": ["../../packages/trpc/src"],
+      "@repo/backend": ["../../apps/backend/src/*"]
     }
   },
   "include": ["next-env.d.ts", ".next/types/**/*.ts", "src/**/*"],

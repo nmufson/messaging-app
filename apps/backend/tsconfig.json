@@ -12,6 +12,8 @@
     "erasableSyntaxOnly": true,
     "isolatedModules": true,
     "sourceMap": true,
+    "incremental": false,
+    "composite": false,
 
     "baseUrl": "."
   },
