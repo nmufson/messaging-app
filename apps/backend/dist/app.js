@@ -19418,9 +19418,6 @@ var chatRouter = router({
     });
     logger.info({ chats }, "Queried all chats");
     return chats;
-    const validatedChats = chats.map(
-      (chat) => ChatDTO.parse(chat)
-    );
   }),
   createGroup: userProcedure.input(
     import_common2.z.object({

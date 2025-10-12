@@ -4,7 +4,6 @@ import './globals.css';
 import { createTRPCClient, httpBatchLink } from '@trpc/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
-import { AppRouter } from '@repo/trpc';
 import { TRPCProvider } from '../lib/trpc';
 import { superjson } from '@repo/common';
 import { AuthProvider } from '../context/AuthContext';
