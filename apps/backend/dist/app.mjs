@@ -12495,138 +12495,6 @@ config(en_default());
 // ../../node_modules/.pnpm/zod@4.1.11/node_modules/zod/index.js
 var zod_default = external_exports;
 
-// ../../packages/common/src/schemas/auth.ts
-var Password = external_exports.string().min(8, "Password must be at least 8 characters long").refine((password) => /[A-Z]/.test(password), {
-  message: "Password must contain at least one uppercase letter"
-}).refine((password) => /[a-z]/.test(password), {
-  message: "Password must contain at least one lowercase letter"
-}).refine((password) => /[0-9]/.test(password), {
-  message: "Password must contain at least one number"
-}).refine((password) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~]/.test(password), {
-  message: "Password must contain at least one special character"
-});
-var RegisterInput = external_exports.object({
-  email: external_exports.email(),
-  password: Password,
-  confirmPassword: Password
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"]
-});
-var LogInInput = external_exports.object({
-  email: external_exports.email(),
-  password: external_exports.string()
-});
-
-// src/services/hash.ts
-import { hash as hash2, compare } from "bcrypt";
-var SALT_ROUNDS = 10;
-async function hashPassword(plainTextPassword) {
-  return await hash2(plainTextPassword, SALT_ROUNDS);
-}
-async function verifyPassword(user, plainTextPassword) {
-  const { hashedPassword } = user;
-  return await compare(plainTextPassword, hashedPassword);
-}
-
-// src/routers/auth.ts
-import { TRPCError as TRPCError2 } from "@trpc/server";
-import { AuthUserDTO } from "@repo/common";
-var authRouter = router({
-  register: publicProcedure.input(RegisterInput).mutation(async ({ input, ctx }) => {
-    const { email: email3, password } = input;
-    const existingUser = await getUserByEmail(email3);
-    if (existingUser) {
-      throw new TRPCError2({
-        code: "CONFLICT",
-        message: "Email already in use"
-      });
-    }
-    const hashedPassword = await hashPassword(password);
-    try {
-      const user = await ctx.prisma.user.create({
-        data: {
-          email: email3,
-          hashedPassword
-        }
-      });
-      console.log(user, "User created successfully!");
-      return { user };
-    } catch (err) {
-      console.error(err);
-      throw new TRPCError2({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to create user"
-      });
-    }
-  }),
-  login: publicProcedure.input(LogInInput).mutation(async ({ input, ctx }) => {
-    return new Promise((resolve, reject) => {
-      if ("body" in ctx.req) {
-        ctx.req.body = {
-          email: input.email,
-          password: input.password
-        };
-      }
-      passport.authenticate("local", (err, user, info) => {
-        if (err) return reject(err);
-        if (!user) return reject(new Error("Invalid credentials"));
-        if ("login" in ctx.req) {
-          ctx.req.login(user, (err2) => {
-            if (err2) return reject(err2);
-            resolve({ user });
-          });
-        } else {
-          throw new TRPCError2({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Request object does not support login"
-          });
-        }
-      })(ctx.req, "res" in ctx ? ctx.res : void 0);
-    });
-  }),
-  logout: publicProcedure.mutation(({ ctx }) => {
-    if ("logout" in ctx.req && typeof ctx.req.logout === "function") {
-      ctx.req.logout(() => {
-      });
-      return { success: true };
-    } else {
-      throw new TRPCError2({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Request object does not support logout"
-      });
-    }
-  }),
-  me: userProcedure.output(AuthUserDTO).query(async ({ ctx }) => {
-    if (!ctx.user) {
-      throw new TRPCError2({ code: "UNAUTHORIZED" });
-    }
-    const user = await ctx.prisma.user.findUnique({
-      where: { id: ctx.user.id },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        profile: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profilePictureUrl: true
-          }
-        }
-      }
-    });
-    if (!user?.profile) {
-      throw new TRPCError2({
-        code: "NOT_FOUND",
-        message: "User not found or related profile is missing"
-      });
-    }
-    return { ...user, profile: user.profile };
-  })
-});
-
 // ../../node_modules/.pnpm/luxon@3.7.2/node_modules/luxon/build/es6/luxon.mjs
 var LuxonError = class extends Error {
 };
@@ -13305,17 +13173,17 @@ var PolyDateFormatter = class {
   constructor(dt, intl, opts) {
     this.opts = opts;
     this.originalZone = void 0;
-    let z3 = void 0;
+    let z4 = void 0;
     if (this.opts.timeZone) {
       this.dt = dt;
     } else if (dt.zone.type === "fixed") {
       const gmtOffset = -1 * (dt.offset / 60);
       const offsetZ = gmtOffset >= 0 ? `Etc/GMT+${gmtOffset}` : `Etc/GMT${gmtOffset}`;
       if (dt.offset !== 0 && IANAZone.create(offsetZ).valid) {
-        z3 = offsetZ;
+        z4 = offsetZ;
         this.dt = dt;
       } else {
-        z3 = "UTC";
+        z4 = "UTC";
         this.dt = dt.offset === 0 ? dt : dt.setZone("UTC").plus({ minutes: dt.offset });
         this.originalZone = dt.zone;
       }
@@ -13323,14 +13191,14 @@ var PolyDateFormatter = class {
       this.dt = dt;
     } else if (dt.zone.type === "iana") {
       this.dt = dt;
-      z3 = dt.zone.name;
+      z4 = dt.zone.name;
     } else {
-      z3 = "UTC";
+      z4 = "UTC";
       this.dt = dt.setZone("UTC").plus({ minutes: dt.offset });
       this.originalZone = dt.zone;
     }
     const intlOpts = { ...this.opts };
-    intlOpts.timeZone = intlOpts.timeZone || z3;
+    intlOpts.timeZone = intlOpts.timeZone || z4;
     this.dtf = getCachedDTF(intl, intlOpts);
   }
   format() {
@@ -19142,6 +19010,151 @@ var dateToDateTime = external_exports.date().transform((date5) => DateTime.fromJ
 var stringToDateTime = external_exports.string().transform((str) => DateTime.fromISO(str));
 var DateTimeSchema = external_exports.union([dateTime, dateToDateTime, stringToDateTime]).pipe(dateTime);
 
+// ../../packages/common/src/schemas/auth.ts
+var Password = external_exports.string().min(8, "Password must be at least 8 characters long").refine((password) => /[A-Z]/.test(password), {
+  message: "Password must contain at least one uppercase letter"
+}).refine((password) => /[a-z]/.test(password), {
+  message: "Password must contain at least one lowercase letter"
+}).refine((password) => /[0-9]/.test(password), {
+  message: "Password must contain at least one number"
+}).refine((password) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~]/.test(password), {
+  message: "Password must contain at least one special character"
+});
+var RegisterInput = external_exports.object({
+  email: external_exports.email(),
+  password: Password,
+  confirmPassword: Password
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"]
+});
+var LogInInput = external_exports.object({
+  email: external_exports.email(),
+  password: external_exports.string()
+});
+var UserRole = external_exports.enum(["USER", "ADMIN"]);
+var AuthProfileDTO = external_exports.object({
+  id: ObjectId,
+  firstName: external_exports.string().min(1).max(100),
+  lastName: external_exports.string().min(1).max(100),
+  profilePictureUrl: external_exports.string().url().nullable()
+});
+var AuthUserDTO = external_exports.object({
+  id: ObjectId,
+  email: external_exports.string().email(),
+  role: UserRole,
+  profile: AuthProfileDTO
+});
+
+// src/services/hash.ts
+import { hash as hash2, compare } from "bcrypt";
+var SALT_ROUNDS = 10;
+async function hashPassword(plainTextPassword) {
+  return await hash2(plainTextPassword, SALT_ROUNDS);
+}
+async function verifyPassword(user, plainTextPassword) {
+  const { hashedPassword } = user;
+  return await compare(plainTextPassword, hashedPassword);
+}
+
+// src/routers/auth.ts
+import { TRPCError as TRPCError2 } from "@trpc/server";
+import { AuthUserDTO as AuthUserDTO2 } from "@repo/common";
+var authRouter = router({
+  register: publicProcedure.input(RegisterInput).mutation(async ({ input, ctx }) => {
+    const { email: email3, password } = input;
+    const existingUser = await getUserByEmail(email3);
+    if (existingUser) {
+      throw new TRPCError2({
+        code: "CONFLICT",
+        message: "Email already in use"
+      });
+    }
+    const hashedPassword = await hashPassword(password);
+    try {
+      const user = await ctx.prisma.user.create({
+        data: {
+          email: email3,
+          hashedPassword
+        }
+      });
+      console.log(user, "User created successfully!");
+      return { user };
+    } catch (err) {
+      console.error(err);
+      throw new TRPCError2({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to create user"
+      });
+    }
+  }),
+  login: publicProcedure.input(LogInInput).mutation(async ({ input, ctx }) => {
+    return new Promise((resolve, reject) => {
+      if ("body" in ctx.req) {
+        ctx.req.body = {
+          email: input.email,
+          password: input.password
+        };
+      }
+      passport.authenticate("local", (err, user, info) => {
+        if (err) return reject(err);
+        if (!user) return reject(new Error("Invalid credentials"));
+        if ("login" in ctx.req) {
+          ctx.req.login(user, (err2) => {
+            if (err2) return reject(err2);
+            resolve({ user });
+          });
+        } else {
+          throw new TRPCError2({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Request object does not support login"
+          });
+        }
+      })(ctx.req, "res" in ctx ? ctx.res : void 0);
+    });
+  }),
+  logout: publicProcedure.mutation(({ ctx }) => {
+    if ("logout" in ctx.req && typeof ctx.req.logout === "function") {
+      ctx.req.logout(() => {
+      });
+      return { success: true };
+    } else {
+      throw new TRPCError2({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Request object does not support logout"
+      });
+    }
+  }),
+  me: userProcedure.output(AuthUserDTO2).query(async ({ ctx }) => {
+    if (!ctx.user) {
+      throw new TRPCError2({ code: "UNAUTHORIZED" });
+    }
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: ctx.user.id },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        profile: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profilePictureUrl: true
+          }
+        }
+      }
+    });
+    if (!user?.profile) {
+      throw new TRPCError2({
+        code: "NOT_FOUND",
+        message: "User not found or related profile is missing"
+      });
+    }
+    return { ...user, profile: user.profile };
+  })
+});
+
 // src/routers/chat.ts
 import { tracked, TRPCError as TRPCError3 } from "@trpc/server";
 import { on } from "events";
@@ -19153,21 +19166,6 @@ var eventEmitter = new EventEmitter();
 
 // src/routers/chat.ts
 import { mergeAsyncIterators } from "@repo/common";
-
-// ../../packages/common/src/schemas/user.ts
-var UserRole = zod_default.enum(["USER", "ADMIN"]);
-var ProfileDTO = zod_default.object({
-  id: ObjectId,
-  firstName: zod_default.string().min(1).max(100),
-  lastName: zod_default.string().min(1).max(100),
-  profilePictureUrl: zod_default.string().url().nullable()
-});
-var AuthUserDTO2 = zod_default.object({
-  id: ObjectId,
-  email: zod_default.string().email(),
-  role: UserRole,
-  profile: ProfileDTO
-});
 
 // ../../packages/common/src/schemas/message.ts
 var MessageType = external_exports.enum(["TEXT", "IMAGE"]);
@@ -19327,7 +19325,7 @@ var chatRouter = router({
     const { profileId } = input;
     const { user } = ctx;
     if (!user) throw new TRPCError3({ code: "UNAUTHORIZED" });
-    if (user.id !== profileId && user.role !== UserRole.enum.ADMIN) {
+    if (user.id !== profileId && user.role !== (void 0).enum.ADMIN) {
       throw new TRPCError3({ code: "FORBIDDEN" });
     }
     for await (const [newChat] of on(eventEmitter, `newChat:${profileId}`, {
@@ -20321,19 +20319,6 @@ var dateTime2 = external_exports.custom(DateTime.isDateTime, {
 var dateToDateTime2 = external_exports.date().transform((date5) => DateTime.fromJSDate(date5));
 var stringToDateTime2 = external_exports.string().transform((str) => DateTime.fromISO(str));
 var DateTimeSchema2 = external_exports.union([dateTime2, dateToDateTime2, stringToDateTime2]).pipe(dateTime2);
-var UserRole2 = zod_default.enum(["USER", "ADMIN"]);
-var ProfileDTO2 = zod_default.object({
-  id: ObjectId2,
-  firstName: zod_default.string().min(1).max(100),
-  lastName: zod_default.string().min(1).max(100),
-  profilePictureUrl: zod_default.string().url().nullable()
-});
-var AuthUserDTO3 = zod_default.object({
-  id: ObjectId2,
-  email: zod_default.string().email(),
-  role: UserRole2,
-  profile: ProfileDTO2
-});
 var MessageType2 = external_exports.enum(["TEXT", "IMAGE"]);
 var SendMessageInput2 = external_exports.object({
   type: MessageType2,
@@ -20372,6 +20357,66 @@ var ChatDTO2 = zod_default.object({
   creatorId: ObjectId2
 });
 var ChatDetailDTO2 = ChatDTO2.extend({});
+var CreateProfileInput = external_exports.object({
+  userId: ObjectId2,
+  firstName: external_exports.string(),
+  lastName: external_exports.string(),
+  profilePictureUrl: external_exports.string().optional()
+});
+var UpdateProfileInput = external_exports.object({
+  profileId: ObjectId2,
+  firstName: external_exports.string().optional(),
+  lastName: external_exports.string().optional(),
+  profilePictureUrl: external_exports.string().optional()
+});
+var ProfileDTO = external_exports.object({
+  id: ObjectId2,
+  createdAt: DateTimeSchema2,
+  updatedAt: DateTimeSchema2.nullable(),
+  firstName: external_exports.string(),
+  lastName: external_exports.string(),
+  profilePictureUrl: external_exports.string().nullable()
+});
+var FriendRequestStatus2 = external_exports.enum([
+  "PENDING",
+  "CANCELLED",
+  "DECLINED",
+  "ACCEPTED"
+]);
+var Password2 = external_exports.string().min(8, "Password must be at least 8 characters long").refine((password) => /[A-Z]/.test(password), {
+  message: "Password must contain at least one uppercase letter"
+}).refine((password) => /[a-z]/.test(password), {
+  message: "Password must contain at least one lowercase letter"
+}).refine((password) => /[0-9]/.test(password), {
+  message: "Password must contain at least one number"
+}).refine((password) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~]/.test(password), {
+  message: "Password must contain at least one special character"
+});
+var RegisterInput2 = external_exports.object({
+  email: external_exports.email(),
+  password: Password2,
+  confirmPassword: Password2
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"]
+});
+var LogInInput2 = external_exports.object({
+  email: external_exports.email(),
+  password: external_exports.string()
+});
+var UserRole3 = external_exports.enum(["USER", "ADMIN"]);
+var AuthProfileDTO2 = external_exports.object({
+  id: ObjectId2,
+  firstName: external_exports.string().min(1).max(100),
+  lastName: external_exports.string().min(1).max(100),
+  profilePictureUrl: external_exports.string().url().nullable()
+});
+var AuthUserDTO3 = external_exports.object({
+  id: ObjectId2,
+  email: external_exports.string().email(),
+  role: UserRole3,
+  profile: AuthProfileDTO2
+});
 SuperJSON.registerCustom(
   {
     isApplicable: (v) => DateTime.isDateTime(v),
@@ -20499,7 +20544,7 @@ var messageRouter = router({
     }
     return { chat, newDirectMessage };
   }),
-  sendToChat: userProcedure.input(SendMessageInput).mutation(async ({ input, ctx }) => {
+  sendToChat: userProcedure.input(SendMessageInput).output(MessageDTO2).mutation(async ({ input, ctx }) => {
     const { sender, chatId, content, imageUrl, type } = input;
     const chat = await ctx.prisma.chat.findUnique({
       where: { id: chatId },
@@ -20521,7 +20566,7 @@ var messageRouter = router({
     }
     const newMessage = await sendMessage(ctx.prisma, input);
     eventEmitter.emit(`addMessageToChat:${chatId}`, newMessage);
-    return { newMessage };
+    return newMessage;
   })
 });
 
@@ -20573,6 +20618,115 @@ var userRouter = router({
   })
 });
 
+// src/routers/profile.ts
+import { ProfileDTO as ProfileDTO3, z as z3 } from "@repo/common";
+
+// ../../packages/common/src/schemas/profile.ts
+var CreateProfileInput2 = external_exports.object({
+  userId: ObjectId,
+  firstName: external_exports.string(),
+  lastName: external_exports.string(),
+  profilePictureUrl: external_exports.string().optional()
+});
+var UpdateProfileInput2 = external_exports.object({
+  profileId: ObjectId,
+  firstName: external_exports.string().optional(),
+  lastName: external_exports.string().optional(),
+  profilePictureUrl: external_exports.string().optional()
+});
+var ProfileDTO2 = external_exports.object({
+  id: ObjectId,
+  createdAt: DateTimeSchema,
+  updatedAt: DateTimeSchema.nullable(),
+  firstName: external_exports.string(),
+  lastName: external_exports.string(),
+  profilePictureUrl: external_exports.string().nullable()
+});
+
+// src/routers/profile.ts
+import { TRPCError as TRPCError8 } from "@trpc/server";
+var profileRouter = router({
+  byId: userProcedure.input(
+    z3.object({
+      profileId: ObjectId
+    })
+  ).output(z3.object({ ...ProfileDTO3.shape, numOfFriends: z3.number() })).query(async ({ input, ctx }) => {
+    const profile = await ctx.prisma.profile.findUnique({
+      where: { id: input.profileId },
+      select: {
+        id: true,
+        createdAt: true,
+        updatedAt: true,
+        firstName: true,
+        lastName: true,
+        profilePictureUrl: true,
+        _count: {
+          select: {
+            friends: true
+          }
+        }
+      }
+    });
+    if (!profile) {
+      throw new TRPCError8({
+        code: "NOT_FOUND",
+        message: "Profile not found"
+      });
+    }
+    console.log(profile);
+    return { ...profile, numOfFriends: profile._count.friends };
+  }),
+  create: userProcedure.input(CreateProfileInput2).mutation(async ({ input, ctx }) => {
+    const { userId, firstName, lastName, profilePictureUrl } = input;
+    const { user } = ctx;
+    if (!user) throw new TRPCError8({ code: "UNAUTHORIZED" });
+    if (userId !== user.id && user.role !== "ADMIN") {
+      throw new TRPCError8({
+        code: "FORBIDDEN",
+        message: "Cannot create this profile."
+      });
+    }
+    const newProfile = await ctx.prisma.profile.create({
+      data: {
+        user: { connect: { id: userId } },
+        firstName,
+        lastName,
+        profilePictureUrl
+      }
+    });
+    return newProfile;
+  }),
+  update: userProcedure.input(UpdateProfileInput2).mutation(async ({ input, ctx }) => {
+    const { profileId, firstName, lastName, profilePictureUrl } = input;
+    const updatedProfile = await ctx.prisma.profile.update({
+      where: { id: profileId },
+      data: {
+        firstName,
+        lastName,
+        profilePictureUrl
+      }
+    });
+    return updatedProfile;
+  }),
+  getFriends: userProcedure.input(z3.object({ profileId: ObjectId })).query(async ({ input, ctx }) => {
+    const { profileId } = input;
+    const friends = await ctx.prisma.profile.findUnique({
+      where: { id: profileId },
+      select: {
+        friends: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profilePictureUrl: true
+          }
+        }
+      }
+    });
+    return friends;
+  })
+});
+
 // src/trpc/router.ts
 var appRouter = router({
   auth: authRouter,
@@ -20580,6 +20734,7 @@ var appRouter = router({
   chat: chatRouter,
   friendRequest: friendRequestRouter,
   message: messageRouter,
+  profile: profileRouter,
   image: imageRouter
 });
 

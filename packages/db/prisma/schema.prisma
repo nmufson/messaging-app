@@ -34,6 +34,8 @@ model Profile {
   firstName                   String 
   lastName                    String
   profilePictureUrl           String?
+  headerPictureUrl            String?
+  bio                         String?
 
   friends                     Profile[]            @relation("UserFriends")
   friendOf                    Profile[]            @relation("UserFriends")

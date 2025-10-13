@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ObjectId } from './primitives';
 
 const Password = z
   .string()
@@ -30,4 +31,20 @@ export const RegisterInput = z
 export const LogInInput = z.object({
   email: z.email(),
   password: z.string(),
+});
+export const UserRole = z.enum(['USER', 'ADMIN']);
+export type UserRole = z.infer<typeof UserRole>;
+
+export const AuthProfileDTO = z.object({
+  id: ObjectId,
+  firstName: z.string().min(1).max(100),
+  lastName: z.string().min(1).max(100),
+  profilePictureUrl: z.string().url().nullable(),
+});
+
+export const AuthUserDTO = z.object({
+  id: ObjectId,
+  email: z.string().email(),
+  role: UserRole,
+  profile: AuthProfileDTO,
 });

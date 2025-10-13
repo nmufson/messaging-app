@@ -11,32 +11,6 @@ type ObjectId = z.infer<typeof ObjectId>;
 declare const DateTimeSchema: z.ZodPipe<z.ZodUnion<readonly [z.ZodCustom<DateTime<boolean>, DateTime<boolean>>, z.ZodPipe<z.ZodDate, z.ZodTransform<DateTime<true> | DateTime<false>, Date>>, z.ZodPipe<z.ZodString, z.ZodTransform<DateTime<true> | DateTime<false>, string>>]>, z.ZodCustom<DateTime<boolean>, DateTime<boolean>>>;
 type DateTimeSchema = z.infer<typeof DateTimeSchema>;
 
-declare const UserRole: z$1.ZodEnum<{
-    USER: "USER";
-    ADMIN: "ADMIN";
-}>;
-type UserRole = z$1.infer<typeof UserRole>;
-declare const ProfileDTO: z$1.ZodObject<{
-    id: z$1.ZodUUID;
-    firstName: z$1.ZodString;
-    lastName: z$1.ZodString;
-    profilePictureUrl: z$1.ZodNullable<z$1.ZodString>;
-}, z$1.core.$strip>;
-declare const AuthUserDTO: z$1.ZodObject<{
-    id: z$1.ZodUUID;
-    email: z$1.ZodString;
-    role: z$1.ZodEnum<{
-        USER: "USER";
-        ADMIN: "ADMIN";
-    }>;
-    profile: z$1.ZodObject<{
-        id: z$1.ZodUUID;
-        firstName: z$1.ZodString;
-        lastName: z$1.ZodString;
-        profilePictureUrl: z$1.ZodNullable<z$1.ZodString>;
-    }, z$1.core.$strip>;
-}, z$1.core.$strip>;
-
 declare const MessageType: z.ZodEnum<{
     TEXT: "TEXT";
     IMAGE: "IMAGE";
@@ -133,4 +107,70 @@ declare const ChatDetailDTO: z$1.ZodObject<{
     creatorId: z$1.ZodUUID;
 }, z$1.core.$strip>;
 
-export { AuthUserDTO, ChatDTO, ChatDetailDTO, ChatType, DateTimeSchema, MessageDTO, MessageType, ObjectId, ProfileDTO, SendMessageInput, UserRole, mergeAsyncIterators };
+declare const CreateProfileInput: z.ZodObject<{
+    userId: z.ZodUUID;
+    firstName: z.ZodString;
+    lastName: z.ZodString;
+    profilePictureUrl: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+type CreateProfileInput = z.infer<typeof CreateProfileInput>;
+declare const UpdateProfileInput: z.ZodObject<{
+    profileId: z.ZodUUID;
+    firstName: z.ZodOptional<z.ZodString>;
+    lastName: z.ZodOptional<z.ZodString>;
+    profilePictureUrl: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+type UpdateProfileInput = z.infer<typeof UpdateProfileInput>;
+declare const ProfileDTO: z.ZodObject<{
+    id: z.ZodUUID;
+    createdAt: z.ZodPipe<z.ZodUnion<readonly [z.ZodCustom<luxon.DateTime<boolean>, luxon.DateTime<boolean>>, z.ZodPipe<z.ZodDate, z.ZodTransform<luxon.DateTime<true> | luxon.DateTime<false>, Date>>, z.ZodPipe<z.ZodString, z.ZodTransform<luxon.DateTime<true> | luxon.DateTime<false>, string>>]>, z.ZodCustom<luxon.DateTime<boolean>, luxon.DateTime<boolean>>>;
+    updatedAt: z.ZodNullable<z.ZodPipe<z.ZodUnion<readonly [z.ZodCustom<luxon.DateTime<boolean>, luxon.DateTime<boolean>>, z.ZodPipe<z.ZodDate, z.ZodTransform<luxon.DateTime<true> | luxon.DateTime<false>, Date>>, z.ZodPipe<z.ZodString, z.ZodTransform<luxon.DateTime<true> | luxon.DateTime<false>, string>>]>, z.ZodCustom<luxon.DateTime<boolean>, luxon.DateTime<boolean>>>>;
+    firstName: z.ZodString;
+    lastName: z.ZodString;
+    profilePictureUrl: z.ZodNullable<z.ZodString>;
+}, z.core.$strip>;
+type ProfileDTO = z.infer<typeof ProfileDTO>;
+
+declare const FriendRequestStatus: z.ZodEnum<{
+    PENDING: "PENDING";
+    CANCELLED: "CANCELLED";
+    DECLINED: "DECLINED";
+    ACCEPTED: "ACCEPTED";
+}>;
+
+declare const RegisterInput: z.ZodObject<{
+    email: z.ZodEmail;
+    password: z.ZodString;
+    confirmPassword: z.ZodString;
+}, z.core.$strip>;
+declare const LogInInput: z.ZodObject<{
+    email: z.ZodEmail;
+    password: z.ZodString;
+}, z.core.$strip>;
+declare const UserRole: z.ZodEnum<{
+    USER: "USER";
+    ADMIN: "ADMIN";
+}>;
+type UserRole = z.infer<typeof UserRole>;
+declare const AuthProfileDTO: z.ZodObject<{
+    id: z.ZodUUID;
+    firstName: z.ZodString;
+    lastName: z.ZodString;
+    profilePictureUrl: z.ZodNullable<z.ZodString>;
+}, z.core.$strip>;
+declare const AuthUserDTO: z.ZodObject<{
+    id: z.ZodUUID;
+    email: z.ZodString;
+    role: z.ZodEnum<{
+        USER: "USER";
+        ADMIN: "ADMIN";
+    }>;
+    profile: z.ZodObject<{
+        id: z.ZodUUID;
+        firstName: z.ZodString;
+        lastName: z.ZodString;
+        profilePictureUrl: z.ZodNullable<z.ZodString>;
+    }, z.core.$strip>;
+}, z.core.$strip>;
+
+export { AuthProfileDTO, AuthUserDTO, ChatDTO, ChatDetailDTO, ChatType, CreateProfileInput, DateTimeSchema, FriendRequestStatus, LogInInput, MessageDTO, MessageType, ObjectId, ProfileDTO, RegisterInput, SendMessageInput, UpdateProfileInput, UserRole, mergeAsyncIterators };

@@ -336,17 +336,86 @@ declare const appRouter: _trpc_server.TRPCBuiltRouter<{
                 chatId: string;
             };
             output: {
-                newMessage: {
-                    id: string;
-                    type: _prisma_client.$Enums.MessageType;
-                    createdAt: Date;
-                    updatedAt: Date | null;
-                    chatId: string;
-                    senderId: string;
-                    content: string | null;
-                    imageUrl: string | null;
-                };
+                id: string;
+                type: "TEXT" | "IMAGE";
+                content: string | null;
+                imageUrl: string | null;
+                createdAt: luxon.DateTime<boolean>;
+                updatedAt: luxon.DateTime<boolean> | null;
+                senderId: string;
             };
+            meta: object;
+        }>;
+    }>>;
+    profile: _trpc_server.TRPCBuiltRouter<{
+        ctx: Context;
+        meta: object;
+        errorShape: _trpc_server.TRPCDefaultErrorShape;
+        transformer: true;
+    }, _trpc_server.TRPCDecorateCreateRouterOptions<{
+        byId: _trpc_server.TRPCQueryProcedure<{
+            input: {
+                profileId: string;
+            };
+            output: {
+                numOfFriends: number;
+                id: string;
+                createdAt: luxon.DateTime<boolean>;
+                updatedAt: luxon.DateTime<boolean> | null;
+                firstName: string;
+                lastName: string;
+                profilePictureUrl: string | null;
+            };
+            meta: object;
+        }>;
+        create: _trpc_server.TRPCMutationProcedure<{
+            input: {
+                userId: string;
+                firstName: string;
+                lastName: string;
+                profilePictureUrl?: string | undefined;
+            };
+            output: {
+                id: string;
+                createdAt: Date;
+                firstName: string;
+                lastName: string;
+                profilePictureUrl: string | null;
+                userId: string;
+                updatedAt: Date | null;
+            };
+            meta: object;
+        }>;
+        update: _trpc_server.TRPCMutationProcedure<{
+            input: {
+                profileId: string;
+                firstName?: string | undefined;
+                lastName?: string | undefined;
+                profilePictureUrl?: string | undefined;
+            };
+            output: {
+                id: string;
+                createdAt: Date;
+                firstName: string;
+                lastName: string;
+                profilePictureUrl: string | null;
+                userId: string;
+                updatedAt: Date | null;
+            };
+            meta: object;
+        }>;
+        getFriends: _trpc_server.TRPCQueryProcedure<{
+            input: {
+                profileId: string;
+            };
+            output: {
+                friends: {
+                    id: string;
+                    firstName: string;
+                    lastName: string;
+                    profilePictureUrl: string | null;
+                }[];
+            } | null;
             meta: object;
         }>;
     }>>;

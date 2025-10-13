@@ -1,11 +1,9 @@
 'use client';
 import { useParams } from 'next/navigation';
-import { useTRPC } from '@/lib/trpc';
 import { extractUUIDFromSlug, getChatName } from '@/utils';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { MessageBubble } from './MessageBubble';
 import { useChat } from '@/hooks/chat';
 

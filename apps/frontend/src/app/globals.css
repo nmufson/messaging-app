@@ -18,12 +18,19 @@
   --color-error-500: #dc2626;
 
   --color-accent-500: #14b8a6;
+
+  /* Greys */
+  --color-grey-50: #f9fafb;
+  --color-grey-100: #f3f4f6;
+  --color-grey-150: #eceef0;
+  --color-grey-200: #e5e7eb;
 }
 
 @layer base {
   body {
+    background-color: var(--color-grey-150);
     font-family: 'Nunito', sans-serif;
-    @apply bg-gray-50 text-gray-900 text-base leading-relaxed;
+    @apply text-gray-900 text-base leading-relaxed;
   }
 
   h1,

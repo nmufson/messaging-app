@@ -1,11 +1,11 @@
 import { ObjectId } from '@common/src/schemas/primitives';
 import { router, userProcedure } from '../trpc';
-import { z } from '@repo/common';
+import { ProfileDTO, z } from '@repo/common';
 import {
   CreateProfileInput,
   UpdateProfileInput,
 } from '@common/src/schemas/profile';
-import { TRPCBuilder, TRPCError } from '@trpc/server';
+import { TRPCError } from '@trpc/server';
 
 export const profileRouter = router({
   byId: userProcedure
@@ -14,11 +14,33 @@ export const profileRouter = router({
         profileId: ObjectId,
       })
     )
+    .output(z.object({ ...ProfileDTO.shape, numOfFriends: z.number() }))
     .query(async ({ input, ctx }) => {
       const profile = await ctx.prisma.profile.findUnique({
         where: { id: input.profileId },
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          firstName: true,
+          lastName: true,
+          profilePictureUrl: true,
+          _count: {
+            select: {
+              friends: true,
+            },
+          },
+        },
       });
-      return profile;
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
+      }
+      console.log(profile);
+      return { ...profile, numOfFriends: profile._count.friends };
     }),
   create: userProcedure
     .input(CreateProfileInput)

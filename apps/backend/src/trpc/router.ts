@@ -6,6 +6,7 @@ import { messageRouter } from '../routers/message';
 import { userRouter } from '../routers/user';
 import { router } from '.';
 import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
+import { profileRouter } from '../routers/profile';
 
 export const appRouter = router({
   auth: authRouter,
@@ -14,6 +15,7 @@ export const appRouter = router({
   chat: chatRouter,
   friendRequest: friendRequestRouter,
   message: messageRouter,
+  profile: profileRouter,
 
   image: imageRouter,
 });

@@ -4,6 +4,7 @@ import type {
   RouterInputs,
   RouterOutputs,
 } from '@repo/backend/trpc/router';
+import { Router } from 'express';
 
 export const { TRPCProvider, useTRPC, useTRPCClient } =
   createTRPCContext<AppRouter>();

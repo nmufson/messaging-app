@@ -30,20 +30,26 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
+  AuthProfileDTO: () => AuthProfileDTO,
   AuthUserDTO: () => AuthUserDTO,
   ChatDTO: () => ChatDTO,
   ChatDetailDTO: () => ChatDetailDTO,
   ChatType: () => ChatType,
+  CreateProfileInput: () => CreateProfileInput,
   DateTimeSchema: () => DateTimeSchema,
+  FriendRequestStatus: () => FriendRequestStatus,
+  LogInInput: () => LogInInput,
   MessageDTO: () => MessageDTO,
   MessageType: () => MessageType,
   ObjectId: () => ObjectId,
   ProfileDTO: () => ProfileDTO,
+  RegisterInput: () => RegisterInput,
   SendMessageInput: () => SendMessageInput,
+  UpdateProfileInput: () => UpdateProfileInput,
   UserRole: () => UserRole,
   mergeAsyncIterators: () => mergeAsyncIterators,
   superjson: () => superjson_default,
-  z: () => import_zod5.z
+  z: () => import_zod7.z
 });
 module.exports = __toCommonJS(index_exports);
 
@@ -72,68 +78,121 @@ var dateToDateTime = import_zod.z.date().transform((date) => import_luxon.DateTi
 var stringToDateTime = import_zod.z.string().transform((str) => import_luxon.DateTime.fromISO(str));
 var DateTimeSchema = import_zod.z.union([dateTime, dateToDateTime, stringToDateTime]).pipe(dateTime);
 
-// src/schemas/user.ts
-var import_zod2 = __toESM(require("zod"));
-var UserRole = import_zod2.default.enum(["USER", "ADMIN"]);
-var ProfileDTO = import_zod2.default.object({
-  id: ObjectId,
-  firstName: import_zod2.default.string().min(1).max(100),
-  lastName: import_zod2.default.string().min(1).max(100),
-  profilePictureUrl: import_zod2.default.string().url().nullable()
-});
-var AuthUserDTO = import_zod2.default.object({
-  id: ObjectId,
-  email: import_zod2.default.string().email(),
-  role: UserRole,
-  profile: ProfileDTO
-});
-
 // src/schemas/message.ts
-var import_zod3 = require("zod");
-var MessageType = import_zod3.z.enum(["TEXT", "IMAGE"]);
-var SendMessageInput = import_zod3.z.object({
+var import_zod2 = require("zod");
+var MessageType = import_zod2.z.enum(["TEXT", "IMAGE"]);
+var SendMessageInput = import_zod2.z.object({
   type: MessageType,
-  content: import_zod3.z.string().nullable(),
-  imageUrl: import_zod3.z.string().nullable(),
+  content: import_zod2.z.string().nullable(),
+  imageUrl: import_zod2.z.string().nullable(),
   sender: ObjectId,
   chatId: ObjectId
 });
-var MessageDTO = import_zod3.z.object({
+var MessageDTO = import_zod2.z.object({
   id: ObjectId,
   type: MessageType,
-  content: import_zod3.z.string().nullable(),
-  imageUrl: import_zod3.z.string().nullable(),
+  content: import_zod2.z.string().nullable(),
+  imageUrl: import_zod2.z.string().nullable(),
   createdAt: DateTimeSchema,
   updatedAt: DateTimeSchema.nullable(),
   senderId: ObjectId
 });
 
 // src/schemas/chat.ts
-var import_zod4 = __toESM(require("zod"));
-var ChatType = import_zod4.default.enum(["GROUP", "DIRECT"]);
-var ChatDTO = import_zod4.default.object({
+var import_zod3 = __toESM(require("zod"));
+var ChatType = import_zod3.default.enum(["GROUP", "DIRECT"]);
+var ChatDTO = import_zod3.default.object({
   id: ObjectId,
   type: ChatType,
   createdAt: DateTimeSchema,
   updatedAt: DateTimeSchema.nullable(),
-  participants: import_zod4.default.array(
-    import_zod4.default.object({
+  participants: import_zod3.default.array(
+    import_zod3.default.object({
       id: ObjectId,
-      firstName: import_zod4.default.string(),
-      lastName: import_zod4.default.string(),
-      profilePictureUrl: import_zod4.default.string().nullable()
+      firstName: import_zod3.default.string(),
+      lastName: import_zod3.default.string(),
+      profilePictureUrl: import_zod3.default.string().nullable()
     })
   ),
   messages: MessageDTO.array(),
   // Group-specific fields
-  name: import_zod4.default.string().nullable(),
-  groupPictureUrl: import_zod4.default.string().nullable(),
+  name: import_zod3.default.string().nullable(),
+  groupPictureUrl: import_zod3.default.string().nullable(),
   creatorId: ObjectId
 });
 var ChatDetailDTO = ChatDTO.extend({});
 
-// src/index.ts
+// src/schemas/profile.ts
+var import_zod4 = require("zod");
+var CreateProfileInput = import_zod4.z.object({
+  userId: ObjectId,
+  firstName: import_zod4.z.string(),
+  lastName: import_zod4.z.string(),
+  profilePictureUrl: import_zod4.z.string().optional()
+});
+var UpdateProfileInput = import_zod4.z.object({
+  profileId: ObjectId,
+  firstName: import_zod4.z.string().optional(),
+  lastName: import_zod4.z.string().optional(),
+  profilePictureUrl: import_zod4.z.string().optional()
+});
+var ProfileDTO = import_zod4.z.object({
+  id: ObjectId,
+  createdAt: DateTimeSchema,
+  updatedAt: DateTimeSchema.nullable(),
+  firstName: import_zod4.z.string(),
+  lastName: import_zod4.z.string(),
+  profilePictureUrl: import_zod4.z.string().nullable()
+});
+
+// src/schemas/friendRequest.ts
 var import_zod5 = require("zod");
+var FriendRequestStatus = import_zod5.z.enum([
+  "PENDING",
+  "CANCELLED",
+  "DECLINED",
+  "ACCEPTED"
+]);
+
+// src/schemas/auth.ts
+var import_zod6 = require("zod");
+var Password = import_zod6.z.string().min(8, "Password must be at least 8 characters long").refine((password) => /[A-Z]/.test(password), {
+  message: "Password must contain at least one uppercase letter"
+}).refine((password) => /[a-z]/.test(password), {
+  message: "Password must contain at least one lowercase letter"
+}).refine((password) => /[0-9]/.test(password), {
+  message: "Password must contain at least one number"
+}).refine((password) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~]/.test(password), {
+  message: "Password must contain at least one special character"
+});
+var RegisterInput = import_zod6.z.object({
+  email: import_zod6.z.email(),
+  password: Password,
+  confirmPassword: Password
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"]
+});
+var LogInInput = import_zod6.z.object({
+  email: import_zod6.z.email(),
+  password: import_zod6.z.string()
+});
+var UserRole = import_zod6.z.enum(["USER", "ADMIN"]);
+var AuthProfileDTO = import_zod6.z.object({
+  id: ObjectId,
+  firstName: import_zod6.z.string().min(1).max(100),
+  lastName: import_zod6.z.string().min(1).max(100),
+  profilePictureUrl: import_zod6.z.string().url().nullable()
+});
+var AuthUserDTO = import_zod6.z.object({
+  id: ObjectId,
+  email: import_zod6.z.string().email(),
+  role: UserRole,
+  profile: AuthProfileDTO
+});
+
+// src/index.ts
+var import_zod7 = require("zod");
 
 // src/superjson.ts
 var import_superjson = __toESM(require("superjson"));
@@ -153,16 +212,22 @@ import_superjson.default.registerCustom(
 var superjson_default = import_superjson.default;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  AuthProfileDTO,
   AuthUserDTO,
   ChatDTO,
   ChatDetailDTO,
   ChatType,
+  CreateProfileInput,
   DateTimeSchema,
+  FriendRequestStatus,
+  LogInInput,
   MessageDTO,
   MessageType,
   ObjectId,
   ProfileDTO,
+  RegisterInput,
   SendMessageInput,
+  UpdateProfileInput,
   UserRole,
   mergeAsyncIterators,
   superjson,

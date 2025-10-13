@@ -68,3 +68,21 @@ export function getChatName(params: GetChatNameParams): string {
 export function toDateTime(date: unknown): DateTime | null {
   return DateTimeSchema.parse(date);
 }
+
+export function formatDate(dateTime: DateTime): string {
+  const now = DateTime.local();
+
+  if (dateTime.hasSame(now, 'day')) {
+    return 'today';
+  }
+
+  if (dateTime.hasSame(now.minus({ days: 1 }), 'day')) {
+    return 'yesterday';
+  }
+
+  if (dateTime.year === now.year) {
+    return `on ${dateTime.toFormat('cccc')}`;
+  }
+
+  return `on ${dateTime.toFormat('MMMM d')}`;
+}

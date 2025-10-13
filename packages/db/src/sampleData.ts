@@ -1,7 +1,7 @@
 import { ChatType, MessageType, UserRole } from '@prisma/client';
 import { randomUUID } from 'crypto';
 
-const PROFILE_PIC_URL = 'https://example.com/profile-pic.png';
+const PROFILE_PIC_URL = 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp';
 
 const userIds = {
   alice: randomUUID(),

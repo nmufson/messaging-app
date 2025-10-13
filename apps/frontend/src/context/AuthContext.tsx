@@ -2,8 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useTRPC } from '../lib/trpc';
 import { useQuery } from '@tanstack/react-query';
-import { UserRole } from '@common/src/schemas/user';
-import { ObjectId } from '@repo/common';
+import { ObjectId, UserRole } from '@repo/common';
 
 interface User {
   id: ObjectId;
