@@ -12,6 +12,7 @@ export default function Chats() {
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
   if (!chats || chats.length === 0) return <div>No messages found</div>;
+  const createdAt = chats[0].createdAt;
 
   return (
     <div className="bg-blue-500 flex">
@@ -40,7 +41,7 @@ function ChatPreview({ chat }: ChatPreviewProps) {
     groupPictureUrl,
     createdAt: chatCreatedAt,
   } = chat;
-  const { user, profile } = useAuth();
+  const { profile } = useAuth();
   const lastMessage = messages.length ? messages[0] : null;
   const displayName = getChatName({
     type,
@@ -65,7 +66,7 @@ function ChatPreview({ chat }: ChatPreviewProps) {
 
   const timeToShow = lastMessage ? lastMessage.createdAt : chatCreatedAt;
   const displayTime = formatMessageTime(timeToShow);
-  console.log(displayTime);
+
   const formattedDisplayName = R.truncate(displayName, 20);
   const formattedDisplayMessage = R.truncate(displayMessage, 40);
 

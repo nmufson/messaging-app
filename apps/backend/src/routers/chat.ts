@@ -136,14 +136,15 @@ export const chatRouter = router({
         limit: z.number().default(100),
       })
     )
+    .output(ChatDTO.array())
     .query(async ({ input, ctx }) => {
       const { limit } = input;
-      const { user, profile } = ctx;
+      const { user } = ctx;
 
       if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
 
-      const queriedProfile = await ctx.prisma.profile.findUnique({
-        where: { id: profile?.id, userId: user.id },
+      const profile = await ctx.prisma.profile.findUnique({
+        where: { userId: user.id },
         include: {
           chats: {
             take: limit,
@@ -153,13 +154,13 @@ export const chatRouter = router({
                 orderBy: { createdAt: 'desc' },
                 take: 1, // for displaying most recent msg in list
                 select: {
+                  id: true,
+                  type: true,
                   content: true,
-                  sender: {
-                    select: {
-                      firstName: true,
-                      lastName: true,
-                    },
-                  },
+                  imageUrl: true,
+                  createdAt: true,
+                  updatedAt: true,
+                  senderId: true,
                 },
               },
               participants: {
@@ -175,13 +176,18 @@ export const chatRouter = router({
         },
       });
 
-      if (!queriedProfile) {
+      if (!profile) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Profile not found',
         });
       }
-      return queriedProfile.chats;
+      const validatedChats: ChatDTO[] = profile.chats.map((chat) =>
+        ChatDTO.parse(chat)
+      );
+      console.log(validatedChats[0].createdAt.isValid);
+
+      return validatedChats;
     }),
   // TODO: move this to an admin router??
   getAll: adminProcedure

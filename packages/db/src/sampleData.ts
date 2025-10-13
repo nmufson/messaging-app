@@ -102,7 +102,7 @@ export const chatsData = [
     name: 'Ketchup Stains',
     creatorId: profileIds.alice,
     type: ChatType.DIRECT,
-    participantIds: [profileIds.alice, profileIds.bob],
+    participantIds: [profileIds.alice, profileIds.bob, profileIds.nick],
     groupPictureUrl: 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp',
   },
   {
@@ -110,7 +110,7 @@ export const chatsData = [
     name: 'The Coolest Kats',
     creatorId: profileIds.charlie,
     type: ChatType.DIRECT,
-    participantIds: [profileIds.charlie, profileIds.diana],
+    participantIds: [profileIds.charlie, profileIds.diana, profileIds.nick],
     groupPictureUrl: 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp',
   },
   {
@@ -123,6 +123,7 @@ export const chatsData = [
       profileIds.diana,
       profileIds.alice,
       profileIds.bob,
+      profileIds.nick,
     ],
     groupPictureUrl: 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp',
   },
@@ -131,7 +132,12 @@ export const chatsData = [
     name: 'Big Group 2',
     creatorId: profileIds.charlie,
     type: ChatType.GROUP,
-    participantIds: [profileIds.charlie, profileIds.diana, profileIds.alice],
+    participantIds: [
+      profileIds.charlie,
+      profileIds.diana,
+      profileIds.alice,
+      profileIds.nick,
+    ],
   },
 ];
 

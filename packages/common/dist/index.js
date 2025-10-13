@@ -42,7 +42,7 @@ __export(index_exports, {
   SendMessageInput: () => SendMessageInput,
   UserRole: () => UserRole,
   mergeAsyncIterators: () => mergeAsyncIterators,
-  superjson: () => import_superjson.default,
+  superjson: () => superjson_default,
   z: () => import_zod5.z
 });
 module.exports = __toCommonJS(index_exports);
@@ -134,7 +134,23 @@ var ChatDetailDTO = ChatDTO.extend({});
 
 // src/index.ts
 var import_zod5 = require("zod");
+
+// src/superjson.ts
 var import_superjson = __toESM(require("superjson"));
+var import_luxon2 = require("luxon");
+import_superjson.default.registerCustom(
+  {
+    isApplicable: (v) => import_luxon2.DateTime.isDateTime(v),
+    serialize: (v) => {
+      const iso = v.toISO();
+      if (!iso) throw new Error("Cannot serialize invalid Luxon DateTime");
+      return iso;
+    },
+    deserialize: (v) => import_luxon2.DateTime.fromISO(v)
+  },
+  "luxon-DateTime"
+);
+var superjson_default = import_superjson.default;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   AuthUserDTO,

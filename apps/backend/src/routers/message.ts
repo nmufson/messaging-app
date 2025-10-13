@@ -1,7 +1,7 @@
 import { ObjectId } from '@common/src/schemas/primitives';
 import { MessageType, SendMessageInput } from '@common/src/schemas/message';
 import { tracked, TRPCError } from '@trpc/server';
-import { z } from '@common';
+import { MessageDTO, z } from '@common';
 import { findOrCreateDirectChat } from '../services/chat';
 import { sendMessage } from '../services/message';
 import { router, userProcedure } from '../trpc';
@@ -91,6 +91,7 @@ export const messageRouter = router({
     }),
   sendToChat: userProcedure
     .input(SendMessageInput)
+    .output(MessageDTO)
     .mutation(async ({ input, ctx }) => {
       const { sender, chatId, content, imageUrl, type } = input;
 
@@ -119,6 +120,6 @@ export const messageRouter = router({
 
       eventEmitter.emit(`addMessageToChat:${chatId}`, newMessage);
 
-      return { newMessage };
+      return newMessage;
     }),
 });

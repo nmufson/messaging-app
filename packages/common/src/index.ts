@@ -6,6 +6,6 @@ export * from './schemas/message';
 export * from './schemas/chat';
 
 import { z } from 'zod';
-import superjson from 'superjson';
+export { z };
 
-export { z, superjson };
+export { default as superjson } from './superjson';

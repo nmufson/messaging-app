@@ -11,10 +11,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/chats/page.js"
     ],
-    "/login/page": [
+    "/chat/[slug]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/login/page.js"
+      "static/chunks/app/chat/[slug]/page.js"
     ]
   }
 }

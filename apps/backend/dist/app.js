@@ -48,7 +48,12 @@ function createContext({
   req,
   res
 }) {
-  return { req, res, user: req.user, prisma: import_db.prisma };
+  return {
+    req,
+    res,
+    user: req.user,
+    prisma: import_db.prisma
+  };
 }
 
 // src/trpc/init.ts
@@ -12555,6 +12560,7 @@ async function verifyPassword(user, plainTextPassword) {
 
 // src/routers/auth.ts
 var import_server3 = require("@trpc/server");
+var import_common2 = require("@repo/common");
 var authRouter = router({
   register: publicProcedure.input(RegisterInput).mutation(async ({ input, ctx }) => {
     const { email: email3, password } = input;
@@ -12620,11 +12626,33 @@ var authRouter = router({
       });
     }
   }),
-  me: userProcedure.query(({ ctx }) => {
+  me: userProcedure.output(import_common2.AuthUserDTO).query(async ({ ctx }) => {
     if (!ctx.user) {
       throw new import_server3.TRPCError({ code: "UNAUTHORIZED" });
     }
-    return ctx.user;
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: ctx.user.id },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        profile: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profilePictureUrl: true
+          }
+        }
+      }
+    });
+    if (!user?.profile) {
+      throw new import_server3.TRPCError({
+        code: "NOT_FOUND",
+        message: "User not found or related profile is missing"
+      });
+    }
+    return { ...user, profile: user.profile };
   })
 });
 
@@ -19140,22 +19168,35 @@ var dateTime = external_exports.custom(DateTime.isDateTime, {
   params: { name: "DateTime" }
 });
 var dateToDateTime = external_exports.date().transform((date5) => DateTime.fromJSDate(date5));
-var DateTimeSchema = external_exports.union([dateTime, dateToDateTime]).pipe(dateTime);
+var stringToDateTime = external_exports.string().transform((str) => DateTime.fromISO(str));
+var DateTimeSchema = external_exports.union([dateTime, dateToDateTime, stringToDateTime]).pipe(dateTime);
 
 // src/routers/chat.ts
 var import_server4 = require("@trpc/server");
 var import_events2 = require("events");
-var import_common2 = require("@repo/common");
+var import_common3 = require("@repo/common");
 
 // src/lib/eventBus.ts
 var import_events = __toESM(require("events"));
 var eventEmitter = new import_events.default();
 
 // src/routers/chat.ts
-var import_common3 = require("@repo/common");
+var import_common4 = require("@repo/common");
 
 // ../../packages/common/src/schemas/user.ts
 var UserRole = zod_default.enum(["USER", "ADMIN"]);
+var ProfileDTO = zod_default.object({
+  id: ObjectId,
+  firstName: zod_default.string().min(1).max(100),
+  lastName: zod_default.string().min(1).max(100),
+  profilePictureUrl: zod_default.string().url().nullable()
+});
+var AuthUserDTO2 = zod_default.object({
+  id: ObjectId,
+  email: zod_default.string().email(),
+  role: UserRole,
+  profile: ProfileDTO
+});
 
 // ../../packages/common/src/schemas/message.ts
 var MessageType = external_exports.enum(["TEXT", "IMAGE"]);
@@ -19166,18 +19207,18 @@ var SendMessageInput = external_exports.object({
   sender: ObjectId,
   chatId: ObjectId
 });
-
-// ../../packages/common/src/schemas/chat.ts
-var ChatType = zod_default.enum(["GROUP", "DIRECT"]);
-var MessageDTO = zod_default.object({
+var MessageDTO = external_exports.object({
   id: ObjectId,
   type: MessageType,
-  content: zod_default.string().nullable(),
-  imageUrl: zod_default.string().nullable(),
+  content: external_exports.string().nullable(),
+  imageUrl: external_exports.string().nullable(),
   createdAt: DateTimeSchema,
   updatedAt: DateTimeSchema.nullable(),
   senderId: ObjectId
 });
+
+// ../../packages/common/src/schemas/chat.ts
+var ChatType = zod_default.enum(["GROUP", "DIRECT"]);
 var ChatDTO = zod_default.object({
   id: ObjectId,
   type: ChatType,
@@ -19225,9 +19266,9 @@ var logger = (0, import_pino.default)({
 var chatRouter = router({
   // TODO: add something for loading more messages in chat
   byId: userProcedure.input(
-    import_common2.z.object({
+    import_common3.z.object({
       chatId: ObjectId,
-      limit: import_common2.z.number().default(100),
+      limit: import_common3.z.number().default(100),
       cursor: ObjectId.optional()
     })
   ).output(ChatDTO).query(async ({ ctx, input }) => {
@@ -19246,7 +19287,7 @@ var chatRouter = router({
           take: limit,
           skip: cursor ? 1 : 0,
           cursor: cursor ? { id: cursor } : void 0,
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: "asc" },
           select: {
             id: true,
             type: true,
@@ -19273,12 +19314,11 @@ var chatRouter = router({
         message: "Chat not found"
       });
     }
-    console.log(chat);
     const validatedChat = ChatDTO.parse(chat);
     return validatedChat;
   }),
   onNewMessageInChat: userProcedure.input(
-    import_common2.z.object({
+    import_common3.z.object({
       profileId: ObjectId
     })
   ).subscription(async function* ({ input, ctx, signal }) {
@@ -19304,12 +19344,12 @@ var chatRouter = router({
     const iterables = profile.chats.map(
       ({ id }) => (0, import_events2.on)(eventEmitter, `addMessageToChat:${id}`, { signal })
     );
-    for await (const [message] of (0, import_common3.mergeAsyncIterators)(iterables)) {
+    for await (const [message] of (0, import_common4.mergeAsyncIterators)(iterables)) {
       yield (0, import_server4.tracked)(message.id, message);
     }
   }),
   onNewChat: userProcedure.input(
-    import_common2.z.object({
+    import_common3.z.object({
       profileId: ObjectId
     })
   ).subscription(async function* ({ input, ctx, signal }) {
@@ -19326,22 +19366,15 @@ var chatRouter = router({
     }
   }),
   getList: userProcedure.input(
-    import_common2.z.object({
-      profileId: import_common2.z.string(),
-      limit: import_common2.z.number().default(100)
+    import_common3.z.object({
+      limit: import_common3.z.number().default(100)
     })
-  ).query(async ({ input, ctx }) => {
-    const { profileId, limit } = input;
+  ).output(ChatDTO.array()).query(async ({ input, ctx }) => {
+    const { limit } = input;
     const { user } = ctx;
     if (!user) throw new import_server4.TRPCError({ code: "UNAUTHORIZED" });
-    if (user.id !== profileId && user.role !== UserRole.enum.ADMIN) {
-      throw new import_server4.TRPCError({
-        code: "FORBIDDEN",
-        message: "Not allowed to view this profile's chat"
-      });
-    }
     const profile = await ctx.prisma.profile.findUnique({
-      where: { id: profileId },
+      where: { userId: user.id },
       include: {
         chats: {
           take: limit,
@@ -19352,15 +19385,13 @@ var chatRouter = router({
               take: 1,
               // for displaying most recent msg in list
               select: {
-                content: true
-              },
-              include: {
-                sender: {
-                  select: {
-                    firstName: true,
-                    lastName: true
-                  }
-                }
+                id: true,
+                type: true,
+                content: true,
+                imageUrl: true,
+                createdAt: true,
+                updatedAt: true,
+                senderId: true
               }
             },
             participants: {
@@ -19381,31 +19412,36 @@ var chatRouter = router({
         message: "Profile not found"
       });
     }
-    return profile.chats;
+    const validatedChats = profile.chats.map(
+      (chat) => ChatDTO.parse(chat)
+    );
+    console.log(validatedChats[0].createdAt.isValid);
+    return validatedChats;
   }),
   // TODO: move this to an admin router??
   getAll: adminProcedure.input(
-    import_common2.z.object({
-      limit: import_common2.z.number().default(100)
+    import_common3.z.object({
+      limit: import_common3.z.number().default(100)
     })
-  ).query(async ({ ctx }) => {
+  ).output(ChatDTO.array()).query(async ({ ctx }) => {
     logger.info("Requesting all chats");
     const chats = await ctx.prisma.chat.findMany({
       orderBy: { updatedAt: "desc" },
       include: {
-        // messages: {
-        //   orderBy: { createdAt: 'desc' },
-        //   take: 1, // display most recent msg in preview
-        //   select: {
-        //     id: true,
-        //     type: true,
-        //     content: true,
-        //     imageUrl: true,
-        //     createdAt: true,
-        //     updatedAt: true,
-        //     senderId: true,
-        //   },
-        // },
+        messages: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          // display most recent msg in preview
+          select: {
+            id: true,
+            type: true,
+            content: true,
+            imageUrl: true,
+            createdAt: true,
+            updatedAt: true,
+            senderId: true
+          }
+        },
         participants: {
           select: {
             id: true,
@@ -19417,10 +19453,13 @@ var chatRouter = router({
       }
     });
     logger.info({ chats }, "Queried all chats");
-    return chats;
+    const validatedChats = chats.map(
+      (chat) => ChatDTO.parse(chat)
+    );
+    return validatedChats;
   }),
   createGroup: userProcedure.input(
-    import_common2.z.object({
+    import_common3.z.object({
       creator: ObjectId,
       participants: ObjectId.array()
     })
@@ -19443,7 +19482,7 @@ var chatRouter = router({
 });
 
 // src/routers/friendRequest.ts
-var import_common4 = require("@repo/common");
+var import_common5 = require("@repo/common");
 
 // ../../packages/common/src/schemas/friendRequest.ts
 var FriendRequestStatus = external_exports.enum([
@@ -19457,7 +19496,7 @@ var FriendRequestStatus = external_exports.enum([
 var import_server5 = require("@trpc/server");
 var friendRequestRouter = router({
   sendNew: userProcedure.input(
-    import_common4.z.object({
+    import_common5.z.object({
       senderId: ObjectId,
       receiverId: ObjectId
     })
@@ -19472,7 +19511,7 @@ var friendRequestRouter = router({
     return newRequest;
   }),
   update: userProcedure.input(
-    import_common4.z.object({
+    import_common5.z.object({
       newStatus: FriendRequestStatus,
       senderId: ObjectId,
       receiverId: ObjectId
@@ -20309,8 +20348,21 @@ var dateTime2 = external_exports.custom(DateTime.isDateTime, {
   params: { name: "DateTime" }
 });
 var dateToDateTime2 = external_exports.date().transform((date5) => DateTime.fromJSDate(date5));
-var DateTimeSchema3 = external_exports.union([dateTime2, dateToDateTime2]).pipe(dateTime2);
+var stringToDateTime2 = external_exports.string().transform((str) => DateTime.fromISO(str));
+var DateTimeSchema2 = external_exports.union([dateTime2, dateToDateTime2, stringToDateTime2]).pipe(dateTime2);
 var UserRole2 = zod_default.enum(["USER", "ADMIN"]);
+var ProfileDTO2 = zod_default.object({
+  id: ObjectId2,
+  firstName: zod_default.string().min(1).max(100),
+  lastName: zod_default.string().min(1).max(100),
+  profilePictureUrl: zod_default.string().url().nullable()
+});
+var AuthUserDTO3 = zod_default.object({
+  id: ObjectId2,
+  email: zod_default.string().email(),
+  role: UserRole2,
+  profile: ProfileDTO2
+});
 var MessageType2 = external_exports.enum(["TEXT", "IMAGE"]);
 var SendMessageInput2 = external_exports.object({
   type: MessageType2,
@@ -20319,21 +20371,21 @@ var SendMessageInput2 = external_exports.object({
   sender: ObjectId2,
   chatId: ObjectId2
 });
-var ChatType2 = zod_default.enum(["GROUP", "DIRECT"]);
-var MessageDTO2 = zod_default.object({
+var MessageDTO2 = external_exports.object({
   id: ObjectId2,
   type: MessageType2,
-  content: zod_default.string().nullable(),
-  imageUrl: zod_default.string().nullable(),
-  createdAt: DateTimeSchema3,
-  updatedAt: DateTimeSchema3.nullable(),
+  content: external_exports.string().nullable(),
+  imageUrl: external_exports.string().nullable(),
+  createdAt: DateTimeSchema2,
+  updatedAt: DateTimeSchema2.nullable(),
   senderId: ObjectId2
 });
+var ChatType2 = zod_default.enum(["GROUP", "DIRECT"]);
 var ChatDTO2 = zod_default.object({
   id: ObjectId2,
   type: ChatType2,
-  createdAt: DateTimeSchema3,
-  updatedAt: DateTimeSchema3.nullable(),
+  createdAt: DateTimeSchema2,
+  updatedAt: DateTimeSchema2.nullable(),
   participants: zod_default.array(
     zod_default.object({
       id: ObjectId2,
@@ -20349,6 +20401,18 @@ var ChatDTO2 = zod_default.object({
   creatorId: ObjectId2
 });
 var ChatDetailDTO2 = ChatDTO2.extend({});
+SuperJSON.registerCustom(
+  {
+    isApplicable: (v) => DateTime.isDateTime(v),
+    serialize: (v) => {
+      const iso = v.toISO();
+      if (!iso) throw new Error("Cannot serialize invalid Luxon DateTime");
+      return iso;
+    },
+    deserialize: (v) => DateTime.fromISO(v)
+  },
+  "luxon-DateTime"
+);
 
 // src/services/chat.ts
 var findOrCreateDirectChat = async (prisma5, senderId, receiverId) => {
@@ -20464,7 +20528,7 @@ var messageRouter = router({
     }
     return { chat, newDirectMessage };
   }),
-  sendTochat: userProcedure.input(SendMessageInput).query(async ({ input, ctx }) => {
+  sendToChat: userProcedure.input(SendMessageInput).mutation(async ({ input, ctx }) => {
     const { sender, chatId, content, imageUrl, type } = input;
     const chat = await ctx.prisma.chat.findUnique({
       where: { id: chatId },
@@ -20587,7 +20651,7 @@ import_passport2.default.deserializeUser(async (id, done) => {
       role: true
     }
   });
-  done(null, user || false);
+  done(null, user);
 });
 
 // src/app.ts

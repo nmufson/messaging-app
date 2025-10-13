@@ -1,4 +1,4 @@
 {
   "/chats/page": "app/chats/page.js",
-  "/login/page": "app/login/page.js"
+  "/chat/[slug]/page": "app/chat/[slug]/page.js"
 }

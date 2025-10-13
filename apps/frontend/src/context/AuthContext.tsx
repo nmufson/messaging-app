@@ -30,12 +30,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const trpc = useTRPC();
   const queryOptions = trpc.auth.me.queryOptions();
   const { data } = useQuery(queryOptions);
-  const user = data?.user;
-  const profile = data?.profile;
+
+  if (!data) return null;
+
+  const { profile, ...restOfUser } = data;
 
   return (
     <AuthContext.Provider
-      value={{ user: user ?? null, profile: profile ?? null }}
+      value={{ user: restOfUser ?? null, profile: profile ?? null }}
     >
       {children}
     </AuthContext.Provider>

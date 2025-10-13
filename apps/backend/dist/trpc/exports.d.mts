@@ -69,9 +69,13 @@ declare const appRouter: _trpc_server.TRPCBuiltRouter<{
             output: {
                 id: string;
                 email: string;
-                hashedPassword: string;
-                role: _prisma_client.$Enums.UserRole;
-                createdAt: Date;
+                role: "USER" | "ADMIN";
+                profile: {
+                    id: string;
+                    firstName: string;
+                    lastName: string;
+                    profilePictureUrl: string | null;
+                };
             };
             meta: object;
         }>;
@@ -165,63 +169,62 @@ declare const appRouter: _trpc_server.TRPCBuiltRouter<{
         }>;
         getList: _trpc_server.TRPCQueryProcedure<{
             input: {
-                profileId: string;
                 limit?: number | undefined;
             };
-            output: ({
+            output: {
+                id: string;
+                type: "GROUP" | "DIRECT";
+                createdAt: luxon.DateTime<boolean>;
+                updatedAt: luxon.DateTime<boolean> | null;
                 participants: {
                     id: string;
                     firstName: string;
                     lastName: string;
                     profilePictureUrl: string | null;
                 }[];
-                messages: ({
-                    content: string | null;
-                    sender: {
-                        firstName: string;
-                        lastName: string;
-                    };
-                } & {
+                messages: {
                     id: string;
-                    type: _prisma_client.$Enums.MessageType;
-                    createdAt: Date;
-                    chatId: string;
-                    updatedAt: Date | null;
-                    senderId: string;
+                    type: "TEXT" | "IMAGE";
                     content: string | null;
                     imageUrl: string | null;
-                })[];
-            } & {
+                    createdAt: luxon.DateTime<boolean>;
+                    updatedAt: luxon.DateTime<boolean> | null;
+                    senderId: string;
+                }[];
                 name: string | null;
-                id: string;
-                type: _prisma_client.$Enums.ChatType;
-                createdAt: Date;
-                creatorId: string;
-                updatedAt: Date | null;
                 groupPictureUrl: string | null;
-            })[];
+                creatorId: string;
+            }[];
             meta: object;
         }>;
         getAll: _trpc_server.TRPCQueryProcedure<{
             input: {
                 limit?: number | undefined;
             };
-            output: ({
+            output: {
+                id: string;
+                type: "GROUP" | "DIRECT";
+                createdAt: luxon.DateTime<boolean>;
+                updatedAt: luxon.DateTime<boolean> | null;
                 participants: {
                     id: string;
                     firstName: string;
                     lastName: string;
                     profilePictureUrl: string | null;
                 }[];
-            } & {
+                messages: {
+                    id: string;
+                    type: "TEXT" | "IMAGE";
+                    content: string | null;
+                    imageUrl: string | null;
+                    createdAt: luxon.DateTime<boolean>;
+                    updatedAt: luxon.DateTime<boolean> | null;
+                    senderId: string;
+                }[];
                 name: string | null;
-                id: string;
-                type: _prisma_client.$Enums.ChatType;
-                createdAt: Date;
-                creatorId: string;
-                updatedAt: Date | null;
                 groupPictureUrl: string | null;
-            })[];
+                creatorId: string;
+            }[];
             meta: object;
         }>;
         createGroup: _trpc_server.TRPCMutationProcedure<{
@@ -234,8 +237,8 @@ declare const appRouter: _trpc_server.TRPCBuiltRouter<{
                 id: string;
                 type: _prisma_client.$Enums.ChatType;
                 createdAt: Date;
-                creatorId: string;
                 updatedAt: Date | null;
+                creatorId: string;
                 groupPictureUrl: string | null;
             };
             meta: object;
@@ -307,16 +310,16 @@ declare const appRouter: _trpc_server.TRPCBuiltRouter<{
                     id: string;
                     type: _prisma_client.$Enums.ChatType;
                     createdAt: Date;
-                    creatorId: string;
                     updatedAt: Date | null;
+                    creatorId: string;
                     groupPictureUrl: string | null;
                 };
                 newDirectMessage: {
                     id: string;
                     type: _prisma_client.$Enums.MessageType;
                     createdAt: Date;
-                    chatId: string;
                     updatedAt: Date | null;
+                    chatId: string;
                     senderId: string;
                     content: string | null;
                     imageUrl: string | null;
@@ -324,7 +327,7 @@ declare const appRouter: _trpc_server.TRPCBuiltRouter<{
             };
             meta: object;
         }>;
-        sendTochat: _trpc_server.TRPCQueryProcedure<{
+        sendToChat: _trpc_server.TRPCMutationProcedure<{
             input: {
                 type: "TEXT" | "IMAGE";
                 content: string | null;
@@ -337,8 +340,8 @@ declare const appRouter: _trpc_server.TRPCBuiltRouter<{
                     id: string;
                     type: _prisma_client.$Enums.MessageType;
                     createdAt: Date;
-                    chatId: string;
                     updatedAt: Date | null;
+                    chatId: string;
                     senderId: string;
                     content: string | null;
                     imageUrl: string | null;

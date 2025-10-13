@@ -85,7 +85,23 @@ var ChatDetailDTO = ChatDTO.extend({});
 
 // src/index.ts
 import { z as z5 } from "zod";
+
+// src/superjson.ts
 import superjson from "superjson";
+import { DateTime as DateTime2 } from "luxon";
+superjson.registerCustom(
+  {
+    isApplicable: (v) => DateTime2.isDateTime(v),
+    serialize: (v) => {
+      const iso = v.toISO();
+      if (!iso) throw new Error("Cannot serialize invalid Luxon DateTime");
+      return iso;
+    },
+    deserialize: (v) => DateTime2.fromISO(v)
+  },
+  "luxon-DateTime"
+);
+var superjson_default = superjson;
 export {
   AuthUserDTO,
   ChatDTO,
@@ -99,7 +115,7 @@ export {
   SendMessageInput,
   UserRole,
   mergeAsyncIterators,
-  superjson,
+  superjson_default as superjson,
   z5 as z
 };
 //# sourceMappingURL=index.mjs.map

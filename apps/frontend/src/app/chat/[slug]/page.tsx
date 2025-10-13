@@ -7,11 +7,12 @@ import { useAuth } from '@/context/AuthContext';
 import { MessageDTO } from '@repo/common';
 import Link from 'next/link';
 import { useState } from 'react';
-import { handleClientScriptLoad } from 'next/script';
-import { subscribe } from 'diagnostics_channel';
+import { useQueryClient } from '@tanstack/react-query';
+import { Old_Standard_TT } from 'next/font/google';
 
 export default function Chat() {
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const { profile } = useAuth();
   const params = useParams();
   const slug = params.slug as string;
@@ -25,11 +26,12 @@ export default function Chat() {
     return <div>Invalid chat URL</div>;
   }
 
-  const {
-    data: chat,
-    isLoading,
-    error,
-  } = useQuery(trpc.chat.byId.queryOptions(chatId ? { chatId } : skipToken));
+  const chatQueryKey = trpc.chat.byId.queryKey({ chatId });
+  const queryOptions = trpc.chat.byId.queryOptions(
+    chatId ? { chatId } : skipToken
+  );
+
+  const { data: chat, isLoading, error } = useQuery(queryOptions);
 
   const {
     mutate,
@@ -37,9 +39,15 @@ export default function Chat() {
     error: sendToChatError,
   } = useMutation(
     trpc.message.sendToChat.mutationOptions({
-      onSuccess: () => {
-        // ! add query data setting
-        console.log('Message sent!');
+      onSuccess: (newMessage) => {
+        queryClient.setQueryData(chatQueryKey, (oldData) => {
+          if (!oldData) return oldData;
+
+          return {
+            ...oldData,
+            messages: [...oldData.messages, newMessage],
+          };
+        });
       },
     })
   );
