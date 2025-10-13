@@ -7,7 +7,6 @@ import { CreateWSSContextFnOptions } from '@trpc/server/adapters/ws';
 
 interface BaseContext {
   user?: User;
-  profile?: Profile;
   prisma: typeof prisma;
 }
 
@@ -27,13 +26,10 @@ export function createContext({
   req,
   res,
 }: CreateExpressContextOptions): HTTPContext {
-  const sessionData = req.user as { user: User; profile: Profile } | undefined;
-
   return {
     req,
     res,
-    user: sessionData?.user,
-    profile: sessionData?.profile,
+    user: req.user as User,
     prisma,
   };
 }

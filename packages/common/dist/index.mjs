@@ -26,6 +26,18 @@ var DateTimeSchema = z.union([dateTime, dateToDateTime, stringToDateTime]).pipe(
 // src/schemas/user.ts
 import z2 from "zod";
 var UserRole = z2.enum(["USER", "ADMIN"]);
+var ProfileDTO = z2.object({
+  id: ObjectId,
+  firstName: z2.string().min(1).max(100),
+  lastName: z2.string().min(1).max(100),
+  profilePictureUrl: z2.string().url().nullable()
+});
+var AuthUserDTO = z2.object({
+  id: ObjectId,
+  email: z2.string().email(),
+  role: UserRole,
+  profile: ProfileDTO
+});
 
 // src/schemas/message.ts
 import { z as z3 } from "zod";
@@ -75,6 +87,7 @@ var ChatDetailDTO = ChatDTO.extend({});
 import { z as z5 } from "zod";
 import superjson from "superjson";
 export {
+  AuthUserDTO,
   ChatDTO,
   ChatDetailDTO,
   ChatType,
@@ -82,6 +95,7 @@ export {
   MessageDTO,
   MessageType,
   ObjectId,
+  ProfileDTO,
   SendMessageInput,
   UserRole,
   mergeAsyncIterators,

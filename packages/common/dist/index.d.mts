@@ -16,6 +16,26 @@ declare const UserRole: z$1.ZodEnum<{
     ADMIN: "ADMIN";
 }>;
 type UserRole = z$1.infer<typeof UserRole>;
+declare const ProfileDTO: z$1.ZodObject<{
+    id: z$1.ZodUUID;
+    firstName: z$1.ZodString;
+    lastName: z$1.ZodString;
+    profilePictureUrl: z$1.ZodNullable<z$1.ZodString>;
+}, z$1.core.$strip>;
+declare const AuthUserDTO: z$1.ZodObject<{
+    id: z$1.ZodUUID;
+    email: z$1.ZodString;
+    role: z$1.ZodEnum<{
+        USER: "USER";
+        ADMIN: "ADMIN";
+    }>;
+    profile: z$1.ZodObject<{
+        id: z$1.ZodUUID;
+        firstName: z$1.ZodString;
+        lastName: z$1.ZodString;
+        profilePictureUrl: z$1.ZodNullable<z$1.ZodString>;
+    }, z$1.core.$strip>;
+}, z$1.core.$strip>;
 
 declare const MessageType: z.ZodEnum<{
     TEXT: "TEXT";
@@ -113,4 +133,4 @@ declare const ChatDetailDTO: z$1.ZodObject<{
     creatorId: z$1.ZodUUID;
 }, z$1.core.$strip>;
 
-export { ChatDTO, ChatDetailDTO, ChatType, DateTimeSchema, MessageDTO, MessageType, ObjectId, SendMessageInput, UserRole, mergeAsyncIterators };
+export { AuthUserDTO, ChatDTO, ChatDetailDTO, ChatType, DateTimeSchema, MessageDTO, MessageType, ObjectId, ProfileDTO, SendMessageInput, UserRole, mergeAsyncIterators };

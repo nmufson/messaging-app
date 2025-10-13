@@ -30,6 +30,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
+  AuthUserDTO: () => AuthUserDTO,
   ChatDTO: () => ChatDTO,
   ChatDetailDTO: () => ChatDetailDTO,
   ChatType: () => ChatType,
@@ -37,6 +38,7 @@ __export(index_exports, {
   MessageDTO: () => MessageDTO,
   MessageType: () => MessageType,
   ObjectId: () => ObjectId,
+  ProfileDTO: () => ProfileDTO,
   SendMessageInput: () => SendMessageInput,
   UserRole: () => UserRole,
   mergeAsyncIterators: () => mergeAsyncIterators,
@@ -73,6 +75,18 @@ var DateTimeSchema = import_zod.z.union([dateTime, dateToDateTime, stringToDateT
 // src/schemas/user.ts
 var import_zod2 = __toESM(require("zod"));
 var UserRole = import_zod2.default.enum(["USER", "ADMIN"]);
+var ProfileDTO = import_zod2.default.object({
+  id: ObjectId,
+  firstName: import_zod2.default.string().min(1).max(100),
+  lastName: import_zod2.default.string().min(1).max(100),
+  profilePictureUrl: import_zod2.default.string().url().nullable()
+});
+var AuthUserDTO = import_zod2.default.object({
+  id: ObjectId,
+  email: import_zod2.default.string().email(),
+  role: UserRole,
+  profile: ProfileDTO
+});
 
 // src/schemas/message.ts
 var import_zod3 = require("zod");
@@ -123,6 +137,7 @@ var import_zod5 = require("zod");
 var import_superjson = __toESM(require("superjson"));
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  AuthUserDTO,
   ChatDTO,
   ChatDetailDTO,
   ChatType,
@@ -130,6 +145,7 @@ var import_superjson = __toESM(require("superjson"));
   MessageDTO,
   MessageType,
   ObjectId,
+  ProfileDTO,
   SendMessageInput,
   UserRole,
   mergeAsyncIterators,

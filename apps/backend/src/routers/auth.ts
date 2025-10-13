@@ -5,6 +5,7 @@ import type { User } from '@repo/db';
 import { LogInInput, RegisterInput } from '@common/src/schemas/auth';
 import { hashPassword } from '../services/hash';
 import { TRPCError } from '@trpc/server';
+import { AuthUserDTO } from '@repo/common';
 
 export const authRouter = router({
   register: publicProcedure
@@ -82,33 +83,35 @@ export const authRouter = router({
       });
     }
   }),
-  me: userProcedure.query(async ({ ctx }) => {
+  me: userProcedure.output(AuthUserDTO).query(async ({ ctx }) => {
     if (!ctx.user) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
-    console.log(ctx.user, 'Current user');
-    const profile = await ctx.prisma.profile.findUnique({
-      where: { userId: ctx.user.id },
+
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: ctx.user.id },
       select: {
         id: true,
-        firstName: true,
-        lastName: true,
-        profilePictureUrl: true,
+        email: true,
+        role: true,
+        profile: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profilePictureUrl: true,
+          },
+        },
       },
     });
 
-    if (!profile) {
+    if (!user?.profile) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Profile not found',
+        message: 'User not found or related profile is missing',
       });
     }
-    const user = {
-      id: ctx.user.id,
-      email: ctx.user.email,
-      role: ctx.user.role,
-    };
 
-    return { user, profile };
+    return { ...user, profile: user.profile };
   }),
 });
