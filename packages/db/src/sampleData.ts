@@ -87,6 +87,13 @@ export const profilesData = [
     profilePictureUrl: PROFILE_PIC_URL,
     userId: userIds.diana,
   },
+  {
+    id: profileIds.nick,
+    firstName: 'Nick',
+    lastName: 'Smith',
+    profilePictureUrl: PROFILE_PIC_URL,
+    userId: userIds.nick,
+  },
 ];
 
 export const chatsData = [

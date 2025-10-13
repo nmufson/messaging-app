@@ -1,17 +1,23 @@
 'use client';
 import { useParams } from 'next/navigation';
 import { useTRPC } from '@/lib/trpc';
-import { skipToken, useQuery } from '@tanstack/react-query';
+import { skipToken, useMutation, useQuery } from '@tanstack/react-query';
 import { extractUUIDFromSlug, formatMessageTime, getChatName } from '@/utils';
 import { useAuth } from '@/context/AuthContext';
 import { MessageDTO } from '@repo/common';
 import Link from 'next/link';
+import { useState } from 'react';
+import { handleClientScriptLoad } from 'next/script';
+import { subscribe } from 'diagnostics_channel';
 
 export default function Chat() {
   const trpc = useTRPC();
   const { profile } = useAuth();
   const params = useParams();
   const slug = params.slug as string;
+  // ! consolidate these??
+  const [textInput, setTextInput] = useState('');
+  const [imageUrlInput, setImageUrlInput] = useState('');
 
   const chatId = extractUUIDFromSlug(slug);
 
@@ -24,6 +30,37 @@ export default function Chat() {
     isLoading,
     error,
   } = useQuery(trpc.chat.byId.queryOptions(chatId ? { chatId } : skipToken));
+
+  const {
+    mutate,
+    isPending,
+    error: sendToChatError,
+  } = useMutation(
+    trpc.message.sendToChat.mutationOptions({
+      onSuccess: () => {
+        // ! add query data setting
+        console.log('Message sent!');
+      },
+    })
+  );
+
+  const handleSubmitMessage = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!profile) {
+      console.error('Profile required to send message');
+      return;
+    }
+
+    mutate({
+      content: textInput || null,
+      imageUrl: imageUrlInput || null,
+      sender: profile.id,
+      chatId,
+      type: textInput ? 'TEXT' : 'IMAGE',
+    });
+    console.log('Message sent successfully!');
+  };
 
   if (isLoading) {
     return <div>Loading chat...</div>;
@@ -69,7 +106,10 @@ export default function Chat() {
           ))}
       </div>
 
-      <form className="send-message-form flex gap-3 justify-between items-center p-2 flex-shrink-0 bg-white border-t">
+      <form
+        onSubmit={handleSubmitMessage}
+        className="send-message-form flex gap-3 justify-between items-center p-2 flex-shrink-0 bg-white border-t"
+      >
         <div>
           <i className="bi bi-image text-3xl" />
         </div>
@@ -80,9 +120,11 @@ export default function Chat() {
           placeholder="Type a message…"
           className="w-7/10 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 "
           aria-label="Message input"
+          value={textInput}
+          onChange={(e) => setTextInput(e.target.value)}
           required
         />
-        <button>
+        <button type="submit" disabled={textInput.trim() === ''}>
           <i className="bi bi-arrow-up" />
         </button>
       </form>

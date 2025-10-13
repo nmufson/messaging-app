@@ -133,25 +133,17 @@ export const chatRouter = router({
   getList: userProcedure
     .input(
       z.object({
-        profileId: z.string(),
         limit: z.number().default(100),
       })
     )
     .query(async ({ input, ctx }) => {
-      const { profileId, limit } = input;
-      const { user } = ctx;
+      const { limit } = input;
+      const { user, profile } = ctx;
 
       if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
 
-      if (user.id !== profileId && user.role !== UserRole.enum.ADMIN) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: "Not allowed to view this profile's chat",
-        });
-      }
-
-      const profile = await ctx.prisma.profile.findUnique({
-        where: { id: profileId },
+      const queriedProfile = await ctx.prisma.profile.findUnique({
+        where: { id: profile?.id, userId: user.id },
         include: {
           chats: {
             take: limit,
@@ -162,8 +154,6 @@ export const chatRouter = router({
                 take: 1, // for displaying most recent msg in list
                 select: {
                   content: true,
-                },
-                include: {
                   sender: {
                     select: {
                       firstName: true,
@@ -185,13 +175,13 @@ export const chatRouter = router({
         },
       });
 
-      if (!profile) {
+      if (!queriedProfile) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Profile not found',
         });
       }
-      return profile.chats;
+      return queriedProfile.chats;
     }),
   // TODO: move this to an admin router??
   getAll: adminProcedure

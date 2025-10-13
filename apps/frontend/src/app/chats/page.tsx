@@ -1,25 +1,17 @@
 'use client';
-import { useTRPC } from '../../lib/trpc';
-import { useQuery } from '@tanstack/react-query';
 import { ChatDTO } from '@repo/common';
 import * as R from 'remeda';
 import Link from 'next/link';
-import {
-  formatMessageTime,
-  getChatName,
-  slugify,
-} from '../../utils/formatting';
+import { formatMessageTime, getChatName, slugify } from '@/utils/formatting';
 import { useAuth } from '../../context/AuthContext';
+import { useChatList } from '@/hooks/chat';
 
 export default function Chats() {
-  const trpc = useTRPC();
-  const queryOptions = trpc.chat.getAll.queryOptions({});
+  const { chats, isLoading, error } = useChatList();
 
-  const { data: chats, isLoading, error } = useQuery(queryOptions);
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
   if (!chats || chats.length === 0) return <div>No messages found</div>;
-  console.log(chats);
 
   return (
     <div className="bg-blue-500 flex">
@@ -48,13 +40,13 @@ function ChatPreview({ chat }: ChatPreviewProps) {
     groupPictureUrl,
     createdAt: chatCreatedAt,
   } = chat;
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const lastMessage = messages.length ? messages[0] : null;
   const displayName = getChatName({
     type,
     name,
     participants,
-    userId: user?.id,
+    profileId: profile?.id,
   });
 
   // TODO: make this show multiple user pics similar to Messages

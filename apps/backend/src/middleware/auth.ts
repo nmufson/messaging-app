@@ -42,5 +42,14 @@ passport.deserializeUser(async (id: string, done) => {
       role: true,
     },
   });
-  done(null, user || false);
+  const profile = await prisma.profile.findUnique({
+    where: { userId: id },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      profilePictureUrl: true,
+    },
+  });
+  done(null, { user, profile });
 });

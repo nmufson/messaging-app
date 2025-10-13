@@ -1,9 +1,10 @@
-import { User } from '@repo/db';
+import { User, Profile } from '@repo/db';
 
 declare global {
   namespace Express {
     interface Request {
       user?: User;
+      profile?: Profile;
     }
   }
 }

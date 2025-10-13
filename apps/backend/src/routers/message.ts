@@ -89,9 +89,9 @@ export const messageRouter = router({
 
       return { chat, newDirectMessage };
     }),
-  sendTochat: userProcedure
+  sendToChat: userProcedure
     .input(SendMessageInput)
-    .query(async ({ input, ctx }) => {
+    .mutation(async ({ input, ctx }) => {
       const { sender, chatId, content, imageUrl, type } = input;
 
       const chat = await ctx.prisma.chat.findUnique({

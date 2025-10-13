@@ -86,6 +86,7 @@ export const authRouter = router({
     if (!ctx.user) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
+    console.log(ctx.user, 'Current user');
     const profile = await ctx.prisma.profile.findUnique({
       where: { userId: ctx.user.id },
       select: {
