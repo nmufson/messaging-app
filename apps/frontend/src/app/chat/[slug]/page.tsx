@@ -1,18 +1,15 @@
 'use client';
 import { useParams } from 'next/navigation';
 import { useTRPC } from '@/lib/trpc';
-import { skipToken, useMutation, useQuery } from '@tanstack/react-query';
-import { extractUUIDFromSlug, formatMessageTime, getChatName } from '@/utils';
+import { extractUUIDFromSlug, getChatName } from '@/utils';
 import { useAuth } from '@/context/AuthContext';
-import { MessageDTO } from '@repo/common';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Old_Standard_TT } from 'next/font/google';
+import { MessageBubble } from './MessageBubble';
+import { useChat } from '@/hooks/chat';
 
 export default function Chat() {
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
   const { profile } = useAuth();
   const params = useParams();
   const slug = params.slug as string;
@@ -26,31 +23,7 @@ export default function Chat() {
     return <div>Invalid chat URL</div>;
   }
 
-  const chatQueryKey = trpc.chat.byId.queryKey({ chatId });
-  const queryOptions = trpc.chat.byId.queryOptions(
-    chatId ? { chatId } : skipToken
-  );
-
-  const { data: chat, isLoading, error } = useQuery(queryOptions);
-
-  const {
-    mutate,
-    isPending,
-    error: sendToChatError,
-  } = useMutation(
-    trpc.message.sendToChat.mutationOptions({
-      onSuccess: (newMessage) => {
-        queryClient.setQueryData(chatQueryKey, (oldData) => {
-          if (!oldData) return oldData;
-
-          return {
-            ...oldData,
-            messages: [...oldData.messages, newMessage],
-          };
-        });
-      },
-    })
-  );
+  const { chat, isLoading, error, mutate } = useChat(chatId);
 
   const handleSubmitMessage = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -136,42 +109,6 @@ export default function Chat() {
           <i className="bi bi-arrow-up" />
         </button>
       </form>
-    </div>
-  );
-}
-
-interface MessageBubbleProps {
-  message: MessageDTO;
-  isCurrentUser: boolean;
-}
-
-export function MessageBubble(props: MessageBubbleProps) {
-  const { message, isCurrentUser } = props;
-  const { senderId, content, imageUrl, createdAt } = message;
-  const displayTime = formatMessageTime(createdAt);
-
-  return (
-    <div
-      className={`flex w-full mt-2 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
-    >
-      <div
-        className={`max-w-75/100 rounded-xl px-4 py-2 shadow-md break-words '
-            ${isCurrentUser ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-900'}`}
-      >
-        <div>
-          {content ? (
-            <p>{content}</p>
-          ) : imageUrl ? (
-            <img
-              src={imageUrl}
-              className="max-w-[200px] max-h-[200px] rounded-lg"
-            />
-          ) : null}
-        </div>
-        <div>
-          <small>{displayTime}</small>
-        </div>
-      </div>
     </div>
   );
 }
