@@ -65,6 +65,7 @@ export const profilesData = [
     lastName: 'Smith',
     profilePictureUrl: PROFILE_PIC_URL,
     userId: userIds.alice,
+    friends: [profileIds.bob, profileIds.charlie],
   },
   {
     id: profileIds.bob,
@@ -72,6 +73,7 @@ export const profilesData = [
     lastName: 'Jones',
     profilePictureUrl: PROFILE_PIC_URL,
     userId: userIds.bob,
+    friends: [profileIds.alice, profileIds.diana],
   },
   {
     id: profileIds.charlie,
@@ -79,6 +81,7 @@ export const profilesData = [
     lastName: 'Brown',
     profilePictureUrl: PROFILE_PIC_URL,
     userId: userIds.charlie,
+    friends: [profileIds.alice, profileIds.diana],
   },
   {
     id: profileIds.diana,
@@ -86,6 +89,7 @@ export const profilesData = [
     lastName: 'Prince',
     profilePictureUrl: PROFILE_PIC_URL,
     userId: userIds.diana,
+    friends: [profileIds.bob, profileIds.charlie],
   },
   {
     id: profileIds.nick,
@@ -93,6 +97,7 @@ export const profilesData = [
     lastName: 'Smith',
     profilePictureUrl: PROFILE_PIC_URL,
     userId: userIds.nick,
+    friends: [profileIds.alice, profileIds.bob],
   },
 ];
 

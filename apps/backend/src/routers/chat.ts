@@ -1,7 +1,7 @@
 import { ObjectId } from '@common/src/schemas/primitives';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
-import { UserRole, z } from '@repo/common';
+import { MessageDTO, UserRole, z } from '@repo/common';
 import { eventEmitter } from '../lib/eventBus';
 import { adminProcedure, router, userProcedure } from '../trpc';
 import { mergeAsyncIterators } from '@repo/common';
@@ -74,15 +74,12 @@ export const chatRouter = router({
         profileId: ObjectId,
       })
     )
+    // .output(MessageDTO)
     .subscription(async function* ({ input, ctx, signal }) {
       const { profileId } = input;
       const { user } = ctx;
 
       if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
-
-      if (user.id !== profileId && user.role !== 'ADMIN') {
-        throw new TRPCError({ code: 'FORBIDDEN' });
-      }
 
       const profile = await ctx.prisma.profile.findUnique({
         where: { id: profileId },
@@ -104,7 +101,10 @@ export const chatRouter = router({
       );
 
       for await (const [message] of mergeAsyncIterators(iterables)) {
-        yield tracked(message.id, message);
+        logger.info({ message }, 'yielding message');
+        if (message.senderId !== user.profile?.id) {
+          yield tracked(message.id, message);
+        }
       }
     }),
   onNewChat: userProcedure

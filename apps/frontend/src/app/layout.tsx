@@ -1,7 +1,12 @@
 'use client';
 import './globals.css';
-
-import { createTRPCClient, httpBatchLink } from '@trpc/client';
+import {
+  createTRPCClient,
+  createWSClient,
+  httpBatchLink,
+  splitLink,
+  wsLink,
+} from '@trpc/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { AppRouter, TRPCProvider } from '../lib/trpc';
@@ -33,6 +38,10 @@ function getQueryClient() {
   }
 }
 
+const wsClient = createWSClient({
+  url: 'ws://localhost:3001/trpc',
+});
+
 export default function RootLayout({
   children,
 }: {
@@ -42,15 +51,21 @@ export default function RootLayout({
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({
       links: [
-        httpBatchLink({
-          transformer: superjson,
-          url: 'http://localhost:3001/trpc',
-          fetch(url, options) {
-            return fetch(url, {
-              ...options,
-              credentials: 'include',
-            });
+        splitLink({
+          condition(op) {
+            return op.type === 'subscription';
           },
+          true: wsLink({ client: wsClient, transformer: superjson }),
+          false: httpBatchLink({
+            transformer: superjson,
+            url: 'http://localhost:3001/trpc',
+            fetch(url, options) {
+              return fetch(url, {
+                ...options,
+                credentials: 'include',
+              });
+            },
+          }),
         }),
       ],
     })

@@ -26,3 +26,19 @@ export const ProfileDTO = z.object({
   profilePictureUrl: z.string().nullable(),
 });
 export type ProfileDTO = z.infer<typeof ProfileDTO>;
+
+export const ProfilePageDTO = z.object({
+  ...ProfileDTO.shape,
+  numOfFriends: z.number(),
+  numOfChats: z.number(),
+  numOfMessages: z.number(),
+});
+export type ProfilePageDTO = z.infer<typeof ProfilePageDTO>;
+
+export const ListProfileDTO = z.object({
+  id: ObjectId,
+  firstName: z.string(),
+  lastName: z.string(),
+  profilePictureUrl: z.string().nullable(),
+});
+export type ListProfileDTO = z.infer<typeof ListProfileDTO>;

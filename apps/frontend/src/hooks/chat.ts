@@ -6,6 +6,8 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+import { useSubscription } from '@trpc/tanstack-react-query';
+import { useEffect } from 'react';
 
 export function useChatList() {
   const trpc = useTRPC();
@@ -19,7 +21,12 @@ export function useChatList() {
   return { chats, isLoading, error };
 }
 
-export function useChat(chatId: ObjectId) {
+interface UseChatParams {
+  chatId: ObjectId;
+  profileId?: ObjectId;
+}
+
+export function useChat({ chatId, profileId }: UseChatParams) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -49,5 +56,25 @@ export function useChat(chatId: ObjectId) {
     })
   );
 
+  const { status, error: subscriptionError } = useSubscription(
+    trpc.chat.onNewMessageInChat.subscriptionOptions(
+      profileId ? { profileId } : skipToken,
+      {
+        onData(newMessage) {
+          const messageData = newMessage.data ? newMessage.data : newMessage;
+
+          queryClient.setQueryData(chatQueryKey, (oldData) => {
+            if (!oldData) return oldData;
+            return {
+              ...oldData,
+              messages: [...oldData.messages, messageData],
+            };
+          });
+        },
+      }
+    )
+  );
+  console.log(status);
+  console.log(subscriptionError);
   return { chat, isLoading, error, mutate, isPending, sendToChatError };
 }

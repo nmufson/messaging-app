@@ -1,44 +1,54 @@
 'use client';
 
+import { useAuth } from '@/context/AuthContext';
 import { useTRPC } from '@/lib/trpc';
 import { extractUUIDFromSlug, formatDate } from '@/utils';
-import { useQuery } from '@tanstack/react-query';
+import { skipToken, useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { last } from 'remeda';
 
-const SAMPLE_HEADER =
-  'https://marketplace.canva.com/EADaosozdz0/1/0/1600w/canva-purple-sky-profile-header-XBJ23wlhl0s.jpg';
+const DEFAULT_PROFILE_PICTURE =
+  'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
 
 export default function Profile() {
   const trpc = useTRPC();
+  const { profile: loggedInProfile } = useAuth();
   const params = useParams();
   const slug = params.slug as string;
 
-  const profileId = extractUUIDFromSlug(slug);
+  const displayProfileId = extractUUIDFromSlug(slug);
 
-  if (!profileId) {
-    console.log('No profileId provided');
-    return null;
-  }
+  const isOwnProfile = loggedInProfile?.id === displayProfileId;
 
   const {
-    data: profile,
+    data: displayProfile,
     isLoading,
     error,
-  } = useQuery(trpc.profile.byId.queryOptions({ profileId }));
-  console.log(profile);
+  } = useQuery(
+    trpc.profile.byId.queryOptions(
+      displayProfileId ? { profileId: displayProfileId } : skipToken
+    )
+  );
+
   if (isLoading) {
     return <div>Loading chat...</div>;
   }
-
   if (error) {
     return <div>Error loading chat: {error.message}</div>;
   }
-
-  if (!profile) {
+  if (!displayProfile) {
     return <div>Profile not found</div>;
   }
-  const { firstName, lastName, profilePictureUrl, createdAt } = profile;
+  const {
+    id: profileId,
+    firstName,
+    lastName,
+    profilePictureUrl,
+    createdAt,
+    numOfChats,
+    numOfFriends,
+    numOfMessages,
+  } = displayProfile;
   const formattedJoinDate = `Joined ${formatDate(createdAt)}`;
   let usersHeader;
   const displayName = `${firstName} ${lastName}`;
@@ -92,19 +102,27 @@ export default function Profile() {
           </div>
           <div className="flex items-center justify-center divide-x divide-brand-light">
             <div className="flex flex-col items-center text-center px-6">
-              <strong className="text-lg leading-none text-brand">123</strong>
+              <strong className="text-lg leading-none text-brand">
+                {numOfChats}
+              </strong>
               <small className="leading-none text-gray-500">Chats</small>
             </div>
 
             <div className="flex flex-col items-center text-center px-6">
-              <strong className="text-lg leading-none text-brand">123</strong>
+              <strong className="text-lg leading-none text-brand">
+                {numOfMessages}
+              </strong>
               <small className="leading-none text-gray-500">Messages</small>
             </div>
 
-            <div className="flex flex-col items-center text-center px-6">
-              <strong className="text-lg leading-none text-brand">123</strong>
-              <small className="leading-none text-gray-500">Friends</small>
-            </div>
+            <Link href={`/profile/${profileId}/friends`}>
+              <div className="flex flex-col items-center text-center px-6">
+                <strong className="text-lg leading-none text-brand">
+                  {numOfFriends}
+                </strong>
+                <small className="leading-none text-gray-500">Friends</small>
+              </div>
+            </Link>
           </div>
         </div>
 

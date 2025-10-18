@@ -35,6 +35,20 @@ async function main() {
     });
   }
 
+  // Add friends
+  for (const profile of profilesData) {
+    if (profile.friends && profile.friends.length > 0) {
+      await prisma.profile.update({
+        where: { id: profile.id },
+        data: {
+          friends: {
+            connect: profile.friends.map((id) => ({ id })),
+          },
+        },
+      });
+    }
+  }
+
   // Create chats
   for (const chat of chatsData) {
     await prisma.chat.create({

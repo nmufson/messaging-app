@@ -1,12 +1,20 @@
 import type { Profile, User } from '@repo/db';
+import { parse as parseCookie } from 'cookie';
 import { Request, Response } from 'express';
 import { prisma } from '@repo/db';
 import { CreateExpressContextOptions } from '@trpc/server/adapters/express';
 import type { IncomingMessage } from 'http';
 import { CreateWSSContextFnOptions } from '@trpc/server/adapters/ws';
+import { ObjectId } from '@common/dist';
+
+// TODO: take this from env?
+const SESSION_COOKIE_NAME = 'connect.sid'; // default for express-session
+const SESSION_SECRET = 'secret keyyy'; // must match your express-session secret
+
+type UserWithProfile = User & { profile: { id: ObjectId } | null };
 
 interface BaseContext {
-  user?: User;
+  user?: UserWithProfile;
   prisma: typeof prisma;
 }
 
@@ -29,17 +37,56 @@ export function createContext({
   return {
     req,
     res,
-    user: req.user as User,
+    user: req.user as UserWithProfile,
     prisma,
   };
 }
 
-export function createWSSContext({
+export async function createWSSContext({
   req,
-}: CreateWSSContextFnOptions): WSContext {
+}: CreateWSSContextFnOptions): Promise<WSContext> {
+  let user: User | null = null;
+
+  try {
+    const cookies = parseCookie(req.headers.cookie || '');
+    const sessionIdRaw = cookies[SESSION_COOKIE_NAME];
+
+    if (sessionIdRaw) {
+      // Unsigned session ID (remove 's:' prefix if present)
+      const sessionId = sessionIdRaw.startsWith('s:')
+        ? require('cookie-signature').unsign(
+            sessionIdRaw.slice(2),
+            SESSION_SECRET
+          )
+        : sessionIdRaw;
+
+      if (sessionId) {
+        const session = await prisma.session.findUnique({
+          where: { id: sessionId },
+        });
+
+        if (session && session.data) {
+          // 4. Parse session data and get userId
+          const sessionData = JSON.parse(session.data);
+          const userId = sessionData.passport?.user;
+          if (userId) {
+            const userWithProfile = await prisma.user.findUnique({
+              where: { id: userId },
+              include: { profile: { select: { id: true } } },
+            });
+
+            user = userWithProfile;
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('WS auth error:', err);
+  }
+
   return {
     req,
-    user: undefined, // TODO: implement ws auth logic?
+    user: user as UserWithProfile,
     prisma,
   };
 }

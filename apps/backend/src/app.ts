@@ -9,6 +9,9 @@ import { appRouter } from './trpc/router';
 import passport from 'passport';
 import './middleware/auth';
 import { createContext } from './trpc';
+import { applyWSSHandler } from '@trpc/server/adapters/ws';
+import { WebSocketServer } from 'ws';
+import { createWSSContext } from './trpc/context';
 
 dotenv.config();
 
@@ -55,5 +58,36 @@ const PORT = Number(process.env.PORT) || 3001;
 export const server = app.listen(PORT, '0.0.0.0', () =>
   console.log(`Express app listening on port ${PORT}!`)
 );
+
+const wss = new WebSocketServer({ server });
+
+const handler = applyWSSHandler({
+  wss,
+  router: appRouter,
+  createContext: createWSSContext,
+  // Enable heartbeat messages to keep connection open (disabled by default)
+  keepAlive: {
+    enabled: true,
+    // server ping message interval in milliseconds
+    pingMs: 30000,
+    // connection is terminated if pong message is not received in this many milliseconds
+    pongWaitMs: 5000,
+  },
+});
+
+wss.on('connection', (ws) => {
+  console.log(`➕➕ Connection (${wss.clients.size})`);
+  ws.once('close', () => {
+    console.log(`➖➖ Connection (${wss.clients.size})`);
+  });
+});
+
+console.log('✅ WebSocket Server listening on ws://localhost:3001');
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM');
+  handler.broadcastReconnectNotification();
+  wss.close();
+});
 
 export default app;

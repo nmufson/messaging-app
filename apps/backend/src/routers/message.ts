@@ -7,6 +7,7 @@ import { sendMessage } from '../services/message';
 import { router, userProcedure } from '../trpc';
 import { on } from 'events';
 import { eventEmitter } from '../lib/eventBus';
+import { logger } from 'src/lib/pino';
 
 export const messageRouter = router({
   onNewMessage: userProcedure
@@ -118,6 +119,7 @@ export const messageRouter = router({
 
       const newMessage = await sendMessage(ctx.prisma, input);
 
+      logger.info({ newMessage }, 'emitting message');
       eventEmitter.emit(`addMessageToChat:${chatId}`, newMessage);
 
       return newMessage;

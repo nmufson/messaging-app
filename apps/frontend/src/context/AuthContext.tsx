@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { useTRPC } from '../lib/trpc';
 import { useQuery } from '@tanstack/react-query';
 import { ObjectId, UserRole } from '@repo/common';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface User {
   id: ObjectId;
@@ -28,16 +29,29 @@ const AuthContext = createContext<{
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const trpc = useTRPC();
   const queryOptions = trpc.auth.me.queryOptions();
-  const { data } = useQuery(queryOptions);
+  const { data, error } = useQuery(queryOptions);
+  const router = useRouter();
+  const pathname = usePathname();
 
-  if (!data) return null;
+  const isAuthPage = pathname === '/login' || pathname === '/signup';
 
-  const { profile, ...restOfUser } = data;
+  useEffect(() => {
+    if (error?.data?.code === 'UNAUTHORIZED' && !isAuthPage) {
+      // TODO: change this to home page?
+      router.push('/login');
+    }
+  }, [error, isAuthPage, router]);
+
+  let user = null;
+  let profile = null;
+  if (data) {
+    const { profile: p, ...restOfUser } = data;
+    user = restOfUser;
+    profile = p;
+  }
 
   return (
-    <AuthContext.Provider
-      value={{ user: restOfUser ?? null, profile: profile ?? null }}
-    >
+    <AuthContext.Provider value={{ user, profile }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,10 +1,13 @@
 import { ObjectId } from '@common/src/schemas/primitives';
 import { router, userProcedure } from '../trpc';
-import { ProfileDTO, z } from '@repo/common';
 import {
+  ProfilePageDTO,
+  z,
   CreateProfileInput,
+  ListProfileDTO,
   UpdateProfileInput,
-} from '@common/src/schemas/profile';
+} from '@repo/common';
+
 import { TRPCError } from '@trpc/server';
 
 export const profileRouter = router({
@@ -14,7 +17,7 @@ export const profileRouter = router({
         profileId: ObjectId,
       })
     )
-    .output(z.object({ ...ProfileDTO.shape, numOfFriends: z.number() }))
+    .output(ProfilePageDTO)
     .query(async ({ input, ctx }) => {
       const profile = await ctx.prisma.profile.findUnique({
         where: { id: input.profileId },
@@ -25,9 +28,13 @@ export const profileRouter = router({
           firstName: true,
           lastName: true,
           profilePictureUrl: true,
+          headerPictureUrl: true,
+          bio: true,
           _count: {
             select: {
               friends: true,
+              chats: true,
+              messages: true,
             },
           },
         },
@@ -39,8 +46,13 @@ export const profileRouter = router({
           message: 'Profile not found',
         });
       }
-      console.log(profile);
-      return { ...profile, numOfFriends: profile._count.friends };
+
+      return {
+        ...profile,
+        numOfFriends: profile._count.friends,
+        numOfChats: profile._count.chats,
+        numOfMessages: profile._count.messages,
+      };
     }),
   create: userProcedure
     .input(CreateProfileInput)
@@ -83,12 +95,13 @@ export const profileRouter = router({
 
       return updatedProfile;
     }),
-  getFriends: userProcedure
+  friends: userProcedure
     .input(z.object({ profileId: ObjectId }))
+    .output(z.array(ListProfileDTO))
     .query(async ({ input, ctx }) => {
       const { profileId } = input;
 
-      const friends = await ctx.prisma.profile.findUnique({
+      const profile = await ctx.prisma.profile.findUnique({
         where: { id: profileId },
         select: {
           friends: {
@@ -102,6 +115,13 @@ export const profileRouter = router({
         },
       });
 
-      return friends;
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
+      }
+
+      return profile.friends;
     }),
 });

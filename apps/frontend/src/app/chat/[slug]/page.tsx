@@ -9,6 +9,7 @@ import { useChat } from '@/hooks/chat';
 
 export default function Chat() {
   const { profile } = useAuth();
+
   const params = useParams();
   const slug = params.slug as string;
   // ! consolidate these??
@@ -21,7 +22,10 @@ export default function Chat() {
     return <div>Invalid chat URL</div>;
   }
 
-  const { chat, isLoading, error, mutate } = useChat(chatId);
+  const { chat, isLoading, error, mutate } = useChat({
+    chatId,
+    profileId: profile?.id,
+  });
 
   const handleSubmitMessage = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
