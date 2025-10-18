@@ -7,7 +7,7 @@ import {
   ListProfileDTO,
   UpdateProfileInput,
 } from '@repo/common';
-
+import * as R from 'remeda';
 import { TRPCError } from '@trpc/server';
 
 export const profileRouter = router({
@@ -19,6 +19,9 @@ export const profileRouter = router({
     )
     .output(ProfilePageDTO)
     .query(async ({ input, ctx }) => {
+      const { user } = ctx;
+      if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
+
       const profile = await ctx.prisma.profile.findUnique({
         where: { id: input.profileId },
         select: {
@@ -27,8 +30,8 @@ export const profileRouter = router({
           updatedAt: true,
           firstName: true,
           lastName: true,
-          profilePictureUrl: true,
-          headerPictureUrl: true,
+          avatarUrl: true,
+          headerUrl: true,
           bio: true,
           _count: {
             select: {
@@ -47,17 +50,27 @@ export const profileRouter = router({
         });
       }
 
+      const hasOutstandingFriendRequest =
+        await ctx.prisma.friendRequest.findFirst({
+          where: {
+            senderId: user.profile?.id,
+            receiverId: input.profileId,
+            status: 'PENDING',
+          },
+        });
+
       return {
         ...profile,
         numOfFriends: profile._count.friends,
         numOfChats: profile._count.chats,
         numOfMessages: profile._count.messages,
+        hasOutstandingFriendRequest: R.isTruthy(hasOutstandingFriendRequest),
       };
     }),
   create: userProcedure
     .input(CreateProfileInput)
     .mutation(async ({ input, ctx }) => {
-      const { userId, firstName, lastName, profilePictureUrl } = input;
+      const { userId, firstName, lastName, avatarUrl } = input;
       const { user } = ctx;
       if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
 
@@ -73,7 +86,7 @@ export const profileRouter = router({
           user: { connect: { id: userId } },
           firstName,
           lastName,
-          profilePictureUrl,
+          avatarUrl,
         },
       });
 
@@ -82,14 +95,14 @@ export const profileRouter = router({
   update: userProcedure
     .input(UpdateProfileInput)
     .mutation(async ({ input, ctx }) => {
-      const { profileId, firstName, lastName, profilePictureUrl } = input;
+      const { profileId, firstName, lastName, avatarUrl } = input;
 
       const updatedProfile = await ctx.prisma.profile.update({
         where: { id: profileId },
         data: {
           firstName,
           lastName,
-          profilePictureUrl,
+          avatarUrl,
         },
       });
 
@@ -109,7 +122,7 @@ export const profileRouter = router({
               id: true,
               firstName: true,
               lastName: true,
-              profilePictureUrl: true,
+              avatarUrl: true,
             },
           },
         },

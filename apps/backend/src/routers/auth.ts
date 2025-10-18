@@ -99,7 +99,7 @@ export const authRouter = router({
             id: true,
             firstName: true,
             lastName: true,
-            profilePictureUrl: true,
+            avatarUrl: true,
           },
         },
       },

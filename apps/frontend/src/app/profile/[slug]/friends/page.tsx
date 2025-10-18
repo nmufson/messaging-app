@@ -49,11 +49,9 @@ export default function FriendsList() {
 }
 
 function FriendPreview({ friend }: { friend: ListProfileDTO }) {
-  const { firstName, lastName, profilePictureUrl, id: profileId } = friend;
+  const { firstName, lastName, avatarUrl, id: profileId } = friend;
   const profileDisplayName = `${firstName} ${lastName}`;
-  const profileImage = profilePictureUrl
-    ? profilePictureUrl
-    : DEFAULT_PROFILE_IMAGE;
+  const profileImage = avatarUrl ? avatarUrl : DEFAULT_PROFILE_IMAGE;
 
   return (
     <Link href={`/profile/${profileId}`}>

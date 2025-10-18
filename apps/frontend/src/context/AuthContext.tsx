@@ -15,7 +15,7 @@ interface Profile {
   id: ObjectId;
   firstName: string;
   lastName: string;
-  profilePictureUrl: string | null;
+  avatarUrl: string | null;
 }
 
 const AuthContext = createContext<{

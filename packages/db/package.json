@@ -15,6 +15,9 @@
     "dist",
     "prisma"
   ],
+  "prisma": {
+    "seed": "ts-node src/seed.ts"
+  },
   "scripts": {
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",

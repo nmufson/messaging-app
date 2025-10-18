@@ -16,7 +16,7 @@ export const ChatDTO = z.object({
       id: ObjectId,
       firstName: z.string(),
       lastName: z.string(),
-      profilePictureUrl: z.string().nullable(),
+      avatarUrl: z.string().nullable(),
     })
   ),
   messages: MessageDTO.array(),

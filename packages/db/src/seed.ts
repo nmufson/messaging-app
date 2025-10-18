@@ -27,7 +27,7 @@ async function main() {
         id: profile.id,
         firstName: profile.firstName,
         lastName: profile.lastName,
-        profilePictureUrl: profile.profilePictureUrl,
+        avatarUrl: profile.avatarUrl,
         user: {
           connect: { id: profile.userId },
         },

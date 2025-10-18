@@ -34,7 +34,7 @@ export function ChatPreview({ chat }: ChatPreviewProps) {
 
   const displayPicture =
     groupPictureUrl ||
-    lastSender?.profilePictureUrl ||
+    lastSender?.avatarUrl ||
     'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Flag_of_Germany_%28RGB%29.svg/330px-Flag_of_Germany_%28RGB%29.svg.png';
 
   const displayMessage = lastMessage

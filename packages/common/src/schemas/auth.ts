@@ -39,7 +39,7 @@ export const AuthProfileDTO = z.object({
   id: ObjectId,
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
-  profilePictureUrl: z.string().url().nullable(),
+  avatarUrl: z.string().url().nullable(),
 });
 
 export const AuthUserDTO = z.object({

@@ -4,7 +4,7 @@ import { z } from '@repo/common';
 import { TRPCError } from '@trpc/server';
 
 export const friendRequestRouter = router({
-  sendNew: userProcedure
+  sendRequest: userProcedure
     .input(
       z.object({
         senderId: ObjectId,
@@ -18,6 +18,7 @@ export const friendRequestRouter = router({
         data: {
           senderId,
           receiverId,
+          status: 'PENDING',
         },
       });
 

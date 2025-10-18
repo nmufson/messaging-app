@@ -20,7 +20,7 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
+      "@/*": ["src/*"],
       "@repo/common": ["../../packages/common/src"],
       "@repo/backend/*": ["../../apps/backend/src/*"]
     }

@@ -33,7 +33,7 @@ interface ChatParticipant {
   id: ObjectId;
   firstName: string;
   lastName: string;
-  profilePictureUrl: string | null;
+  avatarUrl: string | null;
 }
 
 interface GetChatNameParams {

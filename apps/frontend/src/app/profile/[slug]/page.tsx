@@ -1,6 +1,9 @@
 'use client';
 
+import { Button } from '@/components/button/button';
 import { useAuth } from '@/context/AuthContext';
+import { useFriendRequest } from '@/hooks/friendRequest';
+import { useProfile } from '@/hooks/profile';
 import { useTRPC } from '@/lib/trpc';
 import { extractUUIDFromSlug, formatDate } from '@/utils';
 import { skipToken, useQuery } from '@tanstack/react-query';
@@ -11,7 +14,6 @@ const DEFAULT_PROFILE_PICTURE =
   'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
 
 export default function Profile() {
-  const trpc = useTRPC();
   const { profile: loggedInProfile } = useAuth();
   const params = useParams();
   const slug = params.slug as string;
@@ -21,34 +23,47 @@ export default function Profile() {
   const isOwnProfile = loggedInProfile?.id === displayProfileId;
 
   const {
-    data: displayProfile,
-    isLoading,
-    error,
-  } = useQuery(
-    trpc.profile.byId.queryOptions(
-      displayProfileId ? { profileId: displayProfileId } : skipToken
-    )
-  );
+    profile: displayProfile,
+    isLoading: isProfileLoading,
+    error: profileError,
+  } = useProfile(displayProfileId);
 
-  if (isLoading) {
+  const { sendFriendRequest } = useFriendRequest();
+
+  if (isProfileLoading) {
     return <div>Loading chat...</div>;
   }
-  if (error) {
-    return <div>Error loading chat: {error.message}</div>;
+  if (profileError) {
+    return <div>Error loading chat: {profileError.message}</div>;
   }
   if (!displayProfile) {
     return <div>Profile not found</div>;
   }
+
+  const handleSendFriendRequest = async () => {
+    if (!loggedInProfile || !displayProfileId) {
+      console.error('Sender or receiver of friend request missing');
+      return;
+    }
+
+    await sendFriendRequest({
+      senderId: loggedInProfile?.id,
+      receiverId: displayProfileId,
+    });
+  };
+
   const {
     id: profileId,
     firstName,
     lastName,
-    profilePictureUrl,
+    avatarUrl,
     createdAt,
     numOfChats,
     numOfFriends,
     numOfMessages,
+    hasOutstandingFriendRequest,
   } = displayProfile;
+
   const formattedJoinDate = `Joined ${formatDate(createdAt)}`;
   let usersHeader;
   const displayName = `${firstName} ${lastName}`;
@@ -68,7 +83,7 @@ export default function Profile() {
         )}
         <div className="absolute left-1/2 top-60/100 -translate-x-1/2 -translate-y-1/2 z-1">
           <img
-            src={profilePictureUrl ?? '/default.png'}
+            src={avatarUrl ?? '/default.png'}
             alt="Profile"
             className="w-33 h-33 rounded-full border-4 border-brand-light shadow-lg object-cover"
           />
@@ -86,14 +101,32 @@ export default function Profile() {
           <p>This is where the bio will go. add bios after migration</p>
         </div>
 
-        <div className="flex gap-5">
-          {/* ! will need auth profile for this  */}
-          <button className="w-40 rounded-3xl text-white bg-brand-dark">
-            Add as Friend
-          </button>
-          <button className="w-30 rounded-3xl border border-brand-light text-brand-light bg-white">
-            Message
-          </button>
+        <div className="flex gap-5 justify-center">
+          {isOwnProfile ? (
+            // TODO: implement this, maybe combine with get byId in hook
+            <button className="w-40 rounded-3xl text-white bg-brand-dark">
+              Update Profile
+            </button>
+          ) : (
+            <>
+              <Button
+                onClick={handleSendFriendRequest}
+                className={
+                  hasOutstandingFriendRequest ? 'bg-gray-400' : 'bg-brand-dark'
+                }
+                label={
+                  hasOutstandingFriendRequest ? 'Request Sent' : 'Add as Friend'
+                }
+                disabled={hasOutstandingFriendRequest}
+              />
+
+              <Button
+                onClick={() => {}}
+                className="w-30 border border-brand-light text-brand-light bg-white"
+                label="Message"
+              />
+            </>
+          )}
         </div>
 
         <div className="my-5 px-3 pt-1 pb-2 rounded-lg bg-white">
