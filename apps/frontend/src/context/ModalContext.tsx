@@ -25,13 +25,14 @@ const defaultModalContext = {
 
 const ModalContext = createContext<ModalContext>(defaultModalContext);
 
-export const useModal = () => {
+export const useModalContext = () => {
   const ctx = useContext(ModalContext);
-  if (!ctx) throw new Error('useModal must be used within a ModalProvider');
+  if (!ctx)
+    throw new Error('useModal must be used within a ModalContextWrapper');
   return ctx;
 };
 
-export function ModalProvider({ children }: { children: ReactNode }) {
+export function ModalContextWrapper({ children }: { children: ReactNode }) {
   const [showModal, setShowModal] = useState(false);
   const [modalNode, setModalNode] = useState<ReactNode>(null);
 

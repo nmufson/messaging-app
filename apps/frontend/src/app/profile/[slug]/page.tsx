@@ -1,7 +1,9 @@
 'use client';
 
-import { Button } from '@/components/button/button';
+import { Button, CancelButton } from '@/components/button/button';
+import { Modal } from '@/components/modal/modal';
 import { useAuth } from '@/context/AuthContext';
+import { useModalContext } from '@/context/ModalContext';
 import { useFriendRequest } from '@/hooks/friendRequest';
 import { useProfile } from '@/hooks/profile';
 import { useTRPC } from '@/lib/trpc';
@@ -14,6 +16,7 @@ const DEFAULT_PROFILE_PICTURE =
   'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg';
 
 export default function Profile() {
+  const { launchModal, closeModal } = useModalContext();
   const { profile: loggedInProfile } = useAuth();
   const params = useParams();
   const slug = params.slug as string;
@@ -28,7 +31,8 @@ export default function Profile() {
     error: profileError,
   } = useProfile(displayProfileId);
 
-  const { sendFriendRequest } = useFriendRequest();
+  const { sendFriendRequest, cancelFriendRequest, isLoading } =
+    useFriendRequest();
 
   if (isProfileLoading) {
     return <div>Loading chat...</div>;
@@ -46,10 +50,51 @@ export default function Profile() {
       return;
     }
 
-    await sendFriendRequest({
-      senderId: loggedInProfile?.id,
-      receiverId: displayProfileId,
-    });
+    try {
+      await sendFriendRequest({
+        senderId: loggedInProfile?.id,
+        receiverId: displayProfileId,
+      });
+      console.log('Friend Request sent successfully!');
+      // TODO: add success popup?
+    } catch (error) {
+      console.error(error, 'Failed sending Friend Request');
+    }
+  };
+
+  const handleCancelFriendRequest = async () => {
+    if (!loggedInProfile || !displayProfileId) {
+      console.error('Sender or receiver of friend request missing');
+      return;
+    }
+    try {
+      await cancelFriendRequest({
+        newStatus: 'CANCELLED',
+        senderId: loggedInProfile?.id,
+        receiverId: displayProfileId,
+      });
+      closeModal();
+    } catch (error) {
+      console.error(error, 'Failed cancelling Friend Request');
+    }
+  };
+
+  const handleOpenCancelFriendRequestModal = () => {
+    launchModal(
+      <Modal
+        header="Cancel Request?"
+        content="Click to cancel friend request."
+        buttons={[
+          <CancelButton key="close" />,
+          <Button
+            key="cancel-request"
+            label="Cancel Friend Request"
+            onClick={handleCancelFriendRequest}
+            className="bg-red-500 text-white"
+          />,
+        ]}
+      />
+    );
   };
 
   const {
@@ -110,14 +155,17 @@ export default function Profile() {
           ) : (
             <>
               <Button
-                onClick={handleSendFriendRequest}
+                onClick={
+                  hasOutstandingFriendRequest
+                    ? handleOpenCancelFriendRequestModal
+                    : handleSendFriendRequest
+                }
                 className={
                   hasOutstandingFriendRequest ? 'bg-gray-400' : 'bg-brand-dark'
                 }
                 label={
                   hasOutstandingFriendRequest ? 'Request Sent' : 'Add as Friend'
                 }
-                disabled={hasOutstandingFriendRequest}
               />
 
               <Button

@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { AppRouter, TRPCProvider } from '../lib/trpc';
 import { superjson } from '@repo/common';
 import { AuthProvider } from '../context/AuthContext';
+import { ModalContextWrapper } from '@/context/ModalContext';
 
 function makeQueryClient() {
   return new QueryClient({
@@ -76,7 +77,9 @@ export default function RootLayout({
       <body className="overflow-hidden h-screen w-screen">
         <QueryClientProvider client={queryClient}>
           <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <ModalContextWrapper>{children}</ModalContextWrapper>
+            </AuthProvider>
           </TRPCProvider>
         </QueryClientProvider>
       </body>

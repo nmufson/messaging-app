@@ -1,7 +1,5 @@
 import { useTRPC } from '@/lib/trpc';
-import { ObjectId } from '@repo/common';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { send } from 'process';
 
 export const useFriendRequest = () => {
   const trpc = useTRPC();
@@ -11,10 +9,21 @@ export const useFriendRequest = () => {
     mutate: sendFriendRequest,
     isPending: isSending,
     error: sendError,
-  } = useMutation(trpc.friendRequest.sendRequest.mutationOptions());
+  } = useMutation(
+    trpc.friendRequest.sendRequest.mutationOptions({
+      onSuccess: (data, variables) => {
+        const profileQueryKey = trpc.profile.byId.queryKey({
+          profileId: variables.receiverId,
+        });
+        queryClient.setQueryData(profileQueryKey, (old) =>
+          old ? { ...old, hasOutstandingFriendRequest: true } : old
+        );
+      },
+    })
+  );
 
   const {
-    mutate: updateFriendRequest,
+    mutate: cancelFriendRequest,
     isPending: isUpdating,
     error: updateError,
   } = useMutation(
@@ -24,7 +33,7 @@ export const useFriendRequest = () => {
           profileId: variables.receiverId,
         });
         queryClient.setQueryData(profileQueryKey, (old) =>
-          old ? { ...old, hasSentFriendRequest: true } : old
+          old ? { ...old, hasOutstandingFriendRequest: false } : old
         );
       },
     })
@@ -32,6 +41,9 @@ export const useFriendRequest = () => {
 
   return {
     sendFriendRequest,
-    updateFriendRequest,
+    cancelFriendRequest,
+    isLoading: isSending || isUpdating,
+    sendError,
+    updateError,
   };
 };

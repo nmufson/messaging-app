@@ -1,3 +1,4 @@
+import { useModalContext } from '@/context/ModalContext';
 import React from 'react';
 
 export interface ButtonProps {
@@ -18,5 +19,16 @@ export function Button(props: ButtonProps) {
     >
       {label}
     </button>
+  );
+}
+
+export function CancelButton() {
+  const { closeModal } = useModalContext();
+  return (
+    <Button
+      label="Cancel"
+      onClick={closeModal}
+      className="bg-white text-brand-dark border border-gray-300 hover:bg-gray-100"
+    />
   );
 }
