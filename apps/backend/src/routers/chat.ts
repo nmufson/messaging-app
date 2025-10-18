@@ -1,11 +1,11 @@
-import { ObjectId } from '@common/src/schemas/primitives';
+import { ObjectId } from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
-import { MessageDTO, UserRole, z } from '@repo/common';
+import { UserRole, z } from '@repo/common';
 import { eventEmitter } from '../lib/eventBus';
 import { adminProcedure, router, userProcedure } from '../trpc';
 import { mergeAsyncIterators } from '@repo/common';
-import { ChatDTO, ChatType } from '@common/src/schemas/chat';
+import { ChatDTO, ChatType } from '@repo/common';
 import { logger } from '../lib/pino';
 
 export const chatRouter = router({

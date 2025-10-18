@@ -5,7 +5,7 @@ import { prisma } from '@repo/db';
 import { CreateExpressContextOptions } from '@trpc/server/adapters/express';
 import type { IncomingMessage } from 'http';
 import { CreateWSSContextFnOptions } from '@trpc/server/adapters/ws';
-import { ObjectId } from '@common/dist';
+import { ObjectId } from '@repo/common';
 
 // TODO: take this from env?
 const SESSION_COOKIE_NAME = 'connect.sid'; // default for express-session

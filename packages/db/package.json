@@ -29,6 +29,7 @@
     "bcrypt": "^6.0.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^24.3.0",
     "prisma": "^5.0.0",
     "ts-node": "^10.9.2",

@@ -12,8 +12,19 @@
 
     "composite": true,
     "declaration": true,
-    "incremental": true
+
+    "baseUrl": ".",
+    "paths": {
+      "@repo/common": ["packages/common/src/index.ts"],
+      "@repo/common/*": ["packages/common/src/*"],
+      "@repo/db": ["packages/db/src/index.ts"],
+      "@repo/db/*": ["packages/db/src/*"]
+    }
   },
 
-  "references": []
+  "references": [
+    { "path": "packages/common" },
+    { "path": "packages/db" },
+    { "path": "apps/backend" }
+  ]
 }

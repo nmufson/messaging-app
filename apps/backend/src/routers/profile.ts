@@ -1,4 +1,4 @@
-import { ObjectId } from '@common/src/schemas/primitives';
+import { ObjectId } from '@repo/common';
 import { router, userProcedure } from '../trpc';
 import {
   ProfilePageDTO,

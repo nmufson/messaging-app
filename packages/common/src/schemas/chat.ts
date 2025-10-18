@@ -3,7 +3,7 @@ import { DateTimeSchema, ObjectId } from './primitives';
 import { MessageDTO } from './message';
 
 export const ChatType = z.enum(['GROUP', 'DIRECT']);
-
+export type ChatType = z.infer<typeof ChatType>;
 // ? may need to separate ChatDetailDTO and ChatListItemDTO
 
 export const ChatDTO = z.object({

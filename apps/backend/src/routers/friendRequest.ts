@@ -1,7 +1,6 @@
-import { ObjectId } from '@common/src/schemas/primitives';
+import { ObjectId, FriendRequestStatus } from '@repo/common';
 import { router, userProcedure } from '../trpc';
 import { z } from '@repo/common';
-import { FriendRequestStatus } from '@common/src/schemas/friendRequest';
 import { TRPCError } from '@trpc/server';
 
 export const friendRequestRouter = router({

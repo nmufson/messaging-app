@@ -5,7 +5,7 @@ export default defineConfig({
     app: 'src/app.ts',
     'trpc/exports': 'src/trpc/exports.ts',
   },
-  dts: true,
+  dts: false,
   format: ['cjs', 'esm'],
   outDir: 'dist',
   splitting: false,

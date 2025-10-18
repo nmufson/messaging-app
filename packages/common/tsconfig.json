@@ -6,7 +6,11 @@
     "strict": true,
     "moduleResolution": "node",
     "skipLibCheck": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+
+    "outDir": "dist",
+
+    "composite": true
   },
   "include": ["src/**/*"]
 }

@@ -1,5 +1,5 @@
 import { DateTimeSchema, ObjectId } from '@repo/common';
-import { ChatType } from '@repo/db';
+import { ChatType } from '@repo/common';
 import { DateTime } from 'luxon';
 
 export function formatMessageTime(dt: DateTime) {
@@ -45,7 +45,7 @@ interface GetChatNameParams {
 
 export function getChatName(params: GetChatNameParams): string {
   const { type, name, participants, profileId } = params;
-  const isDirectChat = type === ChatType.DIRECT;
+  const isDirectChat = type === ChatType.enum.DIRECT;
 
   if (isDirectChat) {
     const otherParticipant = participants.find((p) => p.id !== profileId);

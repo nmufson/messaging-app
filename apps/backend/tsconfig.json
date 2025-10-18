@@ -12,10 +12,22 @@
     "erasableSyntaxOnly": true,
     "isolatedModules": true,
     "sourceMap": true,
-    "incremental": false,
-    "composite": false,
 
-    "baseUrl": "."
+    "outDir": "dist",
+
+    "composite": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@repo/common": ["../../packages/common/src/index.ts"],
+      "@repo/common/*": ["../../packages/common/src/*"],
+      "@repo/db": ["../../packages/db/src/index.ts"]
+    }
   },
-  "include": ["./src/**/*"]
+  "include": ["src/**/*"],
+
+  "references": [
+    { "path": "../../packages/common" },
+    { "path": "../../packages/db" }
+  ]
 }
