@@ -51,45 +51,6 @@ export const messageRouter = router({
         yield tracked(message.id, message);
       }
     }),
-  sendDirect: userProcedure
-    .input(
-      z.object({
-        sender: ObjectId,
-        receiver: ObjectId,
-        type: MessageType,
-        content: z.string().nullable(),
-        imageUrl: z.string().nullable(),
-      })
-    )
-    // TODO: add an event emitter here for add chat
-    .mutation(async ({ input, ctx }) => {
-      const { sender, receiver, content, imageUrl, type } = input;
-
-      const { chat, isNewChat } = await findOrCreateDirectChat(
-        ctx.prisma,
-        sender,
-        receiver
-      );
-
-      if (!chat) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'chat not found or could not be created',
-        });
-      }
-
-      const newDirectMessage = await sendMessage(ctx.prisma, {
-        ...input,
-        chatId: chat.id,
-      });
-
-      if (isNewChat) {
-        eventEmitter.emit(`newChat:${sender}`, chat);
-        eventEmitter.emit(`newChat:${receiver}`, chat);
-      }
-
-      return { chat, newDirectMessage };
-    }),
   sendToChat: userProcedure
     .input(SendMessageInput)
     .output(MessageDTO)

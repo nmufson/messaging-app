@@ -233,20 +233,21 @@ export const chatRouter = router({
       return validatedChats;
     }),
 
-  createGroup: userProcedure
+  createChat: userProcedure
     .input(
       z.object({
         creator: ObjectId,
         participants: ObjectId.array(),
+        type: ChatType,
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { creator, participants } = input;
+      const { creator, participants, type } = input;
 
       const chat = await ctx.prisma.chat.create({
         data: {
           creatorId: creator,
-          type: ChatType.enum.GROUP,
+          type,
           participants: {
             connect: participants.map((id) => ({ id })),
           },

@@ -3,6 +3,7 @@ import { Chat } from '@repo/db';
 import { PrismaClient } from '@repo/db';
 import { ObjectId } from '@repo/common';
 
+// TODO make endpoint for finding direct chat and use this there
 export const findOrCreateDirectChat = async (
   prisma: PrismaClient,
   senderId: ObjectId,

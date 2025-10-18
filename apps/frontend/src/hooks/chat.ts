@@ -74,7 +74,23 @@ export function useChat({ chatId, profileId }: UseChatParams) {
       }
     )
   );
-  console.log(status);
-  console.log(subscriptionError);
+
+
   return { chat, isLoading, error, mutate, isPending, sendToChatError };
+}
+
+interface useDirectMessageParams {
+  senderId: ObjectId;
+  receiverId: ObjectId;
+}
+
+export function useDirectMessage({
+  senderId,
+  receiverId,
+}: useDirectMessageParams) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const {data: chat, isLoading, error} = useQuery(trpc.chat.getDirectChat.queryOptions({);
+
 }
