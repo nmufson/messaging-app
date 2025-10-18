@@ -51,10 +51,13 @@ prisma/dev.db
 prisma/migrations/
 /app/generated/prisma
 
+
+
 dist/
 build/
 **/dist/
 **/build/
+/apps/backend/dist/
 
 *.log
 *.tgz
