@@ -1,6 +1,7 @@
 'use client';
 import { useChatList } from '@/hooks/chat';
 import { ChatPreview } from './ChatPreview';
+import { MessageSearchBar } from './SearchBar';
 
 export default function Chats() {
   const { chats, isLoading, error } = useChatList();
@@ -10,7 +11,11 @@ export default function Chats() {
   if (!chats || chats.length === 0) return <div>No messages found</div>;
 
   return (
-    <div className="bg-blue-500 flex">
+    <div className="bg-blue-500 flex flex-col">
+      <div>
+        <h1>Chats</h1>
+      </div>
+      <MessageSearchBar />
       <div>
         {chats &&
           chats.map((chat) => {

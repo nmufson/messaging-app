@@ -1,8 +1,7 @@
 import { ObjectId } from '@repo/common';
-import { MessageType, SendMessageInput } from '@repo/common';
+import { SendMessageInput } from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';
 import { MessageDTO, z } from '@repo/common';
-import { findOrCreateDirectChat } from '../services/chat';
 import { sendMessage } from '../services/message';
 import { router, userProcedure } from '../trpc';
 import { on } from 'events';

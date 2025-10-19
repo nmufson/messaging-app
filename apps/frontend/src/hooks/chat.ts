@@ -7,7 +7,6 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useSubscription } from '@trpc/tanstack-react-query';
-import { useEffect } from 'react';
 
 export function useChatList() {
   const trpc = useTRPC();
@@ -75,7 +74,6 @@ export function useChat({ chatId, profileId }: UseChatParams) {
     )
   );
 
-
   return { chat, isLoading, error, mutate, isPending, sendToChatError };
 }
 
@@ -90,7 +88,39 @@ export function useDirectMessage({
 }: useDirectMessageParams) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+}
 
-  const {data: chat, isLoading, error} = useQuery(trpc.chat.getDirectChat.queryOptions({);
+interface PotentialChatsParams {
+  searchString: string;
+  selectedProfiles: ObjectId[];
+}
 
+export function usePotentialChats(params: PotentialChatsParams) {
+  const trpc = useTRPC();
+  const { searchString, selectedProfiles } = params;
+
+  const searchNames = searchString
+    .split(' ')
+    .filter((name) => name.trim() !== '');
+
+  const {
+    data: potentialChats,
+    isLoading,
+    error,
+  } = useQuery(
+    trpc.chat.getPotentialChats.queryOptions(
+      searchNames.length > 0
+        ? {
+            names: searchNames,
+            selectedProfiles,
+          }
+        : skipToken
+    )
+  );
+
+  return {
+    potentialChats,
+    isLoading,
+    error,
+  };
 }

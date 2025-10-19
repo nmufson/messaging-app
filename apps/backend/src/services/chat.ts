@@ -1,42 +1,88 @@
-import { ChatType } from '@repo/common';
-import { Chat } from '@repo/db';
+import { ChatType, ListProfileDTO, SearchChatListDTO } from '@repo/common';
+import { Chat, Profile } from '@repo/db';
 import { PrismaClient } from '@repo/db';
 import { ObjectId } from '@repo/common';
 
 // TODO make endpoint for finding direct chat and use this there
-export const findOrCreateDirectChat = async (
+
+interface GetPotentialChatsParams {
+  profileId: ObjectId;
+  names: string[];
+  selectedProfiles?: ObjectId[];
+}
+
+// Returns profiles and existing group chats for user to begin chat
+// Doesn't include profiles that are already included in the user's potential chat list
+export const getPotentialChats = async (
   prisma: PrismaClient,
-  senderId: ObjectId,
-  receiverId: ObjectId
-): Promise<{ chat: Chat; isNewChat: boolean }> => {
-  const existingChat = await prisma.chat.findFirst({
+  params: GetPotentialChatsParams
+): Promise<{ profiles: ListProfileDTO[]; groupChats: SearchChatListDTO[] }> => {
+  const { names, selectedProfiles, profileId } = params;
+
+  if (names.length === 0) return { profiles: [], groupChats: [] };
+
+  const profiles = await prisma.profile.findMany({
     where: {
-      type: ChatType.enum.DIRECT,
-      participants: {
-        every: {
-          id: { in: [senderId, receiverId] },
-        },
-        some: {
-          id: senderId,
-        },
+      friends: {
+        some: { id: profileId },
       },
+      OR: names.flatMap((name) => [
+        { firstName: { contains: name, mode: 'insensitive' as const } },
+        { lastName: { contains: name, mode: 'insensitive' as const } },
+      ]),
+      // Exclude already selected profiles
+      ...(selectedProfiles &&
+        selectedProfiles.length > 0 && {
+          id: { notIn: selectedProfiles },
+        }),
     },
-    include: { participants: true },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      avatarUrl: true,
+    },
   });
 
-  if (existingChat && existingChat.participants.length === 2) {
-    return { chat: existingChat, isNewChat: false };
+  let groupChats: SearchChatListDTO[] = [];
+  if (!selectedProfiles || selectedProfiles.length === 0) {
+    groupChats = await prisma.chat.findMany({
+      where: {
+        type: ChatType.enum.GROUP,
+        AND: [
+          {
+            participants: {
+              some: { id: profileId },
+            },
+          },
+          {
+            participants: {
+              some: {
+                OR: names.flatMap((name) => [
+                  {
+                    firstName: { contains: name, mode: 'insensitive' as const },
+                  },
+                  {
+                    lastName: { contains: name, mode: 'insensitive' as const },
+                  },
+                ]),
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        participants: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
   }
 
-  const newChat = await prisma.chat.create({
-    data: {
-      type: 'DIRECT',
-      creatorId: senderId,
-      participants: {
-        connect: [{ id: senderId }, { id: receiverId }],
-      },
-    },
-  });
-
-  return { chat: newChat, isNewChat: true };
+  return { profiles, groupChats };
 };

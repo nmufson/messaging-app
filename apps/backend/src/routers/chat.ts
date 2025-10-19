@@ -1,4 +1,4 @@
-import { ObjectId } from '@repo/common';
+import { ListProfileDTO, ObjectId, SearchChatListDTO } from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
 import { UserRole, z } from '@repo/common';
@@ -7,6 +7,7 @@ import { adminProcedure, router, userProcedure } from '../trpc';
 import { mergeAsyncIterators } from '@repo/common';
 import { ChatDTO, ChatType } from '@repo/common';
 import { logger } from '../lib/pino';
+import { getPotentialChats } from '@/services/chat';
 
 export const chatRouter = router({
   // TODO: add something for loading more messages in chat
@@ -233,6 +234,34 @@ export const chatRouter = router({
       return validatedChats;
     }),
 
+  getPotentialChats: userProcedure
+    .input(
+      z.object({
+        names: z.string().array(),
+        selectedProfiles: ObjectId.array().optional(),
+      })
+    )
+    .output(
+      z.object({
+        profiles: ListProfileDTO.array(),
+        groupChats: SearchChatListDTO.array(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const { names, selectedProfiles } = input;
+      const { user } = ctx;
+
+      if (!user || !user?.profile?.id)
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+
+      const { profiles, groupChats } = await getPotentialChats(ctx.prisma, {
+        profileId: user.profile.id,
+        names,
+        selectedProfiles,
+      });
+
+      return { profiles, groupChats };
+    }),
   createChat: userProcedure
     .input(
       z.object({

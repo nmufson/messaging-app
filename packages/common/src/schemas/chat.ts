@@ -29,6 +29,22 @@ export type ChatDTO = z.infer<typeof ChatDTO>;
 
 export const ChatDetailDTO = ChatDTO.extend({});
 
+export const SearchChatListDTO = z.object({
+  id: ObjectId,
+  type: ChatType,
+  name: z.string().nullable(),
+  groupPictureUrl: z.string().nullable(),
+  participants: z.array(
+    z.object({
+      id: ObjectId,
+      firstName: z.string(),
+      lastName: z.string(),
+      avatarUrl: z.string().nullable(),
+    })
+  ),
+});
+export type SearchChatListDTO = z.infer<typeof SearchChatListDTO>;
+
 // export const ChatDetailDTO = ChatDTO.extend({
 //   messages: Message.array(),
 // });
