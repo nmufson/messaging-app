@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, CancelButton } from '@/components/button/button';
-import { Modal } from '@/components/modal/modal';
+import { Modal } from '@/components/modal/Modal';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
 import { useFriendRequest } from '@/hooks/friendRequest';

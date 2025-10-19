@@ -99,6 +99,7 @@ export function usePotentialChats(params: PotentialChatsParams) {
   const trpc = useTRPC();
   const { searchString, selectedProfiles } = params;
 
+  // TODO: implement debounce for search input
   const searchNames = searchString
     .split(' ')
     .filter((name) => name.trim() !== '');
@@ -119,7 +120,8 @@ export function usePotentialChats(params: PotentialChatsParams) {
   );
 
   return {
-    potentialChats,
+    profiles: potentialChats?.profiles ?? [],
+    groupChats: potentialChats?.groupChats ?? [],
     isLoading,
     error,
   };

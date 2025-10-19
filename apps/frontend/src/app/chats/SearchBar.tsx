@@ -1,6 +1,18 @@
-import React from 'react';
+import { FullscreenModal } from '@/components/modal/FullscreenModal';
+import { ChatSearchModal } from '@/app/chats/SearchModal';
+import { useModalContext } from '@/context/ModalContext';
 
 export function MessageSearchBar() {
+  const { launchModal } = useModalContext();
+
+  const handleOpenChatSearchModal = () => {
+    launchModal(
+      <FullscreenModal>
+        <ChatSearchModal />
+      </FullscreenModal>
+    );
+  };
+
   return (
     <div className="flex items-center w-full max-w-xl mx-auto py-2">
       <div className="relative flex-1">
@@ -13,7 +25,10 @@ export function MessageSearchBar() {
           placeholder="Search chats or friends..."
         />
       </div>
-      <button className="ml-3 text-brand-dark text-2xl p-2 hover:bg-gray-100 transition border-none">
+      <button
+        onClick={handleOpenChatSearchModal}
+        className="ml-3 text-brand-dark text-2xl p-2 hover:bg-gray-100 transition border-none"
+      >
         <i className="bi bi-pencil-square" />
       </button>
     </div>
