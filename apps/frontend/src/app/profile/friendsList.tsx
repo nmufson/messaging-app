@@ -42,19 +42,19 @@ export default function FriendsList() {
   return (
     <div>
       {friends.map((friend) => {
-        return <FriendPreview key={friend.id} friend={friend} />;
+        return <FriendProfilePreview key={friend.id} friend={friend} />;
       })}
     </div>
   );
 }
 
-function FriendPreview({ friend }: { friend: ListProfileDTO }) {
+function FriendProfilePreview({ friend }: { friend: ListProfileDTO }) {
   const { firstName, lastName, avatarUrl, id: profileId } = friend;
   const profileDisplayName = `${firstName} ${lastName}`;
   const profileImage = avatarUrl ? avatarUrl : DEFAULT_PROFILE_IMAGE;
 
   return (
-    <Link href={`/profile/${profileId}`}>
+    <Link href={`/profile?profile=${profileId}`}>
       <div className="flex items-center p-3 border-b border-grey-200">
         <img
           src={profileImage}

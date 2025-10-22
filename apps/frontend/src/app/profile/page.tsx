@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryState } from 'nuqs';
 import { Button, CancelButton } from '@/components/button/button';
 import { Modal } from '@/components/modal/Modal';
 import { useAuth } from '@/context/AuthContext';
@@ -17,19 +18,16 @@ const DEFAULT_PROFILE_PICTURE =
 
 export default function Profile() {
   const { launchModal, closeModal } = useModalContext();
+  const [profileId, setProfileId] = useQueryState('profile');
   const { profile: loggedInProfile } = useAuth();
-  const params = useParams();
-  const slug = params.slug as string;
 
-  const displayProfileId = extractUUIDFromSlug(slug);
-
-  const isOwnProfile = loggedInProfile?.id === displayProfileId;
+  const isOwnProfile = loggedInProfile?.id === profileId;
 
   const {
-    profile: displayProfile,
+    profile,
     isLoading: isProfileLoading,
     error: profileError,
-  } = useProfile(displayProfileId);
+  } = useProfile(profileId);
 
   const { sendFriendRequest, cancelFriendRequest, isLoading } =
     useFriendRequest();
@@ -40,12 +38,12 @@ export default function Profile() {
   if (profileError) {
     return <div>Error loading chat: {profileError.message}</div>;
   }
-  if (!displayProfile) {
+  if (!profile) {
     return <div>Profile not found</div>;
   }
 
   const handleSendFriendRequest = async () => {
-    if (!loggedInProfile || !displayProfileId) {
+    if (!loggedInProfile || !profileId) {
       console.error('Sender or receiver of friend request missing');
       return;
     }
@@ -53,7 +51,7 @@ export default function Profile() {
     try {
       await sendFriendRequest({
         senderId: loggedInProfile?.id,
-        receiverId: displayProfileId,
+        receiverId: profileId,
       });
       console.log('Friend Request sent successfully!');
       // TODO: add success popup?
@@ -63,7 +61,7 @@ export default function Profile() {
   };
 
   const handleCancelFriendRequest = async () => {
-    if (!loggedInProfile || !displayProfileId) {
+    if (!loggedInProfile || !profileId) {
       console.error('Sender or receiver of friend request missing');
       return;
     }
@@ -71,7 +69,7 @@ export default function Profile() {
       await cancelFriendRequest({
         newStatus: 'CANCELLED',
         senderId: loggedInProfile?.id,
-        receiverId: displayProfileId,
+        receiverId: profileId,
       });
       closeModal();
     } catch (error) {
@@ -98,7 +96,6 @@ export default function Profile() {
   };
 
   const {
-    id: profileId,
     firstName,
     lastName,
     avatarUrl,
@@ -107,7 +104,7 @@ export default function Profile() {
     numOfFriends,
     numOfMessages,
     hasOutstandingFriendRequest,
-  } = displayProfile;
+  } = profile;
 
   const formattedJoinDate = `Joined ${formatDate(createdAt)}`;
   let usersHeader;
@@ -196,14 +193,13 @@ export default function Profile() {
               <small className="leading-none text-gray-500">Messages</small>
             </div>
 
-            <Link href={`/profile/${profileId}/friends`}>
-              <div className="flex flex-col items-center text-center px-6">
-                <strong className="text-lg leading-none text-brand">
-                  {numOfFriends}
-                </strong>
-                <small className="leading-none text-gray-500">Friends</small>
-              </div>
-            </Link>
+            {/* TODO: make this a large modal instead */}
+            <div className="flex flex-col items-center text-center px-6">
+              <strong className="text-lg leading-none text-brand">
+                {numOfFriends}
+              </strong>
+              <small className="leading-none text-gray-500">Friends</small>
+            </div>
           </div>
         </div>
 

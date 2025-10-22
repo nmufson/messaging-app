@@ -143,6 +143,7 @@ export const chatRouter = router({
 
       if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
 
+      // TODO: query the chats directly instead of via profile?
       const profile = await ctx.prisma.profile.findUnique({
         where: { userId: user.id },
         include: {
@@ -182,10 +183,11 @@ export const chatRouter = router({
           message: 'Profile not found',
         });
       }
+      console.log(profile.chats);
       const validatedChats: ChatDTO[] = profile.chats.map((chat) =>
         ChatDTO.parse(chat)
       );
-      console.log(validatedChats[0].createdAt.isValid);
+      // console.log(validatedChats[0].createdAt.isValid);
 
       return validatedChats;
     }),

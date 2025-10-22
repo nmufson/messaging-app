@@ -65,7 +65,7 @@ export const profilesData = [
     lastName: 'Smith',
     avatarUrl: PROFILE_PIC_URL,
     userId: userIds.alice,
-    friends: [profileIds.bob, profileIds.charlie],
+    friends: [profileIds.bob, profileIds.charlie, profileIds.nick],
   },
   {
     id: profileIds.bob,
@@ -73,7 +73,7 @@ export const profilesData = [
     lastName: 'Jones',
     avatarUrl: PROFILE_PIC_URL,
     userId: userIds.bob,
-    friends: [profileIds.alice, profileIds.diana],
+    friends: [profileIds.alice, profileIds.diana, profileIds.nick],
   },
   {
     id: profileIds.charlie,

@@ -5,6 +5,7 @@ import { hash } from 'bcrypt';
 async function main() {
   console.log('🚨 Clearing existing data...');
 
+  await prisma.friendRequest.deleteMany();
   await prisma.message.deleteMany();
   await prisma.chat.deleteMany();
   await prisma.profile.deleteMany();

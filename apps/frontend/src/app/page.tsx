@@ -21,7 +21,7 @@ export default function Home() {
           <div>
             <p>
               Or, continue as{' '}
-              <Link href="/messages" className="text-blue-600 hover:underline">
+              <Link href="/chats" className="text-blue-600 hover:underline">
                 guest
               </Link>
             </p>

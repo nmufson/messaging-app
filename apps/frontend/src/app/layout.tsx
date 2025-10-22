@@ -10,6 +10,7 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { AppRouter, TRPCProvider } from '../lib/trpc';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { superjson } from '@repo/common';
 import { AuthProvider } from '../context/AuthContext';
 import { ModalContextWrapper } from '@/context/ModalContext';
@@ -75,13 +76,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="overflow-hidden h-screen w-screen">
-        <QueryClientProvider client={queryClient}>
-          <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
-            <AuthProvider>
-              <ModalContextWrapper>{children}</ModalContextWrapper>
-            </AuthProvider>
-          </TRPCProvider>
-        </QueryClientProvider>
+        <NuqsAdapter>
+          <QueryClientProvider client={queryClient}>
+            <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
+              <AuthProvider>
+                <ModalContextWrapper>{children}</ModalContextWrapper>
+              </AuthProvider>
+            </TRPCProvider>
+          </QueryClientProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );
