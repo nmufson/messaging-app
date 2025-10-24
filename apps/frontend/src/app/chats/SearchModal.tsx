@@ -13,13 +13,24 @@ import {
 } from '@repo/common';
 import { group } from 'console';
 import { Dispatch, SetStateAction, useState, MouseEvent } from 'react';
+import { ProfileContent } from '../profile/profileContent';
+import { last } from 'remeda';
+import { FullscreenModal } from '@/components/modal/FullscreenModal';
 
 // TODO make friends list content, with both page and modal view
+
+export interface SelectedProfile {
+  id: ObjectId;
+  firstName: string;
+  lastName: string;
+}
 
 export function ChatSearchModal() {
   const { showModal, closeModal } = useModalContext();
   const [searchNameInput, setSearchNameInput] = useState('');
-  const [selectedProfiles, setSelectedProfiles] = useState<ObjectId[]>([]);
+  const [selectedProfiles, setSelectedProfiles] = useState<SelectedProfile[]>(
+    []
+  );
   const [selectedGroupChat, setSelectedGroupChat] = useState<ObjectId | null>(
     null
   );
@@ -27,14 +38,22 @@ export function ChatSearchModal() {
   function handleChangeSearch(e: React.ChangeEvent<HTMLInputElement>) {
     setSearchNameInput(e.target.value);
   }
-
+  const selectedProfileIds = selectedProfiles.map((p) => p.id);
   const { profiles, groupChats } = usePotentialChats({
     searchString: searchNameInput,
-    selectedProfiles,
+    selectedProfiles: selectedProfileIds,
   });
 
-  const handleProfileClick = (profileId: ObjectId) => {
-    setSelectedProfiles((prev) => [...prev, profileId]);
+  const handleProfileClick = (profile: ListProfileDTO) => {
+    const { id, firstName, lastName } = profile;
+    setSelectedProfiles((prev) => [
+      ...prev,
+      {
+        id,
+        firstName,
+        lastName,
+      },
+    ]);
   };
   const handleGroupChatClick = (chatId: ObjectId) => {
     setSelectedGroupChat(chatId);
@@ -52,7 +71,8 @@ export function ChatSearchModal() {
           For:
         </label>
         {/* // TODO: people we added (map over that) */}
-        <div></div>
+        {selectedProfiles && <div></div>}
+
         <input
           id="chat-for"
           onChange={handleChangeSearch}
@@ -74,7 +94,7 @@ export function ChatSearchModal() {
               <ChatResultItem
                 key={chat.id}
                 chat={chat}
-                onClick={handleProfileClick}
+                onSelectChat={handleGroupChatClick}
                 onClearSelections={handleClearSelections}
                 setSelectedProfile={setSelectedProfiles}
               />
@@ -104,7 +124,7 @@ export function ChatSearchModal() {
 
 interface ProfileResultItemProps {
   profile: ListProfileDTO;
-  onAddProfile: (profileId: ObjectId) => void;
+  onAddProfile: (profile: ListProfileDTO) => void;
 }
 
 function ProfileResultItem(props: ProfileResultItemProps) {
@@ -116,7 +136,7 @@ function ProfileResultItem(props: ProfileResultItemProps) {
   return (
     <button
       type="button"
-      onClick={() => onAddProfile(profileId)}
+      onClick={() => onAddProfile(profile)}
       className="flex items-center p-3 border-b border-grey-200 w-full text-left"
     >
       <img
@@ -131,14 +151,14 @@ function ProfileResultItem(props: ProfileResultItemProps) {
 
 interface GroupChatResultItemProps {
   chat: SearchChatListDTO;
-  onClick: (chatId: ObjectId) => void;
+  onSelectChat: (chatId: ObjectId) => void;
   onClearSelections: () => void;
-  setSelectedProfile: Dispatch<SetStateAction<ObjectId[]>>;
+  setSelectedProfile: Dispatch<SetStateAction<SelectedProfile[]>>;
 }
 
 function ChatResultItem(props: GroupChatResultItemProps) {
   const { profile } = useAuth();
-  const { chat, onClick, onClearSelections, setSelectedProfile } = props;
+  const { chat, onSelectChat, onClearSelections, setSelectedProfile } = props;
   const { name, groupPictureUrl, participants, id: chatId } = chat;
 
   const chatDisplayName = getChatName({
@@ -158,7 +178,7 @@ function ChatResultItem(props: GroupChatResultItemProps) {
     <div>
       <button
         type="button"
-        onClick={() => onClick(chatId)}
+        onClick={() => onSelectChat(chatId)}
         className="flex items-center p-3 border-b border-grey-200 w-full text-left"
       >
         <img
@@ -204,34 +224,43 @@ function ChatResultItem(props: GroupChatResultItemProps) {
 interface ChatProfileItemProps {
   profile: ListProfileDTO;
   onClearSelections: () => void;
-  setSelectedProfile: Dispatch<SetStateAction<ObjectId[]>>;
+  setSelectedProfile: Dispatch<SetStateAction<SelectedProfile[]>>;
 }
 export function ChatProfileItem(props: ChatProfileItemProps) {
   const { profile, onClearSelections, setSelectedProfile } = props;
   const { firstName, lastName, avatarUrl, id: profileId } = profile;
+  const { launchModal } = useModalContext();
   const profileDisplayName = `${firstName} ${lastName}`;
   const profileImage = avatarUrl ? avatarUrl : DEFAULT_PROFILE_IMAGE;
 
   const handleProfileClick = () => {
     onClearSelections();
-    setSelectedProfile([profileId]);
+    setSelectedProfile([{ id: profileId, firstName, lastName }]);
   };
 
   const handleOpenProfileModal = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
+    launchModal(
+      <FullscreenModal>
+        <ProfileContent profileId={profile.id} />
+      </FullscreenModal>
+    );
   };
 
   return (
     <div
       onClick={handleProfileClick}
-      className="flex items-center p-3 border-b border-grey-200"
+      className="flex justify-between items-center p-3 border-b border-grey-200"
     >
-      <img
-        src={profileImage}
-        alt="Profile Picture"
-        className="w-10 h-10 rounded-full object-cover mr-4 border-2 border-brand-light"
-      />
-      <p className="text-lg">{profileDisplayName}</p>
+      <div className="flex">
+        <img
+          src={profileImage}
+          alt="Profile Picture"
+          className="w-10 h-10 rounded-full object-cover mr-4 border-2 border-brand-light"
+        />
+        <p className="text-lg">{profileDisplayName}</p>
+      </div>
+
       {/* TODO: clicking this opens profile modal */}
       {/* make profile content component to be used in page and modal */}
       <div tabIndex={0} role="button" onClick={handleOpenProfileModal}>

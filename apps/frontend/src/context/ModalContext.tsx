@@ -9,16 +9,21 @@ import React, {
 } from 'react';
 import * as R from 'remeda';
 
+interface ModalStackItem {
+  key: string;
+  node: ReactNode;
+}
+
 interface ModalContext {
+  modalStack: ModalStackItem[];
   showModal: boolean;
-  modalNode: ReactNode | null;
   launchModal: (content: ReactNode) => void;
   closeModal: () => void;
 }
 
 const defaultModalContext = {
+  modalStack: [],
   showModal: false,
-  modalNode: null,
   closeModal: R.doNothing,
   launchModal: R.doNothing,
 };
@@ -33,25 +38,40 @@ export const useModalContext = () => {
 };
 
 export function ModalContextWrapper({ children }: { children: ReactNode }) {
-  const [showModal, setShowModal] = useState(false);
-  const [modalNode, setModalNode] = useState<ReactNode>(null);
+  const [modalStack, setModalStack] = useState<ModalStackItem[]>([]);
+
+  const showModal = modalStack.length > 0;
 
   const launchModal = (node: ReactNode) => {
-    setModalNode(<Fragment key={`{modal-${DateTime.now()}}`}>{node}</Fragment>);
-    setShowModal(true);
+    const key = `modal-${DateTime.now().toMillis()}`;
+    setModalStack((prev) => [
+      ...prev,
+      { key, node: <Fragment key={key}>{node}</Fragment> },
+    ]);
   };
 
   const closeModal = () => {
-    setShowModal(false);
-    setModalNode(null);
+    setModalStack((prev) => prev.slice(0, -1));
   };
 
   return (
     <ModalContext.Provider
-      value={{ showModal, modalNode, launchModal, closeModal }}
+      value={{ modalStack, showModal, launchModal, closeModal }}
     >
       {children}
-      {modalNode}
+
+      {modalStack.map((modalItem, index) => (
+        <div
+          key={modalItem.key}
+          style={{
+            zIndex: index + 1,
+            // only the top modal is interactive
+            pointerEvents: index === modalStack.length - 1 ? 'auto' : 'none',
+          }}
+        >
+          {modalItem.node}
+        </div>
+      ))}
     </ModalContext.Provider>
   );
 }
