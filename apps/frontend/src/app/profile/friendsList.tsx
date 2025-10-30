@@ -6,7 +6,7 @@ import { ListProfileDTO } from '@repo/common';
 import { skipToken, useQuery } from '@tanstack/react-query';
 import { DEFAULT_PROFILE_IMAGE } from '@/constants';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
+import { ProfilePreview } from '@/components/profile/ProfilePreview';
 
 export default function FriendsList() {
   const trpc = useTRPC();
@@ -49,20 +49,7 @@ export default function FriendsList() {
 }
 
 function FriendProfilePreview({ friend }: { friend: ListProfileDTO }) {
-  const { firstName, lastName, avatarUrl, id: profileId } = friend;
-  const profileDisplayName = `${firstName} ${lastName}`;
-  const profileImage = avatarUrl ? avatarUrl : DEFAULT_PROFILE_IMAGE;
-
   return (
-    <Link href={`/profile?profile=${profileId}`}>
-      <div className="flex items-center p-3 border-b border-grey-200">
-        <img
-          src={profileImage}
-          alt="Profile Picture"
-          className="w-10 h-10 rounded-full object-cover mr-4 border-2 border-brand-light"
-        />
-        <p className="text-lg">{profileDisplayName}</p>
-      </div>
-    </Link>
+    <ProfilePreview profile={friend} asLink={`/profile?profile=${friend.id}`} />
   );
 }
