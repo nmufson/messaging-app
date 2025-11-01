@@ -7,7 +7,7 @@ import { adminProcedure, router, userProcedure } from '../trpc';
 import { mergeAsyncIterators } from '@repo/common';
 import { ChatDTO, ChatType } from '@repo/common';
 import { logger } from '../lib/pino';
-import { getPotentialChats } from '@/services/chat';
+import { getChat, getPotentialChats } from '@/services/chat';
 
 export const chatRouter = router({
   // TODO: add something for loading more messages in chat
@@ -23,41 +23,7 @@ export const chatRouter = router({
     .query(async ({ ctx, input }) => {
       const { chatId, limit, cursor } = input;
 
-      const chat = await ctx.prisma.chat.findUnique({
-        where: { id: chatId },
-        select: {
-          id: true,
-          type: true,
-          name: true,
-          groupPictureUrl: true,
-          createdAt: true,
-          updatedAt: true,
-          creatorId: true,
-          messages: {
-            take: limit,
-            skip: cursor ? 1 : 0,
-            cursor: cursor ? { id: cursor } : undefined,
-            orderBy: { createdAt: 'asc' },
-            select: {
-              id: true,
-              type: true,
-              content: true,
-              createdAt: true,
-              updatedAt: true,
-              imageUrl: true,
-              senderId: true,
-            },
-          },
-          participants: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              avatarUrl: true,
-            },
-          },
-        },
-      });
+      const chat = await getChat(ctx.prisma, { chatId });
 
       if (!chat) {
         throw new TRPCError({
@@ -68,6 +34,30 @@ export const chatRouter = router({
 
       const validatedChat = ChatDTO.parse(chat);
       return validatedChat;
+    }),
+
+  findDirect: userProcedure
+    .input(
+      z.object({
+        profileA: ObjectId,
+        profileB: ObjectId,
+      })
+    )
+    .output(ChatDTO)
+    .query(async ({ ctx, input }) => {
+      const { profileA, profileB } = input;
+
+      const chat = await getChat(ctx.prisma, {
+        profiles: { profileA, profileB },
+      });
+
+      if (!chat || chat.participants.length !== 2) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Direct chat not found',
+        });
+      }
+      return chat;
     }),
   onNewMessageInChat: userProcedure
     .input(

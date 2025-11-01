@@ -22,10 +22,12 @@ export function useChatList() {
 
 interface UseChatParams {
   chatId: ObjectId;
-  profileId?: ObjectId;
+  senderProfileId?: ObjectId;
+  receiverProfileId?: ObjectId;
 }
 
-export function useChat({ chatId, profileId }: UseChatParams) {
+export function useChat(params: UseChatParams) {
+  const { chatId, senderProfileId: profileId, receiverProfileId } = params;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 

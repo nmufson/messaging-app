@@ -1,4 +1,9 @@
-import { ChatType, ListProfileDTO, SearchChatListDTO } from '@repo/common';
+import {
+  ChatDTO,
+  ChatType,
+  ListProfileDTO,
+  SearchChatListDTO,
+} from '@repo/common';
 import { Chat, Profile } from '@repo/db';
 import { PrismaClient } from '@repo/db';
 import { ObjectId } from '@repo/common';
@@ -85,4 +90,79 @@ export const getPotentialChats = async (
   }
 
   return { profiles, groupChats };
+};
+
+interface DirectChatProfiles {
+  profileA: ObjectId;
+  profileB: ObjectId;
+}
+
+interface GetChatParams {
+  chatId?: ObjectId;
+  profiles?: DirectChatProfiles;
+}
+
+export const getChat = async (
+  prisma: PrismaClient,
+  params: GetChatParams
+): Promise<ChatDTO | null> => {
+  const { chatId, profiles } = params;
+
+  let whereFilters;
+
+  if (chatId) {
+    whereFilters = { id: chatId };
+  }
+
+  if (profiles) {
+    const { profileA, profileB } = profiles;
+    whereFilters = {
+      type: ChatType.enum.DIRECT,
+      participants: {
+        every: {
+          id: { in: [profileA, profileB] },
+        },
+      },
+    };
+  }
+
+  if (!whereFilters) {
+    return null;
+  }
+
+  const chat = await prisma.chat.findFirst({
+    where: whereFilters,
+    select: {
+      id: true,
+      type: true,
+      name: true,
+      groupPictureUrl: true,
+      createdAt: true,
+      updatedAt: true,
+      creatorId: true,
+      messages: {
+        take: 100,
+        orderBy: { createdAt: 'asc' },
+        select: {
+          id: true,
+          type: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+          imageUrl: true,
+          senderId: true,
+        },
+      },
+      participants: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          avatarUrl: true,
+        },
+      },
+    },
+  });
+
+  return ChatDTO.parse(chat);
 };

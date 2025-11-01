@@ -15,6 +15,7 @@ import { group } from 'console';
 import { Dispatch, SetStateAction, useState, MouseEvent, useRef } from 'react';
 import { ProfileResultItem } from '@/components/chats/ProfileResultItem';
 import { ChatResultItem } from '@/components/chats/ChatResultItem';
+import { SelectedProfilesInput } from '@/components/chats/SelectedProfilesInput';
 import { FullscreenModal } from '@/components/modal/FullscreenModal';
 
 // TODO make friends list content, with both page and modal view
@@ -36,13 +37,7 @@ export function ChatSearchModal() {
   );
   const [highlightedProfileId, setHighlightedProfileId] =
     useState<ObjectId | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  function handleChangeSearch(e: React.ChangeEvent<HTMLInputElement>) {
-    setSearchNameInput(e.target.value);
-    // Remove highlight if user types
-    if (highlightedProfileId) setHighlightedProfileId(null);
-  }
   const selectedProfileIds = selectedProfiles.map((p) => p.id);
   const { profiles, groupChats } = usePotentialChats({
     searchString: searchNameInput,
@@ -50,18 +45,11 @@ export function ChatSearchModal() {
   });
 
   const handleProfileClick = (profile: ListProfileDTO) => {
-    const { id, firstName, lastName } = profile;
-    setSelectedProfiles((prev) => [
-      ...prev,
-      {
-        id,
-        firstName,
-        lastName,
-      },
-    ]);
+    const { avatarUrl, ...profileWithoutAvatar } = profile;
+
+    setSelectedProfiles((prev) => [...prev, profileWithoutAvatar]);
     setSearchNameInput('');
     setHighlightedProfileId(null);
-    inputRef.current?.focus();
   };
   const handleGroupChatClick = (chatId: ObjectId) => {
     setSelectedGroupChat(chatId);
@@ -88,54 +76,14 @@ export function ChatSearchModal() {
         <label htmlFor="chat-for" className="font-medium">
           For:
         </label>
-
-        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
-          {selectedProfiles.map((profile) => (
-            <span
-              key={profile.id}
-              tabIndex={0}
-              onClick={() => setHighlightedProfileId(profile.id)}
-              onBlur={() => setHighlightedProfileId(null)}
-              className={`px-2 py-1 bg-gray-100 rounded-full text-sm whitespace-nowrap cursor-pointer transition-colors ${highlightedProfileId === profile.id ? 'ring-2 ring-brand bg-brand-light text-brand-dark' : ''}`}
-              onKeyDown={(e) => {
-                if (
-                  highlightedProfileId === profile.id &&
-                  e.key === 'Backspace'
-                ) {
-                  setSelectedProfiles((prev) =>
-                    prev.filter((p) => p.id !== profile.id)
-                  );
-                  setHighlightedProfileId(null);
-                  inputRef.current?.focus();
-                  e.preventDefault();
-                }
-              }}
-            >
-              {`${profile.firstName} ${profile.lastName}`}
-            </span>
-          ))}
-          <input
-            id="chat-for"
-            onChange={handleChangeSearch}
-            value={searchNameInput}
-            autoFocus
-            className="px-2 py-1 border-none focus:outline-none min-w-[120px] flex-shrink"
-            style={{ flexBasis: '120px' }}
-            ref={inputRef}
-            onKeyDown={(e) => {
-              if (
-                e.key === 'Backspace' &&
-                searchNameInput === '' &&
-                selectedProfiles.length > 0
-              ) {
-                // Highlight last profile if input is empty and backspace is pressed
-                setHighlightedProfileId(
-                  selectedProfiles[selectedProfiles.length - 1].id
-                );
-              }
-            }}
-          />
-        </div>
+        <SelectedProfilesInput
+          selectedProfiles={selectedProfiles}
+          highlightedProfileId={highlightedProfileId}
+          setHighlightedProfileId={setHighlightedProfileId}
+          setSelectedProfiles={setSelectedProfiles}
+          searchNameInput={searchNameInput}
+          setSearchNameInput={setSearchNameInput}
+        />
         {/* TODO: click this for Friends List modal */}
         <button type="button" className="text-brand">
           <i className="bi bi-plus-circle" />
