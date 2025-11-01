@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon';
+import { usePathname } from 'next/navigation';
 import React, {
   createContext,
   useContext,
@@ -6,6 +7,7 @@ import React, {
   ReactNode,
   FC,
   Fragment,
+  useEffect,
 } from 'react';
 import * as R from 'remeda';
 
@@ -19,12 +21,14 @@ interface ModalContext {
   showModal: boolean;
   launchModal: (content: ReactNode) => void;
   closeModal: () => void;
+  closeAllModals: () => void;
 }
 
 const defaultModalContext = {
   modalStack: [],
   showModal: false,
   closeModal: R.doNothing,
+  closeAllModals: R.doNothing,
   launchModal: R.doNothing,
 };
 
@@ -38,6 +42,7 @@ export const useModalContext = () => {
 };
 
 export function ModalContextWrapper({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [modalStack, setModalStack] = useState<ModalStackItem[]>([]);
 
   const showModal = modalStack.length > 0;
@@ -54,9 +59,17 @@ export function ModalContextWrapper({ children }: { children: ReactNode }) {
     setModalStack((prev) => prev.slice(0, -1));
   };
 
+  const closeAllModals = () => {
+    setModalStack([]);
+  };
+
+  useEffect(() => {
+    setModalStack([]);
+  }, [pathname]);
+
   return (
     <ModalContext.Provider
-      value={{ modalStack, showModal, launchModal, closeModal }}
+      value={{ modalStack, showModal, launchModal, closeModal, closeAllModals }}
     >
       {children}
 

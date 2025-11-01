@@ -132,7 +132,11 @@ export function ChatSearchModal() {
           </div>
         </div>
       )}
-      <ChatContent chatId={selectedGroupChat} profileIds={selectedProfileIds} />
+      <ChatContent
+        chatId={selectedGroupChat}
+        profileIds={selectedProfileIds}
+        inModalView={true}
+      />
     </div>
   );
 }

@@ -1,17 +1,26 @@
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import { MessageBubble } from '@/app/chat/[slug]/MessageBubble';
 import { useChat } from '@/hooks/chat';
 import { getChatName } from '@/utils';
 import { ObjectId } from '@repo/common';
+import { BooleanOptional } from 'qs';
+import { useRouter } from 'next/navigation';
+import { useModalContext } from '@/context/ModalContext';
 
 interface ChatContentProps {
   chatId: ObjectId | null;
   profileIds?: ObjectId[];
+  inModalView?: boolean;
 }
 
-export function ChatContent({ chatId, profileIds }: ChatContentProps) {
+export function ChatContent(props: ChatContentProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { closeModal } = useModalContext();
+  const { chatId, profileIds, inModalView } = props;
   const { profile } = useAuth();
   const [textInput, setTextInput] = useState('');
   const [imageUrlInput, setImageUrlInput] = useState('');
@@ -22,22 +31,39 @@ export function ChatContent({ chatId, profileIds }: ChatContentProps) {
     senderProfileId: profile?.id,
   });
 
+  useEffect(() => {
+    // TODO: handle this differently
+    if (!isLoading && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messagesEndRef, isLoading]);
+
   const handleSubmitMessage = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!profile || !chat) {
       console.error(
         { profile, chat },
-        'Profile and chat required to send message'
+        'Sender profile and chat required to send message'
       );
       return;
     }
-    mutate({
-      content: textInput || null,
-      imageUrl: imageUrlInput || null,
-      sender: profile.id,
-      chatId: chat.id,
-      type: textInput ? 'TEXT' : 'IMAGE',
-    });
+    mutate(
+      {
+        content: textInput || null,
+        imageUrl: imageUrlInput || null,
+        sender: profile.id,
+        chatId: chat.id,
+        type: textInput ? 'TEXT' : 'IMAGE',
+      },
+      {
+        onSuccess: () => {
+          if (inModalView) {
+            router.push(`/chat/chat?chat=${chat.id}`);
+          }
+        },
+      }
+    );
+
     setTextInput('');
     setImageUrlInput('');
     console.log('Message sent successfully!');
@@ -81,6 +107,7 @@ export function ChatContent({ chatId, profileIds }: ChatContentProps) {
               isCurrentUser={profile?.id === message.senderId}
             />
           ))}
+        <div ref={messagesEndRef} />
       </div>
       {/* TODO: extract this to component? */}
       <form
