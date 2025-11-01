@@ -1,10 +1,9 @@
 'use client';
 import { ChatContent } from '@/components/chat/ChatContent';
 import { useQueryState } from 'nuqs';
-// Removed stray closing brace
 
-export function Chat() {
-  const [chatId, setChatId] = useQueryState('profile');
+export default function Chat() {
+  const [chatId, setChatId] = useQueryState('chat');
   if (!chatId) {
     return <div>Invalid chat URL</div>;
   }

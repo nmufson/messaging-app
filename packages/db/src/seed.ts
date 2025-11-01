@@ -55,6 +55,7 @@ async function main() {
     await prisma.chat.create({
       data: {
         id: chat.id,
+        name: chat.name ?? null,
         creatorId: chat.creatorId,
         type: chat.type,
         groupPictureUrl: chat.groupPictureUrl,

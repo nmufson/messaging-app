@@ -4,32 +4,38 @@ import { useState } from 'react';
 import { MessageBubble } from '@/app/chat/[slug]/MessageBubble';
 import { useChat } from '@/hooks/chat';
 import { getChatName } from '@/utils';
+import { ObjectId } from '@repo/common';
 
 interface ChatContentProps {
-  chatId: string;
+  chatId: ObjectId | null;
+  profileIds?: ObjectId[];
 }
 
-export function ChatContent({ chatId }: ChatContentProps) {
+export function ChatContent({ chatId, profileIds }: ChatContentProps) {
   const { profile } = useAuth();
   const [textInput, setTextInput] = useState('');
   const [imageUrlInput, setImageUrlInput] = useState('');
 
   const { chat, isLoading, error, mutate } = useChat({
     chatId,
+    profileIds,
     senderProfileId: profile?.id,
   });
 
   const handleSubmitMessage = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!profile) {
-      console.error('Profile required to send message');
+    if (!profile || !chat) {
+      console.error(
+        { profile, chat },
+        'Profile and chat required to send message'
+      );
       return;
     }
     mutate({
       content: textInput || null,
       imageUrl: imageUrlInput || null,
       sender: profile.id,
-      chatId,
+      chatId: chat.id,
       type: textInput ? 'TEXT' : 'IMAGE',
     });
     setTextInput('');
@@ -76,6 +82,7 @@ export function ChatContent({ chatId }: ChatContentProps) {
             />
           ))}
       </div>
+      {/* TODO: extract this to component? */}
       <form
         onSubmit={handleSubmitMessage}
         className="send-message-form flex gap-3 justify-between items-center p-2 flex-shrink-0 bg-white border-t"

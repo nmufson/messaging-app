@@ -1,4 +1,5 @@
 import { ChatType, MessageType, UserRole } from '@prisma/client';
+import { dir } from 'console';
 import { randomUUID } from 'crypto';
 
 const PROFILE_PIC_URL = 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp';
@@ -24,6 +25,8 @@ const chatIds = {
   coolestKats: randomUUID(),
   groupChat1: randomUUID(),
   bigGroup2: randomUUID(),
+  directChat1: randomUUID(),
+  directChat2: randomUUID(),
 };
 export const usersData = [
   {
@@ -106,7 +109,7 @@ export const chatsData = [
     id: chatIds.ketchupStains,
     name: 'Ketchup Stains',
     creatorId: profileIds.alice,
-    type: ChatType.DIRECT,
+    type: ChatType.GROUP,
     participantIds: [profileIds.alice, profileIds.bob, profileIds.nick],
     groupPictureUrl: 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp',
   },
@@ -114,7 +117,7 @@ export const chatsData = [
     id: chatIds.coolestKats,
     name: 'The Coolest Kats',
     creatorId: profileIds.charlie,
-    type: ChatType.DIRECT,
+    type: ChatType.GROUP,
     participantIds: [profileIds.charlie, profileIds.diana, profileIds.nick],
     groupPictureUrl: 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp',
   },
@@ -143,6 +146,18 @@ export const chatsData = [
       profileIds.alice,
       profileIds.nick,
     ],
+  },
+  {
+    id: chatIds.directChat1,
+    creatorId: profileIds.nick,
+    type: ChatType.DIRECT,
+    participantIds: [profileIds.alice, profileIds.nick],
+  },
+  {
+    id: chatIds.directChat2,
+    creatorId: profileIds.alice,
+    type: ChatType.DIRECT,
+    participantIds: [profileIds.charlie, profileIds.nick],
   },
 ];
 

@@ -7,6 +7,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useSubscription } from '@trpc/tanstack-react-query';
+import { useMemo } from 'react';
 
 export function useChatList() {
   const trpc = useTRPC();
@@ -21,20 +22,28 @@ export function useChatList() {
 }
 
 interface UseChatParams {
-  chatId: ObjectId;
+  chatId: ObjectId | null;
+  profileIds?: ObjectId[];
   senderProfileId?: ObjectId;
-  receiverProfileId?: ObjectId;
 }
 
 export function useChat(params: UseChatParams) {
-  const { chatId, senderProfileId: profileId, receiverProfileId } = params;
+  const { chatId, profileIds, senderProfileId: profileId } = params;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const chatQueryKey = trpc.chat.byId.queryKey({ chatId });
-  const queryOptions = trpc.chat.byId.queryOptions(
-    chatId ? { chatId } : skipToken
-  );
+  const queryInput = useMemo(() => {
+    if (chatId) {
+      return { chatId };
+    }
+    if (profileIds && profileIds.length > 0) {
+      return { profileIds };
+    }
+    return null;
+  }, [chatId, profileIds]);
+
+  const chatQueryKey = trpc.chat.findChat.queryKey(queryInput ?? {});
+  const queryOptions = trpc.chat.findChat.queryOptions(queryInput ?? skipToken);
 
   const { data: chat, isLoading, error } = useQuery(queryOptions);
 
@@ -114,7 +123,7 @@ export function usePotentialChats(params: PotentialChatsParams) {
     trpc.chat.getPotentialChats.queryOptions(
       searchNames.length > 0
         ? {
-            names: searchNames,
+            searchNames,
             selectedProfiles,
           }
         : skipToken
@@ -127,4 +136,29 @@ export function usePotentialChats(params: PotentialChatsParams) {
     isLoading,
     error,
   };
+}
+
+interface FindChatParams {
+  chatId?: ObjectId;
+  profileIds?: ObjectId[];
+}
+export function useFindChat(params: FindChatParams) {
+  const { chatId, profileIds } = params;
+  const trpc = useTRPC();
+
+  const {
+    data: chat,
+    isLoading,
+    error,
+  } = useQuery(
+    trpc.chat.findChat.queryOptions(
+      chatId
+        ? { chatId }
+        : profileIds && profileIds.length > 0
+          ? { profileIds }
+          : skipToken
+    )
+  );
+
+  return { chat, isLoading, error };
 }

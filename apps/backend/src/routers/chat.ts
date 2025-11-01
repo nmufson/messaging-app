@@ -36,25 +36,42 @@ export const chatRouter = router({
       return validatedChat;
     }),
 
-  findDirect: userProcedure
+  findChat: userProcedure
     .input(
       z.object({
-        profileA: ObjectId,
-        profileB: ObjectId,
+        chatId: ObjectId.optional(),
+        profileIds: ObjectId.array().optional(),
       })
     )
     .output(ChatDTO)
     .query(async ({ ctx, input }) => {
-      const { profileA, profileB } = input;
+      const { chatId, profileIds } = input;
+      const { prisma, user } = ctx;
 
-      const chat = await getChat(ctx.prisma, {
-        profiles: { profileA, profileB },
-      });
+      const userProfileId = user?.profile?.id;
 
-      if (!chat || chat.participants.length !== 2) {
+      if (!userProfileId) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      let chat;
+      if (chatId) {
+        chat = await getChat(prisma, { chatId });
+      } else if (profileIds && profileIds.length > 0) {
+        chat = await getChat(prisma, {
+          profileIds: [...profileIds, userProfileId],
+        });
+      } else {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Must provide either chatId or profileIds',
+        });
+      }
+
+      if (!chat) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Direct chat not found',
+          message: 'Chat not found',
         });
       }
       return chat;
@@ -229,7 +246,7 @@ export const chatRouter = router({
   getPotentialChats: userProcedure
     .input(
       z.object({
-        names: z.string().array(),
+        searchNames: z.string().array(),
         selectedProfiles: ObjectId.array().optional(),
       })
     )
@@ -240,7 +257,7 @@ export const chatRouter = router({
       })
     )
     .query(async ({ input, ctx }) => {
-      const { names, selectedProfiles } = input;
+      const { searchNames, selectedProfiles } = input;
       const { user } = ctx;
 
       if (!user || !user?.profile?.id)
@@ -248,7 +265,7 @@ export const chatRouter = router({
 
       const { profiles, groupChats } = await getPotentialChats(ctx.prisma, {
         profileId: user.profile.id,
-        names,
+        searchNames,
         selectedProfiles,
       });
 

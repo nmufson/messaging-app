@@ -48,7 +48,7 @@ export function ChatPreview({ chat }: ChatPreviewProps) {
   const formattedDisplayName = R.truncate(displayName, 20);
   const formattedDisplayMessage = R.truncate(displayMessage, 40);
 
-  const chatLink = `/chat/${slugify(displayName)}-${chatId}`;
+  const chatLink = `/chat/chat?chat=${chatId}`;
 
   return (
     <Link href={chatLink}>

@@ -3,7 +3,7 @@
 import { DEFAULT_PROFILE_IMAGE } from '@/constants';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
-import { usePotentialChats } from '@/hooks/chat';
+import { useFindChat, usePotentialChats } from '@/hooks/chat';
 import { getChatName } from '@/utils';
 import {
   ListProfileDTO,
@@ -12,11 +12,19 @@ import {
   SearchChatListDTO,
 } from '@repo/common';
 import { group } from 'console';
-import { Dispatch, SetStateAction, useState, MouseEvent, useRef } from 'react';
+import {
+  Dispatch,
+  SetStateAction,
+  useState,
+  MouseEvent,
+  useRef,
+  useMemo,
+} from 'react';
 import { ProfileResultItem } from '@/components/chats/ProfileResultItem';
 import { ChatResultItem } from '@/components/chats/ChatResultItem';
 import { SelectedProfilesInput } from '@/components/chats/SelectedProfilesInput';
 import { FullscreenModal } from '@/components/modal/FullscreenModal';
+import { ChatContent } from '@/components/chat/ChatContent';
 
 // TODO make friends list content, with both page and modal view
 
@@ -27,7 +35,7 @@ export interface SelectedProfile {
 }
 
 export function ChatSearchModal() {
-  const { showModal, closeModal } = useModalContext();
+  const { closeModal } = useModalContext();
   const [searchNameInput, setSearchNameInput] = useState('');
   const [selectedProfiles, setSelectedProfiles] = useState<SelectedProfile[]>(
     []
@@ -124,18 +132,7 @@ export function ChatSearchModal() {
           </div>
         </div>
       )}
+      <ChatContent chatId={selectedGroupChat} profileIds={selectedProfileIds} />
     </div>
-  );
-}
-
-// TODO: figure out how this works with phone
-export function WriteChat() {
-  return (
-    <form className="flex items-center gap-2 p-4">
-      <button type="button" className="text-brand">
-        <i className="bi bi-plus" />
-      </button>
-      <input className="flex-1 px-2 py-1 border rounded" />
-    </form>
   );
 }

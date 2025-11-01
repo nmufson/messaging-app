@@ -1,6 +1,6 @@
 import { ObjectId } from '@repo/common';
 import { SelectedProfile } from '@/app/chats/SearchModal';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface SelectedProfilesInputProps {
   selectedProfiles: SelectedProfile[];
@@ -36,9 +36,12 @@ export function SelectedProfilesInput(props: SelectedProfilesInputProps) {
     if (highlightedProfileId === profile.id && e.key === 'Backspace') {
       setSelectedProfiles(selectedProfiles.filter((p) => p.id !== profile.id));
       setHighlightedProfileId(null);
-      inputRef.current?.focus();
     }
   };
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [selectedProfiles]);
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (

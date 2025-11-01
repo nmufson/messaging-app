@@ -7,12 +7,13 @@ import {
 import { Chat, Profile } from '@repo/db';
 import { PrismaClient } from '@repo/db';
 import { ObjectId } from '@repo/common';
+import { logger } from '@/lib/pino';
 
 // TODO make endpoint for finding direct chat and use this there
 
 interface GetPotentialChatsParams {
   profileId: ObjectId;
-  names: string[];
+  searchNames: string[];
   selectedProfiles?: ObjectId[];
 }
 
@@ -22,18 +23,18 @@ export const getPotentialChats = async (
   prisma: PrismaClient,
   params: GetPotentialChatsParams
 ): Promise<{ profiles: ListProfileDTO[]; groupChats: SearchChatListDTO[] }> => {
-  const { names, selectedProfiles, profileId } = params;
+  const { searchNames, selectedProfiles, profileId } = params;
 
-  if (names.length === 0) return { profiles: [], groupChats: [] };
+  if (searchNames.length === 0) return { profiles: [], groupChats: [] };
 
   const profiles = await prisma.profile.findMany({
     where: {
       friends: {
         some: { id: profileId },
       },
-      OR: names.flatMap((name) => [
-        { firstName: { contains: name, mode: 'insensitive' as const } },
-        { lastName: { contains: name, mode: 'insensitive' as const } },
+      OR: searchNames.flatMap((searchName) => [
+        { firstName: { contains: searchName, mode: 'insensitive' as const } },
+        { lastName: { contains: searchName, mode: 'insensitive' as const } },
       ]),
       // Exclude already selected profiles
       ...(selectedProfiles &&
@@ -54,16 +55,17 @@ export const getPotentialChats = async (
     groupChats = await prisma.chat.findMany({
       where: {
         type: ChatType.enum.GROUP,
-        AND: [
-          {
-            participants: {
-              some: { id: profileId },
-            },
-          },
+        participants: {
+          some: { id: profileId },
+        },
+        OR: [
+          ...searchNames.map((searchName) => ({
+            name: { contains: searchName, mode: 'insensitive' as const },
+          })),
           {
             participants: {
               some: {
-                OR: names.flatMap((name) => [
+                OR: searchNames.flatMap((name) => [
                   {
                     firstName: { contains: name, mode: 'insensitive' as const },
                   },
@@ -92,35 +94,28 @@ export const getPotentialChats = async (
   return { profiles, groupChats };
 };
 
-interface DirectChatProfiles {
-  profileA: ObjectId;
-  profileB: ObjectId;
-}
-
 interface GetChatParams {
   chatId?: ObjectId;
-  profiles?: DirectChatProfiles;
+  profileIds?: ObjectId[];
 }
 
 export const getChat = async (
   prisma: PrismaClient,
   params: GetChatParams
 ): Promise<ChatDTO | null> => {
-  const { chatId, profiles } = params;
+  const { chatId, profileIds } = params;
+
+  logger.info({ chatId, profileIds }, 'Getting chat with params');
 
   let whereFilters;
 
   if (chatId) {
     whereFilters = { id: chatId };
-  }
-
-  if (profiles) {
-    const { profileA, profileB } = profiles;
+  } else if (profileIds) {
     whereFilters = {
-      type: ChatType.enum.DIRECT,
       participants: {
         every: {
-          id: { in: [profileA, profileB] },
+          id: { in: profileIds },
         },
       },
     };
@@ -164,5 +159,5 @@ export const getChat = async (
     },
   });
 
-  return ChatDTO.parse(chat);
+  return chat ? ChatDTO.parse(chat) : null;
 };
