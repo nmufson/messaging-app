@@ -27,6 +27,8 @@ interface UseChatParams {
   senderProfileId?: ObjectId;
 }
 
+// TODO: add call to endpoint for creating chat and sending message
+// send message should prob be a reusable helper on the backend
 export function useChat(params: UseChatParams) {
   const { chatId, profileIds, senderProfileId: profileId } = params;
   const trpc = useTRPC();

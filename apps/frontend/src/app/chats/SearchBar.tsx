@@ -1,5 +1,5 @@
 import { FullscreenModal } from '@/components/modal/FullscreenModal';
-import { ChatSearchModal } from '@/app/chats/SearchModal';
+import { SearchWriteMessageModal } from '@/app/chats/SearchModal';
 import { useModalContext } from '@/context/ModalContext';
 
 export function MessageSearchBar() {
@@ -8,7 +8,7 @@ export function MessageSearchBar() {
   const handleOpenChatSearchModal = () => {
     launchModal(
       <FullscreenModal>
-        <ChatSearchModal />
+        <SearchWriteMessageModal />
       </FullscreenModal>
     );
   };

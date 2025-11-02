@@ -1,18 +1,19 @@
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
-import { useContext, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import { useRef, useEffect } from 'react';
 import { MessageBubble } from '@/app/chat/[slug]/MessageBubble';
 import { useChat } from '@/hooks/chat';
 import { getChatName } from '@/utils';
-import { ObjectId } from '@repo/common';
+import { ChatType, ObjectId } from '@repo/common';
 import { BooleanOptional } from 'qs';
 import { useRouter } from 'next/navigation';
 import { useModalContext } from '@/context/ModalContext';
+import { SelectedProfile } from '@/app/chats/SearchModal';
 
 interface ChatContentProps {
   chatId: ObjectId | null;
-  profileIds?: ObjectId[];
+  profiles?: SelectedProfile[];
   inModalView?: boolean;
 }
 
@@ -20,11 +21,12 @@ export function ChatContent(props: ChatContentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { closeModal } = useModalContext();
-  const { chatId, profileIds, inModalView } = props;
+  const { chatId, profiles, inModalView } = props;
   const { profile } = useAuth();
   const [textInput, setTextInput] = useState('');
   const [imageUrlInput, setImageUrlInput] = useState('');
 
+  const profileIds = profiles?.map((profile) => profile.id);
   const { chat, isLoading, error, mutate } = useChat({
     chatId,
     profileIds,
@@ -32,7 +34,7 @@ export function ChatContent(props: ChatContentProps) {
   });
 
   useEffect(() => {
-    // TODO: handle this differently
+    // TODO: handle this differently??
     if (!isLoading && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
@@ -69,17 +71,19 @@ export function ChatContent(props: ChatContentProps) {
     console.log('Message sent successfully!');
   };
 
-  if (isLoading) {
-    return <div>Loading chat...</div>;
-  }
-  if (error) {
-    return <div>Error loading chat: {error.message}</div>;
-  }
-  if (!chat) {
-    return <div>Chat not found</div>;
-  }
+  //
+  const { name, participants, type, messages } = useMemo(() => {
+    if (chat) return chat;
 
-  const { name, participants, type, messages } = chat;
+    // potential chat to start
+    return {
+      name: null,
+      participants: profiles ?? [],
+      type: ChatType.enum.GROUP,
+      messages: [],
+    };
+  }, [chat, profiles]);
+
   const displayName = getChatName({
     type,
     name,

@@ -34,7 +34,7 @@ export interface SelectedProfile {
   lastName: string;
 }
 
-export function ChatSearchModal() {
+export function SearchWriteMessageModal() {
   const { closeModal } = useModalContext();
   const [searchNameInput, setSearchNameInput] = useState('');
   const [selectedProfiles, setSelectedProfiles] = useState<SelectedProfile[]>(
@@ -132,11 +132,13 @@ export function ChatSearchModal() {
           </div>
         </div>
       )}
-      <ChatContent
-        chatId={selectedGroupChat}
-        profileIds={selectedProfileIds}
-        inModalView={true}
-      />
+      {(selectedGroupChat || selectedProfileIds.length > 0) && (
+        <ChatContent
+          chatId={selectedGroupChat}
+          profiles={selectedProfiles}
+          inModalView={true}
+        />
+      )}
     </div>
   );
 }
