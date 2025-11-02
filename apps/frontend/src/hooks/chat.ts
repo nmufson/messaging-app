@@ -7,7 +7,9 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useSubscription } from '@trpc/tanstack-react-query';
-import { useMemo } from 'react';
+import { Send } from 'express-serve-static-core';
+import { send } from 'process';
+import { use, useMemo } from 'react';
 
 export function useChatList() {
   const trpc = useTRPC();
@@ -27,8 +29,14 @@ interface UseChatParams {
   senderProfileId?: ObjectId;
 }
 
-// TODO: add call to endpoint for creating chat and sending message
-// send message should prob be a reusable helper on the backend
+interface SendMessageParams {
+  senderId: ObjectId;
+  type: 'TEXT' | 'IMAGE';
+  content?: string | null;
+  imageUrl?: string | null;
+  onSuccess?: (chatId: ObjectId) => void;
+}
+
 export function useChat(params: UseChatParams) {
   const { chatId, profileIds, senderProfileId: profileId } = params;
   const trpc = useTRPC();
@@ -52,7 +60,7 @@ export function useChat(params: UseChatParams) {
   const { data: chat, isLoading, error } = useQuery(queryOptions);
 
   const {
-    mutate,
+    mutate: sendMessageToChat,
     isPending,
     error: sendToChatError,
   } = useMutation(
@@ -60,12 +68,23 @@ export function useChat(params: UseChatParams) {
       onSuccess: (newMessage) => {
         queryClient.setQueryData(chatQueryKey, (oldData) => {
           if (!oldData) return oldData;
-
           return {
             ...oldData,
             messages: [...oldData.messages, newMessage],
           };
         });
+      },
+    })
+  );
+
+  const {
+    mutate: createChat,
+    isPending: isCreateChatPending,
+    error: createChatError,
+  } = useMutation(
+    trpc.chat.createChat.mutationOptions({
+      onSuccess: (newChat) => {
+        queryClient.setQueryData(chatQueryKey, newChat);
       },
     })
   );
@@ -76,7 +95,6 @@ export function useChat(params: UseChatParams) {
       {
         onData(newMessage) {
           const messageData = newMessage.data ? newMessage.data : newMessage;
-
           queryClient.setQueryData(chatQueryKey, (oldData) => {
             if (!oldData) return oldData;
             return {
@@ -89,7 +107,57 @@ export function useChat(params: UseChatParams) {
     )
   );
 
-  return { chat, isLoading, error, mutate, isPending, sendToChatError };
+  const sendMessage = (params: SendMessageParams) => {
+    const { senderId, content, imageUrl, type, onSuccess } = params;
+    // If chat exists, send message
+    if (chat && chat.id) {
+      sendMessageToChat(
+        {
+          content: content || null,
+          imageUrl: imageUrl || null,
+          sender: senderId,
+          chatId: chat.id,
+          type,
+        },
+        { onSuccess: () => onSuccess?.(chat.id) }
+      );
+    } else if (profileIds) {
+      // If chat does not exist, create chat with first message
+      const newChatProfileIds = [...profileIds, senderId];
+      createChat(
+        {
+          creator: senderId,
+          participants: newChatProfileIds,
+          type: newChatProfileIds.length > 2 ? 'GROUP' : 'DIRECT',
+          firstMessage: {
+            type,
+            content: content || null,
+            imageUrl: imageUrl || null,
+          },
+        },
+        {
+          onSuccess: (newChat) => {
+            if (newChat?.id) {
+              onSuccess?.(newChat.id);
+            }
+          },
+        }
+      );
+    } else {
+      console.error('Chat or selected profiles required to send message');
+    }
+  };
+
+  return {
+    chat,
+    isLoading,
+    error,
+    sendMessageToChat,
+    createChat,
+    isPending,
+    sendToChatError,
+    sendMessage,
+  };
 }
 
 interface useDirectMessageParams {

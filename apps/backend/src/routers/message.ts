@@ -7,6 +7,7 @@ import { router, userProcedure } from '../trpc';
 import { on } from 'events';
 import { eventEmitter } from '../lib/eventBus';
 import { logger } from 'src/lib/pino';
+import { getChat } from '@/services/chat';
 
 export const messageRouter = router({
   onNewMessage: userProcedure
@@ -56,12 +57,7 @@ export const messageRouter = router({
     .mutation(async ({ input, ctx }) => {
       const { sender, chatId, content, imageUrl, type } = input;
 
-      const chat = await ctx.prisma.chat.findUnique({
-        where: { id: chatId },
-        include: {
-          participants: true,
-        },
-      });
+      const chat = await getChat(ctx.prisma, { chatId });
 
       if (!chat) {
         throw new TRPCError({

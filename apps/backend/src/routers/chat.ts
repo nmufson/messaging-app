@@ -1,4 +1,9 @@
-import { ListProfileDTO, ObjectId, SearchChatListDTO } from '@repo/common';
+import {
+  ListProfileDTO,
+  MessageType,
+  ObjectId,
+  SearchChatListDTO,
+} from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
 import { UserRole, z } from '@repo/common';
@@ -8,6 +13,8 @@ import { mergeAsyncIterators } from '@repo/common';
 import { ChatDTO, ChatType } from '@repo/common';
 import { logger } from '../lib/pino';
 import { getChat, getPotentialChats } from '@/services/chat';
+
+import { sendMessage } from '@/services/message';
 
 export const chatRouter = router({
   // TODO: add something for loading more messages in chat
@@ -242,7 +249,6 @@ export const chatRouter = router({
       );
       return validatedChats;
     }),
-
   getPotentialChats: userProcedure
     .input(
       z.object({
@@ -277,10 +283,29 @@ export const chatRouter = router({
         creator: ObjectId,
         participants: ObjectId.array(),
         type: ChatType,
+        firstMessage: z
+          .object({
+            type: MessageType,
+            content: z.string().nullable(),
+            imageUrl: z.string().nullable(),
+          })
+          .optional(),
       })
     )
+    .output(ChatDTO)
     .mutation(async ({ input, ctx }) => {
-      const { creator, participants, type } = input;
+      const { creator, participants, type, firstMessage } = input;
+
+      const existingChat = await getChat(ctx.prisma, {
+        profileIds: participants,
+      });
+
+      if (existingChat) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Chat with these participants already exists',
+        });
+      }
 
       const chat = await ctx.prisma.chat.create({
         data: {
@@ -290,11 +315,44 @@ export const chatRouter = router({
             connect: participants.map((id) => ({ id })),
           },
         },
+        include: {
+          participants: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+            },
+          },
+          messages: {
+            take: 100,
+            orderBy: { createdAt: 'asc' },
+            select: {
+              id: true,
+              type: true,
+              content: true,
+              createdAt: true,
+              updatedAt: true,
+              imageUrl: true,
+              senderId: true,
+            },
+          },
+        },
       });
 
       participants.forEach((userId) => {
         eventEmitter.emit(`newChat:${userId}`, chat);
       });
+
+      if (firstMessage) {
+        const newMessage = await sendMessage(ctx.prisma, {
+          type: firstMessage.type,
+          content: firstMessage.content,
+          imageUrl: firstMessage.imageUrl,
+          sender: creator,
+          chatId: chat.id,
+        });
+      }
 
       return chat;
     }),

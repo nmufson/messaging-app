@@ -1,15 +1,13 @@
-import { useAuth } from '@/context/AuthContext';
-import Link from 'next/link';
-import { useContext, useMemo, useState } from 'react';
-import { useRef, useEffect } from 'react';
 import { MessageBubble } from '@/app/chat/[slug]/MessageBubble';
+import { SelectedProfile } from '@/app/chats/SearchModal';
+import { useAuth } from '@/context/AuthContext';
+import { useModalContext } from '@/context/ModalContext';
 import { useChat } from '@/hooks/chat';
 import { formatDisplayDate, getChatName } from '@/utils';
 import { ChatType, ObjectId } from '@repo/common';
-import { BooleanOptional } from 'qs';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useModalContext } from '@/context/ModalContext';
-import { SelectedProfile } from '@/app/chats/SearchModal';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface ChatContentProps {
   chatId: ObjectId | null;
@@ -20,18 +18,19 @@ interface ChatContentProps {
 export function ChatContent(props: ChatContentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { closeModal } = useModalContext();
+
   const { chatId, profiles, inModalView } = props;
   const { profile } = useAuth();
   const [textInput, setTextInput] = useState('');
   const [imageUrlInput, setImageUrlInput] = useState('');
 
   const profileIds = profiles?.map((profile) => profile.id);
-  const { chat, isLoading, error, mutate } = useChat({
-    chatId,
-    profileIds,
-    senderProfileId: profile?.id,
-  });
+  const { chat, isLoading, error, sendMessageToChat, createChat, sendMessage } =
+    useChat({
+      chatId,
+      profileIds,
+      senderProfileId: profile?.id,
+    });
 
   useEffect(() => {
     // TODO: handle this differently??
@@ -42,29 +41,22 @@ export function ChatContent(props: ChatContentProps) {
 
   const handleSubmitMessage = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!profile || !chat) {
-      console.error(
-        { profile, chat },
-        'Sender profile and chat required to send message'
-      );
+
+    if (!profile) {
+      console.error('Profile required to send message');
       return;
     }
-    mutate(
-      {
-        content: textInput || null,
-        imageUrl: imageUrlInput || null,
-        sender: profile.id,
-        chatId: chat.id,
-        type: textInput ? 'TEXT' : 'IMAGE',
+    sendMessage({
+      senderId: profile.id,
+      type: textInput ? 'TEXT' : 'IMAGE',
+      content: textInput || null,
+      imageUrl: imageUrlInput || null,
+      onSuccess: (chatId) => {
+        if (inModalView) {
+          router.push(`/chat/chat?chat=${chatId}`);
+        }
       },
-      {
-        onSuccess: () => {
-          if (inModalView) {
-            router.push(`/chat/chat?chat=${chat.id}`);
-          }
-        },
-      }
-    );
+    });
 
     setTextInput('');
     setImageUrlInput('');
@@ -86,7 +78,9 @@ export function ChatContent(props: ChatContentProps) {
         createdAt: null,
       };
     }, [chat, profiles]);
-
+  console.log(chat, 'heres the chat');
+  console.log(participants, 'heres the participants');
+  console.log(creatorId, 'heres the creator');
   const chatCreator = creatorId
     ? participants.find((participant) => participant.id === creatorId)
     : null;
