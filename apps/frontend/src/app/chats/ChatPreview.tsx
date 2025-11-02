@@ -1,7 +1,7 @@
 import { ChatDTO } from '@repo/common';
 import * as R from 'remeda';
 import Link from 'next/link';
-import { formatMessageTime, getChatName, slugify } from '@/utils/formatting';
+import { formatDisplayDate, getChatName, slugify } from '@/utils/formatting';
 import { useAuth } from '../../context/AuthContext';
 
 interface ChatPreviewProps {
@@ -43,7 +43,7 @@ export function ChatPreview({ chat }: ChatPreviewProps) {
     : `Chat created by ${creator?.firstName} ${creator?.lastName}`;
 
   const timeToShow = lastMessage ? lastMessage.createdAt : chatCreatedAt;
-  const displayTime = formatMessageTime(timeToShow);
+  const displayTime = formatDisplayDate(timeToShow);
 
   const formattedDisplayName = R.truncate(displayName, 20);
   const formattedDisplayMessage = R.truncate(displayMessage, 40);

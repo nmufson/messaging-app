@@ -1,4 +1,4 @@
-import { formatMessageTime } from '@/utils';
+import { formatDisplayDate } from '@/utils';
 import { MessageDTO } from '@repo/common';
 
 interface MessageBubbleProps {
@@ -9,7 +9,7 @@ interface MessageBubbleProps {
 export function MessageBubble(props: MessageBubbleProps) {
   const { message, isCurrentUser } = props;
   const { senderId, content, imageUrl, createdAt } = message;
-  const displayTime = formatMessageTime(createdAt);
+  const displayTime = formatDisplayDate(createdAt);
 
   return (
     <div

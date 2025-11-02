@@ -1,25 +1,30 @@
 import { DateTimeSchema, ObjectId } from '@repo/common';
-import { ChatType } from '@repo/common';
 import { DateTime } from 'luxon';
 
-export function formatMessageTime(dt: DateTime) {
-  const parsedDateTime = toDateTime(dt);
-  if (!parsedDateTime) return '';
-
+export function formatDisplayDate(
+  dt: DateTime,
+  options?: { withPreposition?: boolean }
+): string {
+  const { withPreposition = false } = options || {};
   const now = DateTime.now();
-  const diffInDays = now
-    .startOf('day')
-    .diff(parsedDateTime.startOf('day'), 'days').days;
+  const diffInDays = now.startOf('day').diff(dt.startOf('day'), 'days').days;
 
-  if (parsedDateTime.hasSame(now, 'day')) {
-    return parsedDateTime.toFormat('h:mm a');
+  if (dt.hasSame(now, 'day')) {
+    return dt.toFormat('h:mm a');
   } else if (diffInDays === 1) {
     return 'Yesterday';
   } else if (diffInDays < 7) {
-    return parsedDateTime.toFormat('cccc'); //  "Monday"
+    return withPreposition ? `on ${dt.toFormat('cccc')}` : dt.toFormat('cccc');
+  } else if (dt.year !== now.year) {
+    // a previous calendar year
+    return withPreposition
+      ? `on ${dt.toFormat('MMMM d, yyyy')}`
+      : dt.toFormat('MMMM d, yyyy');
   } else {
-    // Older than a week
-    return parsedDateTime.toFormat('MM/dd/yyyy');
+    // Older than a week, but same year
+    return withPreposition
+      ? `on ${dt.toFormat('MMMM d')}`
+      : dt.toFormat('MMMM d');
   }
 }
 export function slugify(str: string) {
@@ -37,52 +42,26 @@ interface ChatParticipant {
 }
 
 interface GetChatNameParams {
-  type: ChatType;
   name: string | null;
   participants: ChatParticipant[];
   profileId?: ObjectId;
 }
 
 export function getChatName(params: GetChatNameParams): string {
-  const { type, name, participants, profileId } = params;
-  const isDirectChat = type === ChatType.enum.DIRECT;
+  const { name, participants, profileId } = params;
 
-  if (isDirectChat) {
-    const otherParticipant = participants.find((p) => p.id !== profileId);
-    if (!otherParticipant) return 'Unknown User';
-    return `${otherParticipant.firstName} ${otherParticipant.lastName}`;
-  }
-
-  // group chat
+  // group chat with name
   if (name) {
     return name;
   }
 
-  const participantNames = participants.map(
-    (p) => `${p.firstName} ${p.lastName}`
-  );
+  const participantNames = participants
+    .filter((p) => p.id !== profileId)
+    .map((p) => `${p.firstName} ${p.lastName}`);
 
   return participantNames.join(', ');
 }
 
 export function toDateTime(date: unknown): DateTime | null {
   return DateTimeSchema.parse(date);
-}
-
-export function formatDate(dateTime: DateTime): string {
-  const now = DateTime.local();
-
-  if (dateTime.hasSame(now, 'day')) {
-    return 'today';
-  }
-
-  if (dateTime.hasSame(now.minus({ days: 1 }), 'day')) {
-    return 'yesterday';
-  }
-
-  if (dateTime.year === now.year) {
-    return `on ${dateTime.toFormat('cccc')}`;
-  }
-
-  return `on ${dateTime.toFormat('MMMM d')}`;
 }

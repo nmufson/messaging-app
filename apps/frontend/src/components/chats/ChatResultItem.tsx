@@ -17,7 +17,6 @@ export function ChatResultItem(props: GroupChatResultItemProps) {
   const { name, groupPictureUrl, participants, id: chatId } = chat;
 
   const chatDisplayName = getChatName({
-    type: 'GROUP',
     name,
     participants,
     profileId: profile?.id,

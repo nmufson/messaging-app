@@ -4,7 +4,7 @@ import { useContext, useMemo, useState } from 'react';
 import { useRef, useEffect } from 'react';
 import { MessageBubble } from '@/app/chat/[slug]/MessageBubble';
 import { useChat } from '@/hooks/chat';
-import { getChatName } from '@/utils';
+import { formatDisplayDate, getChatName } from '@/utils';
 import { ChatType, ObjectId } from '@repo/common';
 import { BooleanOptional } from 'qs';
 import { useRouter } from 'next/navigation';
@@ -71,21 +71,30 @@ export function ChatContent(props: ChatContentProps) {
     console.log('Message sent successfully!');
   };
 
-  //
-  const { name, participants, type, messages } = useMemo(() => {
-    if (chat) return chat;
+  // TODO: find better way to handle this
+  const { name, participants, type, messages, creatorId, createdAt } =
+    useMemo(() => {
+      if (chat) return chat;
 
-    // potential chat to start
-    return {
-      name: null,
-      participants: profiles ?? [],
-      type: ChatType.enum.GROUP,
-      messages: [],
-    };
-  }, [chat, profiles]);
+      // potential chat to start
+      return {
+        name: null,
+        participants: profiles ?? [],
+        type: ChatType.enum.GROUP,
+        messages: [],
+        creatorId: null,
+        createdAt: null,
+      };
+    }, [chat, profiles]);
+
+  const chatCreator = creatorId
+    ? participants.find((participant) => participant.id === creatorId)
+    : null;
+  const createdAtDisplay = createdAt
+    ? formatDisplayDate(createdAt, { withPreposition: true })
+    : null;
 
   const displayName = getChatName({
-    type,
     name,
     participants,
     profileId: profile?.id,
@@ -102,6 +111,9 @@ export function ChatContent(props: ChatContentProps) {
         <i className="bi bi-info-circle text-2xl" />
       </div>
       <div className="messages-container flex-1 overflow-y-auto px-2 py-4">
+        {chatCreator && (
+          <small>{`${chatCreator.firstName} ${chatCreator.lastName} created the chat ${createdAtDisplay}`}</small>
+        )}
         {messages &&
           messages.length > 0 &&
           messages.map((message) => (
