@@ -1,11 +1,11 @@
 import { useAuth } from '@/context/AuthContext';
 import { getChatName } from '@/utils';
-import { SearchChatListDTO, ListProfileDTO, ObjectId } from '@repo/common';
+import { ChatListDTO, ListProfileDTO, ObjectId } from '@repo/common';
 import { Dispatch, SetStateAction, useState, MouseEvent } from 'react';
 import { ChatProfileItem } from './ChatProfileItem';
 
 interface GroupChatResultItemProps {
-  chat: SearchChatListDTO;
+  chat: ChatListDTO;
   onSelectChat: (chatId: ObjectId) => void;
   onClearSelections: () => void;
   setSelectedProfile: Dispatch<SetStateAction<any>>;

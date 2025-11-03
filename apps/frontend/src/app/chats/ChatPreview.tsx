@@ -22,7 +22,6 @@ export function ChatPreview({ chat }: ChatPreviewProps) {
   const { profile } = useAuth();
   const lastMessage = messages.length ? messages[0] : null;
   const displayName = getChatName({
-    type,
     name,
     participants,
     profileId: profile?.id,

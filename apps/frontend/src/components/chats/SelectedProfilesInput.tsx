@@ -1,5 +1,5 @@
 import { ObjectId } from '@repo/common';
-import { SelectedProfile } from '@/app/chats/SearchModal';
+import { SelectedProfile } from '@/app/chats/WriteToChatModal';
 import { useEffect, useRef } from 'react';
 
 interface SelectedProfilesInputProps {

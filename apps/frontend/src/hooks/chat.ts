@@ -175,7 +175,7 @@ export function useDirectMessage({
 
 interface PotentialChatsParams {
   searchString: string;
-  selectedProfiles: ObjectId[];
+  selectedProfiles?: ObjectId[];
 }
 
 export function usePotentialChats(params: PotentialChatsParams) {

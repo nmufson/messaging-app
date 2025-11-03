@@ -1,5 +1,5 @@
 import { MessageBubble } from '@/app/chat/[slug]/MessageBubble';
-import { SelectedProfile } from '@/app/chats/SearchModal';
+import { SelectedProfile } from '@/app/chats/WriteToChatModal';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
 import { useChat } from '@/hooks/chat';

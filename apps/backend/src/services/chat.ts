@@ -1,9 +1,4 @@
-import {
-  ChatDTO,
-  ChatType,
-  ListProfileDTO,
-  SearchChatListDTO,
-} from '@repo/common';
+import { ChatDTO, ChatType, ListProfileDTO, ChatListDTO } from '@repo/common';
 import { Chat, Profile } from '@repo/db';
 import { PrismaClient } from '@repo/db';
 import { ObjectId } from '@repo/common';
@@ -15,6 +10,7 @@ interface GetPotentialChatsParams {
   profileId: ObjectId;
   searchNames: string[];
   selectedProfiles?: ObjectId[];
+  limit?: number;
 }
 
 // Returns profiles and existing group chats for user to begin chat
@@ -22,8 +18,8 @@ interface GetPotentialChatsParams {
 export const getPotentialChats = async (
   prisma: PrismaClient,
   params: GetPotentialChatsParams
-): Promise<{ profiles: ListProfileDTO[]; groupChats: SearchChatListDTO[] }> => {
-  const { searchNames, selectedProfiles, profileId } = params;
+): Promise<{ profiles: ListProfileDTO[]; groupChats: ChatListDTO[] }> => {
+  const { searchNames, selectedProfiles, profileId, limit } = params;
 
   if (searchNames.length === 0) return { profiles: [], groupChats: [] };
 
@@ -48,9 +44,10 @@ export const getPotentialChats = async (
       lastName: true,
       avatarUrl: true,
     },
+    take: limit ?? 10,
   });
 
-  let groupChats: SearchChatListDTO[] = [];
+  let groupChats: ChatListDTO[] = [];
   if (!selectedProfiles || selectedProfiles.length === 0) {
     groupChats = await prisma.chat.findMany({
       where: {
@@ -88,6 +85,7 @@ export const getPotentialChats = async (
           },
         },
       },
+      take: limit ?? 10,
     });
   }
 

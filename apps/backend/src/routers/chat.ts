@@ -2,7 +2,7 @@ import {
   ListProfileDTO,
   MessageType,
   ObjectId,
-  SearchChatListDTO,
+  ChatListDTO,
 } from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
@@ -259,7 +259,7 @@ export const chatRouter = router({
     .output(
       z.object({
         profiles: ListProfileDTO.array(),
-        groupChats: SearchChatListDTO.array(),
+        groupChats: ChatListDTO.array(),
       })
     )
     .query(async ({ input, ctx }) => {

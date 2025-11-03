@@ -1,13 +1,22 @@
-import { ObjectId } from '@repo/common';
-import { SendMessageInput } from '@repo/common';
-import { tracked, TRPCError } from '@trpc/server';
-import { MessageDTO, z } from '@repo/common';
-import { sendMessage } from '../services/message';
-import { router, userProcedure } from '../trpc';
-import { on } from 'events';
-import { eventEmitter } from '../lib/eventBus';
-import { logger } from 'src/lib/pino';
 import { getChat } from '@/services/chat';
+import {
+  ListPhotoMessageDTO,
+  MessageDTO,
+  MessageSearchResultDTO,
+  ObjectId,
+  SendMessageInput,
+  z,
+} from '@repo/common';
+import { tracked, TRPCError } from '@trpc/server';
+import { on } from 'events';
+import { logger } from 'src/lib/pino';
+import { eventEmitter } from '../lib/eventBus';
+import {
+  getMatchingTextMessages,
+  getPhotoMessages,
+  sendMessage,
+} from '../services/message';
+import { router, userProcedure } from '../trpc';
 
 export const messageRouter = router({
   onNewMessage: userProcedure
@@ -79,5 +88,49 @@ export const messageRouter = router({
       eventEmitter.emit(`addMessageToChat:${chatId}`, newMessage);
 
       return newMessage;
+    }),
+  getTextMessages: userProcedure
+    .input(
+      z.object({
+        searchInput: z.string().optional(),
+        limit: z.number().default(50),
+      })
+    )
+    .output(MessageSearchResultDTO.array())
+    .query(async ({ ctx, input }) => {
+      const { user } = ctx;
+      const { searchInput, limit } = input;
+
+      const userProfileId = user?.profile?.id;
+
+      if (!userProfileId) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const messages = await getMatchingTextMessages(ctx.prisma, {
+        profileId: userProfileId,
+        searchInput,
+        limit,
+      });
+
+      return messages;
+    }),
+  getPhotoMessages: userProcedure
+    .input(z.object({ limit: z.number().default(30) }))
+    .output(ListPhotoMessageDTO.array())
+    .query(async ({ ctx, input }) => {
+      const { user } = ctx;
+      const userProfileId = user?.profile?.id;
+
+      if (!userProfileId) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const photoMessages = await getPhotoMessages(ctx.prisma, {
+        profileId: userProfileId,
+        limit: input.limit,
+      });
+
+      return photoMessages;
     }),
 });
