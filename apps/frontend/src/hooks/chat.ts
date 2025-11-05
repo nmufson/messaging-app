@@ -174,16 +174,17 @@ export function useDirectMessage({
 }
 
 interface PotentialChatsParams {
-  searchString: string;
+  searchInput: string;
+  requireInput?: boolean;
   selectedProfiles?: ObjectId[];
 }
 
 export function usePotentialChats(params: PotentialChatsParams) {
   const trpc = useTRPC();
-  const { searchString, selectedProfiles } = params;
+  const { searchInput, requireInput, selectedProfiles } = params;
 
   // TODO: implement debounce for search input
-  const searchNames = searchString
+  const searchNames = searchInput
     .split(' ')
     .filter((name) => name.trim() !== '');
 
@@ -192,14 +193,11 @@ export function usePotentialChats(params: PotentialChatsParams) {
     isLoading,
     error,
   } = useQuery(
-    trpc.chat.getPotentialChats.queryOptions(
-      searchNames.length > 0
-        ? {
-            searchNames,
-            selectedProfiles,
-          }
-        : skipToken
-    )
+    trpc.chat.getPotentialChats.queryOptions({
+      searchNames,
+      requireInput,
+      selectedProfiles,
+    })
   );
 
   return {

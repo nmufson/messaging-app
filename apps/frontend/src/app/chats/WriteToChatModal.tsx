@@ -7,7 +7,7 @@ import { SelectedProfilesInput } from '@/components/chats/SelectedProfilesInput'
 import { useModalContext } from '@/context/ModalContext';
 import { usePotentialChats } from '@/hooks/chat';
 import { ListProfileDTO, ObjectId } from '@repo/common';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 // TODO make friends list content, with both page and modal view
 
@@ -30,10 +30,17 @@ export function WriteToChatModal() {
     useState<ObjectId | null>(null);
 
   const selectedProfileIds = selectedProfiles.map((p) => p.id);
-  const { profiles, groupChats } = usePotentialChats({
-    searchString: searchNameInput,
-    selectedProfiles: selectedProfileIds,
-  });
+
+  const chatParams = useMemo(
+    () => ({
+      searchInput: searchNameInput,
+      requireInput: true,
+      selectedProfiles: selectedProfileIds,
+    }),
+    [searchNameInput, selectedProfileIds]
+  );
+
+  const { profiles, groupChats } = usePotentialChats(chatParams);
 
   const handleProfileClick = (profile: ListProfileDTO) => {
     const { avatarUrl, ...profileWithoutAvatar } = profile;

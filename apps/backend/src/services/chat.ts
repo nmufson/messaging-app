@@ -10,6 +10,7 @@ interface GetPotentialChatsParams {
   profileId: ObjectId;
   searchNames: string[];
   selectedProfiles?: ObjectId[];
+  requireInput?: boolean;
   limit?: number;
 }
 
@@ -19,24 +20,43 @@ export const getPotentialChats = async (
   prisma: PrismaClient,
   params: GetPotentialChatsParams
 ): Promise<{ profiles: ListProfileDTO[]; groupChats: ChatListDTO[] }> => {
-  const { searchNames, selectedProfiles, profileId, limit } = params;
+  const { searchNames, selectedProfiles, profileId, limit, requireInput } =
+    params;
 
-  if (searchNames.length === 0) return { profiles: [], groupChats: [] };
+  if (requireInput && searchNames.length === 0)
+    return { profiles: [], groupChats: [] };
+
+  // exclusion condition for profiles already selected
+  const exclusionCondition =
+    selectedProfiles && selectedProfiles.length > 0
+      ? { id: { notIn: selectedProfiles } }
+      : {};
+
+  const profileSearchCondition =
+    searchNames.length > 0
+      ? {
+          OR: searchNames.flatMap((searchName) => [
+            {
+              firstName: { contains: searchName, mode: 'insensitive' as const },
+            },
+            {
+              lastName: { contains: searchName, mode: 'insensitive' as const },
+            },
+          ]),
+        }
+      : {};
+
+  const friendsCondition = {
+    friends: {
+      some: { id: profileId },
+    },
+  };
 
   const profiles = await prisma.profile.findMany({
     where: {
-      friends: {
-        some: { id: profileId },
-      },
-      OR: searchNames.flatMap((searchName) => [
-        { firstName: { contains: searchName, mode: 'insensitive' as const } },
-        { lastName: { contains: searchName, mode: 'insensitive' as const } },
-      ]),
-      // Exclude already selected profiles
-      ...(selectedProfiles &&
-        selectedProfiles.length > 0 && {
-          id: { notIn: selectedProfiles },
-        }),
+      ...friendsCondition,
+      ...profileSearchCondition,
+      ...exclusionCondition,
     },
     select: {
       id: true,
@@ -47,6 +67,37 @@ export const getPotentialChats = async (
     take: limit ?? 10,
   });
 
+  const groupChatSearchCondition =
+    searchNames.length > 0
+      ? {
+          OR: [
+            ...searchNames.map((searchName) => ({
+              name: { contains: searchName, mode: 'insensitive' as const },
+            })),
+            {
+              participants: {
+                some: {
+                  OR: searchNames.flatMap((name) => [
+                    {
+                      firstName: {
+                        contains: name,
+                        mode: 'insensitive' as const,
+                      },
+                    },
+                    {
+                      lastName: {
+                        contains: name,
+                        mode: 'insensitive' as const,
+                      },
+                    },
+                  ]),
+                },
+              },
+            },
+          ],
+        }
+      : {};
+
   let groupChats: ChatListDTO[] = [];
   if (!selectedProfiles || selectedProfiles.length === 0) {
     groupChats = await prisma.chat.findMany({
@@ -55,25 +106,7 @@ export const getPotentialChats = async (
         participants: {
           some: { id: profileId },
         },
-        OR: [
-          ...searchNames.map((searchName) => ({
-            name: { contains: searchName, mode: 'insensitive' as const },
-          })),
-          {
-            participants: {
-              some: {
-                OR: searchNames.flatMap((name) => [
-                  {
-                    firstName: { contains: name, mode: 'insensitive' as const },
-                  },
-                  {
-                    lastName: { contains: name, mode: 'insensitive' as const },
-                  },
-                ]),
-              },
-            },
-          },
-        ],
+        ...groupChatSearchCondition,
       },
       include: {
         participants: {

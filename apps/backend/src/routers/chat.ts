@@ -253,6 +253,7 @@ export const chatRouter = router({
     .input(
       z.object({
         searchNames: z.string().array(),
+        requireInput: z.boolean().optional(),
         selectedProfiles: ObjectId.array().optional(),
       })
     )
@@ -263,7 +264,7 @@ export const chatRouter = router({
       })
     )
     .query(async ({ input, ctx }) => {
-      const { searchNames, selectedProfiles } = input;
+      const { searchNames, requireInput, selectedProfiles } = input;
       const { user } = ctx;
 
       if (!user || !user?.profile?.id)
@@ -272,6 +273,7 @@ export const chatRouter = router({
       const { profiles, groupChats } = await getPotentialChats(ctx.prisma, {
         profileId: user.profile.id,
         searchNames,
+        requireInput,
         selectedProfiles,
       });
 
