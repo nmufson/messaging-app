@@ -102,7 +102,7 @@ export function ChatContent(props: ChatContentProps) {
         {/* have this button go to user profile if its direct chat, if group go to group info */}
         <i className="bi bi-info-circle text-2xl" />
       </div>
-      <div className="messages-container flex-1 overflow-y-auto px-2 py-4">
+      <div className="messages-container flex-1 overflow-y-auto py-4">
         {chatCreator && (
           <small>{`${chatCreator.firstName} ${chatCreator.lastName} created the chat ${createdAtDisplay}`}</small>
         )}

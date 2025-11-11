@@ -63,6 +63,8 @@ export default [
       'react-hooks/exhaustive-deps': 'warn',
       '@typescript-eslint/no-redeclare': 'warn',
       '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-redeclare': 'off',
+      'no-redeclare': 'off',
       'no-unused-vars': 'off',
     },
   },

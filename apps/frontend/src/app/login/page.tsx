@@ -2,7 +2,7 @@
 import { ChangeEvent, FormEvent, useState } from 'react';
 import { useTRPC } from '../../lib/trpc';
 import { useMutation } from '@tanstack/react-query';
-import router from 'next/router';
+import { useRouter } from 'next/navigation';
 
 const INITIAL_FORM_STATE = {
   email: '',
@@ -11,6 +11,7 @@ const INITIAL_FORM_STATE = {
 
 export default function LogIn() {
   const trpc = useTRPC();
+  const router = useRouter();
 
   const [logInForm, setLogInForm] = useState(INITIAL_FORM_STATE);
 

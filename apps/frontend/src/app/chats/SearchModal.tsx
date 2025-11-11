@@ -13,6 +13,7 @@ import {
   ObjectId,
 } from '@repo/common';
 import { ChangeEvent, useState } from 'react';
+import { MessageBubble } from '../chat/[slug]/MessageBubble';
 
 export function SearchModal() {
   const { closeModal } = useModalContext();
@@ -35,7 +36,7 @@ export function SearchModal() {
   const { textMessages, photoMessages } = useMessages({ searchInput });
 
   return (
-    <div>
+    <div className="px-1">
       <div className="flex justify-between p-3">
         <div className="border border-black">
           <i className="bi bi-search" />
@@ -106,12 +107,15 @@ function MessagePreview({ message }: { message: MessageSearchResultDTO }) {
   });
 
   return (
-    <div>
-      {participants.length > 2 && <strong>{chatDisplayName}</strong>}
+    <div className="mb-2">
+      {participants.length > 2 && (
+        <strong className="text-sm">{chatDisplayName}</strong>
+      )}
       <div className="flex justify-between">
-        <small>{senderDisplayName}</small>
-        <small>{displayDate}</small>
+        <small className="text-xs">{senderDisplayName}</small>
+        <small className="text-xs">{displayDate}</small>
       </div>
+      <MessageBubble message={message} showName={false} showTime={false} />
     </div>
   );
 }

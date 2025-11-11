@@ -37,19 +37,7 @@ export const MessageWithSenderDTO = MessageDTO.extend({
 });
 export type MessageWithSenderDTO = z.infer<typeof MessageWithSenderDTO>;
 
-export const MessageSearchResultDTO = z.object({
-  id: ObjectId,
-  type: MessageType,
-  content: z.string().nullish(),
-  imageUrl: z.string().nullish(),
-  createdAt: DateTimeSchema,
-  updatedAt: DateTimeSchema.nullish(),
-  sender: z.object({
-    id: ObjectId,
-    firstName: z.string(),
-    lastName: z.string(),
-    avatarUrl: z.string().nullish(),
-  }),
+export const MessageSearchResultDTO = MessageWithSenderDTO.extend({
   chat: z.object({
     name: z.string().nullish(),
     participants: z.array(
