@@ -63,6 +63,7 @@ export const getMatchingTextMessages = async (
       },
       chat: {
         select: {
+          id: true,
           name: true,
           participants: {
             select: {

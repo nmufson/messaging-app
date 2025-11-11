@@ -2,12 +2,14 @@ import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { useAuth } from '@/context/AuthContext';
 import { formatDisplayDate, getProfileDisplayName } from '@/utils';
 import { MessageWithSenderDTO } from '@repo/common';
+import { RefObject } from 'react';
 
 interface MessageBubbleProps {
   message: MessageWithSenderDTO;
   showName?: boolean;
   showAvatar?: boolean;
   showTime?: boolean;
+  ref?: RefObject<HTMLDivElement | null> | null;
 }
 
 export function MessageBubble(props: MessageBubbleProps) {
@@ -17,6 +19,7 @@ export function MessageBubble(props: MessageBubbleProps) {
     showName = true,
     showAvatar = true,
     showTime = true,
+    ref,
   } = props;
   const { sender, content, imageUrl, createdAt } = message;
 
@@ -29,10 +32,11 @@ export function MessageBubble(props: MessageBubbleProps) {
 
   return (
     <div
+      ref={ref}
       className={`flex mt-2 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
     >
       <div className="flex items-end gap-1 w-full">
-        <div className="flex justify-center w-12/100">
+        <div className="flex justify-center shrink-0 w-[40px]">
           {shouldShowAvatar && <ProfileAvatar {...sender} size={35} />}
         </div>
         <div

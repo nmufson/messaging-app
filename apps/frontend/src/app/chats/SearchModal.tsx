@@ -13,6 +13,7 @@ import {
   ObjectId,
 } from '@repo/common';
 import { ChangeEvent, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { MessageBubble } from '../chat/[slug]/MessageBubble';
 
 export function SearchModal() {
@@ -92,6 +93,8 @@ export function SearchModal() {
 
 function MessagePreview({ message }: { message: MessageSearchResultDTO }) {
   const { profile } = useAuth();
+  const { closeModal } = useModalContext();
+  const router = useRouter();
   const { content, sender, createdAt, chat } = message;
   const { name: chatName, participants } = chat;
   const { firstName, lastName } = sender;
@@ -106,6 +109,13 @@ function MessagePreview({ message }: { message: MessageSearchResultDTO }) {
     truncate: 50,
   });
 
+  const handleNavigateToMessage = () => {
+    const chatId = message.chat.id;
+
+    router.push(`/chat/chat?chat=${chatId}&message=${message.id}`);
+    closeModal();
+  };
+
   return (
     <div className="mb-2">
       {participants.length > 2 && (
@@ -115,7 +125,12 @@ function MessagePreview({ message }: { message: MessageSearchResultDTO }) {
         <small className="text-xs">{senderDisplayName}</small>
         <small className="text-xs">{displayDate}</small>
       </div>
-      <MessageBubble message={message} showName={false} showTime={false} />
+      <div className="flex justify-between items-center">
+        <MessageBubble message={message} showName={false} showTime={false} />
+        <button onClick={handleNavigateToMessage} className="p-1">
+          <i className="bi bi-caret-right-fill text-gray-700 text-3xl" />
+        </button>
+      </div>
     </div>
   );
 }

@@ -11,15 +11,17 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 interface ChatContentProps {
   chatId: ObjectId | null;
+  messageToView?: ObjectId | null;
   profiles?: SelectedProfile[];
   inModalView?: boolean;
 }
 
 export function ChatContent(props: ChatContentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageToViewRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  const { chatId, profiles, inModalView } = props;
+  const { chatId, messageToView, profiles, inModalView } = props;
   const { profile } = useAuth();
   const [textInput, setTextInput] = useState('');
   const [imageUrlInput, setImageUrlInput] = useState('');
@@ -33,11 +35,14 @@ export function ChatContent(props: ChatContentProps) {
     });
 
   useEffect(() => {
-    // TODO: handle this differently??
-    if (!isLoading && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (messageToView && messageToViewRef.current) {
+      messageToViewRef.current.scrollIntoView({ behavior: 'instant' });
+      return;
     }
-  }, [messagesEndRef, isLoading]);
+    if (!isLoading && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'instant' });
+    }
+  }, [messagesEndRef, isLoading, messageToView]);
 
   const handleSubmitMessage = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -137,6 +142,7 @@ export function ChatContent(props: ChatContentProps) {
                 message={messageWithSender}
                 showName={shouldShowName}
                 showAvatar={shouldShowAvatar}
+                ref={messageToView === message.id ? messageToViewRef : null}
               />
             );
           })}

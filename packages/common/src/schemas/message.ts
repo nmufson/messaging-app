@@ -3,6 +3,7 @@ import { DateTimeSchema, ObjectId } from './primitives';
 import { createDecipheriv } from 'crypto';
 import { create } from 'domain';
 import { ChatDTO, ChatType } from './chat';
+import { id } from 'zod/v4/locales';
 
 export const MessageType = z.enum(['TEXT', 'IMAGE']);
 export type MessageType = z.infer<typeof MessageType>;
@@ -39,6 +40,7 @@ export type MessageWithSenderDTO = z.infer<typeof MessageWithSenderDTO>;
 
 export const MessageSearchResultDTO = MessageWithSenderDTO.extend({
   chat: z.object({
+    id: ObjectId,
     name: z.string().nullish(),
     participants: z.array(
       z.object({
