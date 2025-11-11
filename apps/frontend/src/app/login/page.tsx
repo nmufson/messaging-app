@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
 import { useTRPC } from '../../lib/trpc';
 import { useMutation } from '@tanstack/react-query';
+import router from 'next/router';
 
 const INITIAL_FORM_STATE = {
   email: '',
@@ -14,14 +15,19 @@ export default function LogIn() {
   const [logInForm, setLogInForm] = useState(INITIAL_FORM_STATE);
 
   const { mutate, isPending, error } = useMutation(
-    trpc.auth.login.mutationOptions()
+    trpc.auth.login.mutationOptions({
+      onSuccess: () => {
+        console.log('Logged in successfully!');
+        router.push('/chats');
+      },
+    })
   );
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setLogInForm({ ...logInForm, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     mutate(logInForm);
   };

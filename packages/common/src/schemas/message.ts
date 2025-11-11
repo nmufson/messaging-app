@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { DateTimeSchema, ObjectId } from './primitives';
 import { createDecipheriv } from 'crypto';
 import { create } from 'domain';
+import { ChatDTO, ChatType } from './chat';
 
 export const MessageType = z.enum(['TEXT', 'IMAGE']);
 export type MessageType = z.infer<typeof MessageType>;
@@ -26,16 +27,38 @@ export const MessageDTO = z.object({
 });
 export type MessageDTO = z.infer<typeof MessageDTO>;
 
-export const MessageSearchResultDTO = z.object({
-  id: ObjectId,
-  content: z.string(),
-  createdAt: DateTimeSchema,
-  updatedAt: DateTimeSchema.nullable(),
+export const MessageWithSenderDTO = MessageDTO.extend({
   sender: z.object({
     id: ObjectId,
     firstName: z.string(),
     lastName: z.string(),
     avatarUrl: z.string().nullable(),
+  }),
+});
+export type MessageWithSenderDTO = z.infer<typeof MessageWithSenderDTO>;
+
+export const MessageSearchResultDTO = z.object({
+  id: ObjectId,
+  type: MessageType,
+  content: z.string().nullish(),
+  imageUrl: z.string().nullish(),
+  createdAt: DateTimeSchema,
+  updatedAt: DateTimeSchema.nullish(),
+  sender: z.object({
+    id: ObjectId,
+    firstName: z.string(),
+    lastName: z.string(),
+    avatarUrl: z.string().nullish(),
+  }),
+  chat: z.object({
+    name: z.string().nullish(),
+    participants: z.array(
+      z.object({
+        id: ObjectId,
+        firstName: z.string(),
+        lastName: z.string(),
+      })
+    ),
   }),
 });
 export type MessageSearchResultDTO = z.infer<typeof MessageSearchResultDTO>;

@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
 import { useFriendRequest } from '@/hooks/friendRequest';
 import { useProfile } from '@/hooks/profile';
-import { formatDate } from '@/utils';
+import { formatDisplayDate } from '@/utils';
 import { ObjectId } from '@repo/common';
 
 export function ProfileContent({ profileId }: { profileId: ObjectId }) {
@@ -97,7 +97,7 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
     hasOutstandingFriendRequest,
   } = profile;
 
-  const formattedJoinDate = `Joined ${formatDate(createdAt)}`;
+  const formattedJoinDate = `Joined ${formatDisplayDate(createdAt)}`;
   let usersHeader;
   const displayName = `${firstName} ${lastName}`;
 

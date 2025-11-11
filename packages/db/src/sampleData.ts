@@ -1,5 +1,4 @@
 import { ChatType, MessageType, UserRole } from '@prisma/client';
-import { dir } from 'console';
 import { randomUUID } from 'crypto';
 
 const PROFILE_PIC_URL = 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp';
@@ -362,6 +361,20 @@ export const messagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    content: 'How are you doing today?',
+    senderId: profileIds.alice,
+    chatId: chatIds.ketchupStains,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'Did you see the game last night?',
+    senderId: profileIds.alice,
+    chatId: chatIds.ketchupStains,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
     content: 'Hey Alice! How are you?',
     senderId: profileIds.bob,
     chatId: chatIds.ketchupStains,
@@ -384,6 +397,13 @@ export const messagesData = [
     id: randomUUID(),
     type: MessageType.TEXT,
     content: 'Sandwich with way too much ketchup.',
+    senderId: profileIds.alice,
+    chatId: chatIds.ketchupStains,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'And a side of fries!',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
   },
@@ -428,6 +448,13 @@ export const messagesData = [
     id: randomUUID(),
     type: MessageType.TEXT,
     content: 'Hey Diana, did you finish the project?',
+    senderId: profileIds.charlie,
+    chatId: chatIds.coolestKats,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'I was working on it all night.',
     senderId: profileIds.charlie,
     chatId: chatIds.coolestKats,
   },
@@ -486,6 +513,20 @@ export const messagesData = [
     id: randomUUID(),
     type: MessageType.TEXT,
     content: 'Absolutely! Go team!',
+    senderId: profileIds.charlie,
+    chatId: chatIds.groupChat1,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'Let’s win this!',
+    senderId: profileIds.charlie,
+    chatId: chatIds.groupChat1,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'We got this!',
     senderId: profileIds.charlie,
     chatId: chatIds.groupChat1,
   },

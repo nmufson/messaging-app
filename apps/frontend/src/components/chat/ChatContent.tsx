@@ -3,11 +3,11 @@ import { SelectedProfile } from '@/app/chats/WriteToChatModal';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
 import { useChat } from '@/hooks/chat';
-import { formatDisplayDate, getChatName } from '@/utils';
+import { formatDisplayDate, getChatDisplayName } from '@/utils';
 import { ChatType, ObjectId } from '@repo/common';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 interface ChatContentProps {
   chatId: ObjectId | null;
@@ -39,7 +39,7 @@ export function ChatContent(props: ChatContentProps) {
     }
   }, [messagesEndRef, isLoading]);
 
-  const handleSubmitMessage = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmitMessage = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!profile) {
@@ -63,24 +63,22 @@ export function ChatContent(props: ChatContentProps) {
     console.log('Message sent successfully!');
   };
 
-  // TODO: find better way to handle this
-  const { name, participants, type, messages, creatorId, createdAt } =
-    useMemo(() => {
-      if (chat) return chat;
+  const participants = chat?.participants || [];
 
-      // potential chat to start
-      return {
-        name: null,
-        participants: profiles ?? [],
-        type: ChatType.enum.GROUP,
-        messages: [],
-        creatorId: null,
-        createdAt: null,
-      };
-    }, [chat, profiles]);
-  console.log(chat, 'heres the chat');
-  console.log(participants, 'heres the participants');
-  console.log(creatorId, 'heres the creator');
+  // TODO: find better way to handle this
+  const { name, messages, creatorId, createdAt } = useMemo(() => {
+    if (chat) return chat;
+
+    // potential chat to start
+    return {
+      name: null,
+      type: ChatType.enum.GROUP,
+      messages: [],
+      creatorId: null,
+      createdAt: null,
+    };
+  }, [chat]);
+
   const chatCreator = creatorId
     ? participants.find((participant) => participant.id === creatorId)
     : null;
@@ -88,9 +86,9 @@ export function ChatContent(props: ChatContentProps) {
     ? formatDisplayDate(createdAt, { withPreposition: true })
     : null;
 
-  const displayName = getChatName({
+  const displayName = getChatDisplayName({
     name,
-    participants,
+    participants: participants || profiles,
     profileId: profile?.id,
   });
 
@@ -110,13 +108,38 @@ export function ChatContent(props: ChatContentProps) {
         )}
         {messages &&
           messages.length > 0 &&
-          messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              isCurrentUser={profile?.id === message.senderId}
-            />
-          ))}
+          messages.map((message, i) => {
+            const sender = participants.find((p) => p.id === message.senderId);
+
+            if (!sender) {
+              console.error('Sender not found in chat participants', {
+                chat,
+                senderId: message.senderId,
+              });
+            }
+            const messageWithSender = {
+              ...message,
+              sender: sender || {
+                id: '',
+                firstName: 'Unknown',
+                lastName: '',
+                avatarUrl: null,
+              },
+            };
+
+            const shouldShowName =
+              messages[i - 1]?.senderId != message.senderId;
+            const shouldShowAvatar =
+              messages[i + 1]?.senderId != message.senderId;
+            return (
+              <MessageBubble
+                key={message.id}
+                message={messageWithSender}
+                showName={shouldShowName}
+                showAvatar={shouldShowAvatar}
+              />
+            );
+          })}
         <div ref={messagesEndRef} />
       </div>
       {/* TODO: extract this to component? */}

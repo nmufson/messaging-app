@@ -1,7 +1,11 @@
 import { ChatDTO } from '@repo/common';
 import * as R from 'remeda';
 import Link from 'next/link';
-import { formatDisplayDate, getChatName, slugify } from '@/utils/formatting';
+import {
+  formatDisplayDate,
+  getChatDisplayName,
+  slugify,
+} from '@/utils/formatting';
 import { useAuth } from '../../context/AuthContext';
 
 interface ChatPreviewProps {
@@ -21,7 +25,7 @@ export function ChatPreview({ chat }: ChatPreviewProps) {
   } = chat;
   const { profile } = useAuth();
   const lastMessage = messages.length ? messages[0] : null;
-  const displayName = getChatName({
+  const displayName = getChatDisplayName({
     name,
     participants,
     profileId: profile?.id,

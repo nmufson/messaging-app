@@ -1,14 +1,26 @@
+import { GroupPhoto } from '@/components/GroupPhoto';
+import { ProfileAvatar } from '@/components/ProfileAvatar';
+import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
 import { usePotentialChats } from '@/hooks/chat';
 import { useMessages } from '@/hooks/messages';
-import { getChatName } from '@/utils';
-import { ChatListDTO, ListProfileDTO, ObjectId } from '@repo/common';
-import { useState } from 'react';
-import * as R from 'remeda';
+import { formatDisplayDate, getChatDisplayName } from '@/utils';
+import {
+  ChatListDTO,
+  ListProfileDTO,
+  MessageDTO,
+  MessageSearchResultDTO,
+  ObjectId,
+} from '@repo/common';
+import { ChangeEvent, useState } from 'react';
 
 export function SearchModal() {
   const { closeModal } = useModalContext();
   const [searchInput, setSearchInput] = useState('');
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(e.target.value);
+  };
 
   const { profiles, groupChats } = usePotentialChats({
     searchInput: searchInput,
@@ -24,41 +36,82 @@ export function SearchModal() {
 
   return (
     <div>
-      <div>
-        {combinedList.length > 0 &&
-          combinedList.map((item) => {
-            const parsedProfile = ListProfileDTO.safeParse(item);
-            const parsedChat = ChatListDTO.safeParse(item);
-            if (parsedProfile.success) {
-              return (
-                <ProfileOrChatItem
-                  type="profile"
-                  profile={parsedProfile.data}
-                  key={item.id}
-                />
-              );
-            }
-            if (parsedChat.success) {
-              return (
-                <ProfileOrChatItem
-                  type="groupChat"
-                  groupChat={parsedChat.data}
-                  key={item.id}
-                />
-              );
-            }
-          })}
+      <div className="flex justify-between p-3">
+        <div className="border border-black">
+          <i className="bi bi-search" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <button className="border-none p-0" onClick={closeModal}>
+          Cancel
+        </button>
+      </div>
+      <div className="grid grid-cols-5 gap-3 max-h-[400px] overflow-y-auto">
+        {combinedList.slice(0, 10).map((item) => {
+          const parsedProfile = ListProfileDTO.safeParse(item);
+          const parsedChat = ChatListDTO.safeParse(item);
+          if (parsedProfile.success) {
+            return (
+              <ProfileOrChatItem
+                type="profile"
+                profile={parsedProfile.data}
+                key={item.id}
+              />
+            );
+          }
+          if (parsedChat.success) {
+            return (
+              <ProfileOrChatItem
+                type="groupChat"
+                groupChat={parsedChat.data}
+                key={item.id}
+              />
+            );
+          }
+        })}
       </div>
       <div>
-        <h5>Texts</h5>
-        <div></div>
+        <h5>Messages</h5>
+        <div>
+          {textMessages?.slice(0, 5).map((text) => (
+            <MessagePreview key={text.id} message={text} />
+          ))}
+        </div>
       </div>
       <div>
         <h5>Photos</h5>
-        <div></div>
+        <div>{/* TODO: put photo stuff here */}</div>
       </div>
+    </div>
+  );
+}
 
-      <div></div>
+function MessagePreview({ message }: { message: MessageSearchResultDTO }) {
+  const { profile } = useAuth();
+  const { content, sender, createdAt, chat } = message;
+  const { name: chatName, participants } = chat;
+  const { firstName, lastName } = sender;
+
+  const senderDisplayName = `${firstName} ${lastName}`;
+  const displayDate = formatDisplayDate(createdAt);
+
+  const chatDisplayName = getChatDisplayName({
+    name: chat.name || null,
+    participants: chat.participants || [],
+    profileId: profile?.id,
+    truncate: 50,
+  });
+
+  return (
+    <div>
+      {participants.length > 2 && <strong>{chatDisplayName}</strong>}
+      <div className="flex justify-between">
+        <small>{senderDisplayName}</small>
+        <small>{displayDate}</small>
+      </div>
     </div>
   );
 }
@@ -72,150 +125,23 @@ function ProfileOrChatItem(props: ChatResultItemProps) {
   const displayName =
     type === 'profile'
       ? `${props.profile.firstName} ${props.profile.lastName}`
-      : getChatName(props.groupChat);
+      : getChatDisplayName({ ...props.groupChat, truncate: 30 });
 
   return (
-    <div className="chat-result-item">
+    <div className="flex flex-col items-center text-center w-[50px] whitespace-normal">
       {type === 'profile' ? (
-        <Avatar
+        <ProfileAvatar
           firstName={props.profile.firstName}
           lastName={props.profile.lastName}
           avatarUrl={props.profile.avatarUrl}
         />
       ) : (
-        <GroupAvatar
+        <GroupPhoto
           groupPictureUrl={props.groupChat.groupPictureUrl}
           participants={props.groupChat.participants}
         />
       )}
       <span>{displayName}</span>
-    </div>
-  );
-}
-
-interface AvatarProps {
-  firstName: string;
-  lastName: string;
-  avatarUrl?: string | null;
-  className?: string;
-  size?: number;
-  rounded?: boolean;
-}
-
-export function Avatar(props: AvatarProps) {
-  const {
-    firstName,
-    lastName,
-    avatarUrl,
-    className = '',
-    size = 40,
-    rounded = true,
-  } = props;
-  const initials = R.toUpperCase(`${firstName[0]}${lastName[0]}`);
-  return avatarUrl ? (
-    <img
-      src={avatarUrl}
-      alt={`${firstName} ${lastName}`}
-      className={`${rounded ? 'rounded-full' : ''} ${className}`}
-      style={{ width: size, height: size }}
-    />
-  ) : (
-    <div
-      className={`flex items-center justify-center bg-gray-300 text-white font-bold ${rounded ? 'rounded-full' : ''} ${className}`}
-      style={{ width: size, height: size, fontSize: size / 2 }}
-    >
-      {initials}
-    </div>
-  );
-}
-
-const POSITIONS = [
-  // 2 participants
-  [
-    { x: 0.15, y: 0.15 },
-    { x: 0.55, y: 0.55 },
-  ],
-  // 3 participants...
-  [
-    { x: 0.5, y: 0.1 },
-    { x: 0.1, y: 0.6 },
-    { x: 0.7, y: 0.6 },
-  ],
-  [
-    { x: 0.1, y: 0.1 },
-    { x: 0.6, y: 0.1 },
-    { x: 0.1, y: 0.6 },
-    { x: 0.6, y: 0.6 },
-  ],
-  [
-    { x: 0.5, y: 0.05 },
-    { x: 0.1, y: 0.35 },
-    { x: 0.7, y: 0.35 },
-    { x: 0.25, y: 0.7 },
-    { x: 0.6, y: 0.7 },
-  ],
-];
-
-export interface GroupAvatarProps {
-  groupPictureUrl: string | null;
-  // TODO: change this?
-  participants: {
-    id: ObjectId;
-    firstName: string;
-    lastName: string;
-    avatarUrl?: string | null;
-  }[];
-  size?: number;
-  className?: string;
-}
-
-export function GroupAvatar(props: GroupAvatarProps) {
-  const { groupPictureUrl, participants, size = 48, className = '' } = props;
-
-  if (groupPictureUrl) {
-    return (
-      <img
-        src={groupPictureUrl}
-        alt="Group"
-        className={`rounded-full ${className}`}
-        style={{ width: size, height: size }}
-      />
-    );
-  }
-
-  // Show 2-5 participant avatars, arranged in a cluster
-  const displayParticipants = participants.slice(0, 5);
-  const count = displayParticipants.length;
-  const avatarSize = size / (count > 2 ? 1.5 : 1.2);
-
-  const pos = POSITIONS[count - 2] || POSITIONS[POSITIONS.length - 1];
-
-  return (
-    <div
-      className={`relative flex items-center justify-center ${className}`}
-      style={{ width: size, height: size }}
-    >
-      {displayParticipants.map((p, i) => (
-        <div
-          key={p.id}
-          className="absolute"
-          style={{
-            left: pos[i].x * size,
-            top: pos[i].y * size,
-            width: avatarSize,
-            height: avatarSize,
-            zIndex: count - i,
-          }}
-        >
-          <Avatar
-            firstName={p.firstName}
-            lastName={p.lastName}
-            avatarUrl={p.avatarUrl}
-            size={avatarSize}
-            rounded
-          />
-        </div>
-      ))}
     </div>
   );
 }

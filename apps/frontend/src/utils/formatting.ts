@@ -1,5 +1,6 @@
 import { DateTimeSchema, ObjectId } from '@repo/common';
 import { DateTime } from 'luxon';
+import * as R from 'remeda';
 
 export function formatDisplayDate(
   dt: DateTime,
@@ -41,14 +42,15 @@ interface ChatParticipant {
   avatarUrl?: string | null;
 }
 
-interface GetChatNameParams {
+interface GetChatDisplayNameParams {
   name: string | null;
   participants: ChatParticipant[];
   profileId?: ObjectId;
+  truncate?: number;
 }
 
-export function getChatName(params: GetChatNameParams): string {
-  const { name, participants, profileId } = params;
+export function getChatDisplayName(params: GetChatDisplayNameParams): string {
+  const { name, participants, profileId, truncate } = params;
 
   // group chat with name
   if (name) {
@@ -59,7 +61,24 @@ export function getChatName(params: GetChatNameParams): string {
     .filter((p) => p.id !== profileId)
     .map((p) => `${p.firstName} ${p.lastName}`);
 
-  return participantNames.join(', ');
+  const joined = participantNames.join(', ');
+
+  if (truncate) {
+    return R.truncate(joined, truncate);
+  }
+  return joined;
+}
+
+interface GetProfileDisplayNameParams {
+  firstName: string;
+  lastName: string;
+}
+
+export function getProfileDisplayName({
+  firstName,
+  lastName,
+}: GetProfileDisplayNameParams): string {
+  return `${firstName} ${lastName}`;
 }
 
 export function toDateTime(date: unknown): DateTime | null {

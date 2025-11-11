@@ -61,6 +61,18 @@ export const getMatchingTextMessages = async (
           avatarUrl: true,
         },
       },
+      chat: {
+        select: {
+          name: true,
+          participants: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
     },
     orderBy: {
       createdAt: 'desc',

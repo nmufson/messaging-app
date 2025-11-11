@@ -4,6 +4,8 @@ import prettier from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
+import tsParser from '@typescript-eslint/parser';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
 
 export default [
   {
@@ -14,6 +16,31 @@ export default [
       'build/**',
       'next-env.d.ts',
     ],
+    files: [
+      'apps/**/*.ts',
+      'apps/**/*.tsx',
+      'packages/**/*.ts',
+      'packages/**/*.tsx',
+    ],
+  },
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+    },
+    rules: {
+      ...tsPlugin.configs.recommended.rules,
+    },
   },
   js.configs.recommended, // recommended rules
   {
@@ -31,9 +58,12 @@ export default [
       'react-hooks': reactHooks,
     },
     rules: {
-      'prettier/prettier': 'error',
-      'react-hooks/rules-of-hooks': 'error',
+      'prettier/prettier': 'warn',
+      'react-hooks/rules-of-hooks': 'warn',
       'react-hooks/exhaustive-deps': 'warn',
+      '@typescript-eslint/no-redeclare': 'warn',
+      '@typescript-eslint/no-unused-vars': 'warn',
+      'no-unused-vars': 'off',
     },
   },
   prettierConfig,

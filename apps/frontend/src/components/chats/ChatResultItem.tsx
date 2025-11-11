@@ -1,5 +1,5 @@
 import { useAuth } from '@/context/AuthContext';
-import { getChatName } from '@/utils';
+import { getChatDisplayName } from '@/utils';
 import { ChatListDTO, ListProfileDTO, ObjectId } from '@repo/common';
 import { Dispatch, SetStateAction, useState, MouseEvent } from 'react';
 import { ChatProfileItem } from './ChatProfileItem';
@@ -16,7 +16,7 @@ export function ChatResultItem(props: GroupChatResultItemProps) {
   const { profile } = useAuth();
   const { name, groupPictureUrl, participants, id: chatId } = chat;
 
-  const chatDisplayName = getChatName({
+  const chatDisplayName = getChatDisplayName({
     name,
     participants,
     profileId: profile?.id,
