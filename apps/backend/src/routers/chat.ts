@@ -197,11 +197,10 @@ export const chatRouter = router({
           message: 'Profile not found',
         });
       }
-      console.log(profile.chats);
+
       const validatedChats: ChatDTO[] = profile.chats.map((chat) =>
         ChatDTO.parse(chat)
       );
-      // console.log(validatedChats[0].createdAt.isValid);
 
       return validatedChats;
     }),

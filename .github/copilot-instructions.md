@@ -7,3 +7,5 @@ const CoolComponent = (props: CoolComponentProps) => {
 const {profile, name, user} = props;
 ...
 };
+
+**Rule:** Before implementing any non-trivial feature or making significant changes, present a detailed plan to the user for approval.

@@ -11,7 +11,9 @@ import './middleware/auth';
 import { createContext } from './trpc';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
 import { WebSocketServer } from 'ws';
-import { createWSSContext } from './trpc/context';
+import { createWSSContext, authenticateWebSocketRequest } from './trpc/context';
+import { connectionManager } from './lib/connectionManager';
+import { randomUUID } from 'crypto';
 
 dotenv.config();
 
@@ -75,10 +77,30 @@ const handler = applyWSSHandler({
   },
 });
 
-wss.on('connection', (ws) => {
+wss.on('connection', async (ws, req) => {
   console.log(`➕➕ Connection (${wss.clients.size})`);
+
+  const connectionId = randomUUID();
+
+  try {
+    const user = await authenticateWebSocketRequest(req);
+    const profileId = user?.profile?.id;
+
+    if (profileId) {
+      connectionManager.addConnection(connectionId, ws, profileId);
+      console.log(
+        `Profile ${profileId} connected with connection ${connectionId}`
+      );
+    } else {
+      console.log('Anonymous connection (no authenticated user)');
+    }
+  } catch (error) {
+    console.error('Error authenticating WebSocket connection:', error);
+  }
+
   ws.once('close', () => {
     console.log(`➖➖ Connection (${wss.clients.size})`);
+    // Connection cleanup handled by connectionManager
   });
 });
 

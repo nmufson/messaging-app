@@ -13,6 +13,51 @@ const SESSION_SECRET = 'secret keyyy'; // must match your express-session secret
 
 type UserWithProfile = User & { profile: { id: ObjectId } | null };
 
+export async function authenticateWebSocketRequest(
+  req: IncomingMessage
+): Promise<UserWithProfile | null> {
+  let user: User | null = null;
+
+  try {
+    const cookies = parseCookie(req.headers.cookie || '');
+    const sessionIdRaw = cookies[SESSION_COOKIE_NAME];
+
+    if (sessionIdRaw) {
+      // Unsigned session ID (remove 's:' prefix if present)
+      const sessionId = sessionIdRaw.startsWith('s:')
+        ? require('cookie-signature').unsign(
+            sessionIdRaw.slice(2),
+            SESSION_SECRET
+          )
+        : sessionIdRaw;
+
+      if (sessionId) {
+        const session = await prisma.session.findUnique({
+          where: { id: sessionId },
+        });
+
+        if (session && session.data) {
+          // Parse session data and get userId
+          const sessionData = JSON.parse(session.data);
+          const userId = sessionData.passport?.user;
+          if (userId) {
+            const userWithProfile = await prisma.user.findUnique({
+              where: { id: userId },
+              include: { profile: { select: { id: true } } },
+            });
+
+            user = userWithProfile;
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('WS auth error:', err);
+  }
+
+  return user as UserWithProfile;
+}
+
 interface BaseContext {
   user?: UserWithProfile;
   prisma: typeof prisma;
@@ -45,48 +90,11 @@ export function createContext({
 export async function createWSSContext({
   req,
 }: CreateWSSContextFnOptions): Promise<WSContext> {
-  let user: User | null = null;
-
-  try {
-    const cookies = parseCookie(req.headers.cookie || '');
-    const sessionIdRaw = cookies[SESSION_COOKIE_NAME];
-
-    if (sessionIdRaw) {
-      // Unsigned session ID (remove 's:' prefix if present)
-      const sessionId = sessionIdRaw.startsWith('s:')
-        ? require('cookie-signature').unsign(
-            sessionIdRaw.slice(2),
-            SESSION_SECRET
-          )
-        : sessionIdRaw;
-
-      if (sessionId) {
-        const session = await prisma.session.findUnique({
-          where: { id: sessionId },
-        });
-
-        if (session && session.data) {
-          // 4. Parse session data and get userId
-          const sessionData = JSON.parse(session.data);
-          const userId = sessionData.passport?.user;
-          if (userId) {
-            const userWithProfile = await prisma.user.findUnique({
-              where: { id: userId },
-              include: { profile: { select: { id: true } } },
-            });
-
-            user = userWithProfile;
-          }
-        }
-      }
-    }
-  } catch (err) {
-    console.error('WS auth error:', err);
-  }
+  const user = await authenticateWebSocketRequest(req);
 
   return {
     req,
-    user: user as UserWithProfile,
+    user: user || undefined,
     prisma,
   };
 }

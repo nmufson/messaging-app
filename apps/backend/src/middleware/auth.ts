@@ -1,6 +1,6 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
-import { getUserByEmail, getUserById } from '../services/user';
+import { getUserByEmail } from '../services/user';
 import { verifyPassword } from '../services/hash';
 import { prisma } from '@repo/db';
 

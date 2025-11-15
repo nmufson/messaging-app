@@ -13,3 +13,9 @@ export const DateTimeSchema = z
   .union([dateTime, dateToDateTime, stringToDateTime])
   .pipe(dateTime);
 export type DateTimeSchema = z.infer<typeof DateTimeSchema>;
+
+export const DurationUnit = z.enum(['seconds', 'minutes', 'hours', 'days']);
+export type DurationUnit = z.infer<typeof DurationUnit>;
+
+export const DurationObject = z.record(DurationUnit, z.number().min(0));
+export type DurationObject = z.infer<typeof DurationObject>;

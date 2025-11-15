@@ -7,6 +7,7 @@ import { userRouter } from '../routers/user';
 import { router } from '.';
 import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import { profileRouter } from '../routers/profile';
+import { onlinePresenceRouter } from '@/routers/onlinePresence';
 
 export const appRouter = router({
   auth: authRouter,
@@ -16,6 +17,7 @@ export const appRouter = router({
   friendRequest: friendRequestRouter,
   message: messageRouter,
   profile: profileRouter,
+  onlinePresence: onlinePresenceRouter,
 
   image: imageRouter,
 });

@@ -36,6 +36,8 @@ model Profile {
   avatarUrl                   String?
   headerUrl                   String?
   bio                         String?
+  isOnline                    Boolean           @default(false)
+  lastOnline                  DateTime?
 
   friends                     Profile[]            @relation("UserFriends")
   friendOf                    Profile[]            @relation("UserFriends")

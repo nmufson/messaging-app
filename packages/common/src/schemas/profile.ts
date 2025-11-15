@@ -45,3 +45,9 @@ export const ListProfileDTO = z.object({
   avatarUrl: z.string().nullable(),
 });
 export type ListProfileDTO = z.infer<typeof ListProfileDTO>;
+
+export const ListProfileWithPresenceDTO = z.object({
+  ...ListProfileDTO.shape,
+  isOnline: z.boolean(),
+  lastOnline: DateTimeSchema.nullable(),
+});
