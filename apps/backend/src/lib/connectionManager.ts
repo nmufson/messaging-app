@@ -76,13 +76,13 @@ class ConnectionManager {
 
   private async setProfileOnline(profileId: ObjectId, isOnline: boolean) {
     try {
-      const newLastOnline = isOnline ? undefined : new Date();
+      const newLastOnline = isOnline ? null : DateTime.now();
 
       await prisma.profile.update({
         where: { id: profileId },
         data: {
           isOnline,
-          lastOnline: newLastOnline,
+          lastOnline: newLastOnline?.toJSDate() ?? null,
         },
       });
 
@@ -99,6 +99,7 @@ class ConnectionManager {
       if (profileWithFriends) {
         // Notify friends about presence change
         profileWithFriends.friends.forEach((friend) => {
+          logger.info({ friendId: friend.id }, 'emitting the event');
           eventEmitter.emit(`presenceUpdate:${friend.id}`, {
             profileId,
             isOnline,

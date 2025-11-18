@@ -8,6 +8,7 @@ import { router } from '.';
 import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import { profileRouter } from '../routers/profile';
 import { onlinePresenceRouter } from '@/routers/onlinePresence';
+import { debugRouter } from './debugRouter';
 
 export const appRouter = router({
   auth: authRouter,
@@ -20,6 +21,8 @@ export const appRouter = router({
   onlinePresence: onlinePresenceRouter,
 
   image: imageRouter,
+
+  debug: debugRouter,
 });
 
 export type AppRouter = typeof appRouter;

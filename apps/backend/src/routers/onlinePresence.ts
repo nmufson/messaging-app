@@ -1,14 +1,22 @@
-import { TRPCError } from '@trpc/server';
+import { tracked, TRPCError } from '@trpc/server';
 import { router, userProcedure } from '../trpc';
-import { DurationObject, ObjectId, z } from '@repo/common';
+import {
+  DurationObject,
+  ListProfileWithPresenceDTO,
+  ObjectId,
+  PresenceUpdate,
+  z,
+} from '@repo/common';
 import { DateTime } from 'luxon';
 import { eventEmitter } from '@/lib/eventBus';
 import { on } from 'events';
+import { logger } from '@/lib/pino';
 
 export const onlinePresenceRouter = router({
   // friends who are online or recently online
   getFriendsPresence: userProcedure
     .input(z.object({ withinLast: DurationObject.optional() }))
+    .output(ListProfileWithPresenceDTO.array())
     .query(async ({ ctx, input }) => {
       const withinLast = input.withinLast || { hours: 1 };
       const { user, prisma } = ctx;
@@ -64,7 +72,12 @@ export const onlinePresenceRouter = router({
       `presenceUpdate:${userProfileId}`,
       { signal }
     )) {
-      yield presenceUpdate;
+      logger.info({ presenceUpdate }, 'emitting the event from endpoint');
+      const parsedUpdate = PresenceUpdate.safeParse(presenceUpdate);
+      if (parsedUpdate.success) {
+        logger.info({ parsedUpdate }, 'parsed successfully, yielding');
+        yield tracked(parsedUpdate.data.profileId, parsedUpdate.data);
+      }
     }
   }),
 
