@@ -54,8 +54,7 @@ export const onlinePresenceRouter = router({
 
       return friendsWithPresence;
     }),
-
-  // Subscription: Real-time presence updates
+  // real-time presence updates
   onPresenceChange: userProcedure.subscription(async function* ({
     ctx,
     signal,
@@ -72,7 +71,6 @@ export const onlinePresenceRouter = router({
       `presenceUpdate:${userProfileId}`,
       { signal }
     )) {
-      logger.info({ presenceUpdate }, 'emitting the event from endpoint');
       const parsedUpdate = PresenceUpdate.safeParse(presenceUpdate);
       if (parsedUpdate.success) {
         logger.info({ parsedUpdate }, 'parsed successfully, yielding');

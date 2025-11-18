@@ -99,7 +99,10 @@ class ConnectionManager {
       if (profileWithFriends) {
         // Notify friends about presence change
         profileWithFriends.friends.forEach((friend) => {
-          logger.info({ friendId: friend.id }, 'emitting the event');
+          logger.info(
+            { friendId: friend.id },
+            'Emitting presence update event'
+          );
           eventEmitter.emit(`presenceUpdate:${friend.id}`, {
             profileId,
             isOnline,

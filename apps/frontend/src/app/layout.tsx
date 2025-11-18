@@ -8,7 +8,7 @@ import {
   wsLink,
 } from '@trpc/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { AppRouter, TRPCProvider } from '../lib/trpc';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { superjson } from '@repo/common';
@@ -44,11 +44,7 @@ const wsClient = createWSClient({
   url: 'ws://localhost:3001/trpc',
 });
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   const queryClient = getQueryClient();
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({

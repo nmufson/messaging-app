@@ -7,6 +7,7 @@ import { skipToken, useQuery } from '@tanstack/react-query';
 import { DEFAULT_PROFILE_IMAGE } from '@/constants';
 import { useParams } from 'next/navigation';
 import { ProfilePreview } from '@/components/profile/ProfilePreview';
+import { useFriends } from '@/hooks/profile';
 
 export default function FriendsList() {
   const trpc = useTRPC();
@@ -14,13 +15,7 @@ export default function FriendsList() {
   const slug = params.slug as string;
   const profileId = extractUUIDFromSlug(slug);
 
-  const {
-    data: friends,
-    isLoading,
-    error,
-  } = useQuery(
-    trpc.profile.friends.queryOptions(profileId ? { profileId } : skipToken)
-  );
+  const { friends, isLoading, error } = useFriends(profileId);
 
   if (isLoading) {
     return <div>Loading chat...</div>;

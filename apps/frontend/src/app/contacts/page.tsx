@@ -1,11 +1,15 @@
 'use client';
 
-import { useOnlinePresence } from '@/hooks/profile';
+import { useAuth } from '@/context/AuthContext';
+import { useFriends, useOnlinePresence } from '@/hooks/profile';
 
 export default function Contacts() {
-  // TODO: add friends list
+  const { profile } = useAuth();
+
   const { friendsWithPresence, isLoading: isPresenceLoading } =
     useOnlinePresence();
+
+  const { friends, isLoading, error } = useFriends(profile?.id ?? null);
 
   return <div></div>;
 }

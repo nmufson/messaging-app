@@ -110,7 +110,7 @@ export const profileRouter = router({
     }),
   friends: userProcedure
     .input(z.object({ profileId: ObjectId }))
-    .output(z.array(ListProfileDTO))
+    .output(ListProfileDTO.array())
     .query(async ({ input, ctx }) => {
       const { profileId } = input;
 

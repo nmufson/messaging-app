@@ -1,13 +1,12 @@
 import { useTRPC } from '@/lib/trpc';
-import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   DurationObject,
   ListProfileWithPresenceDTO,
   ObjectId,
   PresenceUpdate,
 } from '@repo/common';
+import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSubscription } from '@trpc/tanstack-react-query';
-import type { RouterOutputs } from '@/lib/trpc';
 
 export const useProfile = (profileId: ObjectId | null) => {
   const trpc = useTRPC();
@@ -42,11 +41,7 @@ export function useOnlinePresence(options?: OnlinePresenceOptions) {
   const friendsPresenceQueryOptions =
     trpc.onlinePresence.getFriendsPresence.queryOptions({ withinLast });
 
-  const {
-    data: friendsWithPresence,
-    isLoading,
-    error,
-  } = useQuery(friendsPresenceQueryOptions);
+  const { data, isLoading, error } = useQuery(friendsPresenceQueryOptions);
 
   const { status, error: subscriptionError } = useSubscription(
     trpc.onlinePresence.onPresenceChange.subscriptionOptions(undefined, {
@@ -74,10 +69,28 @@ export function useOnlinePresence(options?: OnlinePresenceOptions) {
   );
 
   return {
-    friendsWithPresence,
+    friendsWithPresence: data,
     isLoading,
     error,
     subscriptionStatus: status,
     subscriptionError,
+  };
+}
+
+export function useFriends(profileId: ObjectId | null) {
+  const trpc = useTRPC();
+
+  const {
+    data: friends,
+    isLoading,
+    error,
+  } = useQuery(
+    trpc.profile.friends.queryOptions(profileId ? { profileId } : skipToken)
+  );
+
+  return {
+    friends,
+    isLoading,
+    error,
   };
 }
