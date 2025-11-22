@@ -185,6 +185,8 @@ export const getChat = async (
           firstName: true,
           lastName: true,
           avatarUrl: true,
+          isOnline: true,
+          lastOnline: true,
         },
       },
     },

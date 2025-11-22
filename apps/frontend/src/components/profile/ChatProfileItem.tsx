@@ -29,14 +29,8 @@ export function ChatProfileItem(props: ChatProfileItemProps) {
   const handleOpenProfileModal = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     launchModal(
-      <FullscreenModal>
-        <div className="flex flex-col">
-          <div onClick={closeModal} className="flex items-center gap-2 p-4">
-            <i className="bi bi-caret-left-fill text-xl" />
-            <p className="font-semibold text-lg">New Message</p>
-          </div>
-          <ProfileContent profileId={profile.id} />
-        </div>
+      <FullscreenModal title="New Message">
+        <ProfileContent profileId={profile.id} />
       </FullscreenModal>
     );
   };

@@ -137,4 +137,24 @@ export const profileRouter = router({
 
       return profile.friends;
     }),
+  nonFriends: userProcedure
+    .input(z.object({ searchInput: z.string().optional() }))
+    .output(ListProfileDTO.array())
+    .query(async ({ input, ctx }) => {
+      const { searchInput } = input;
+      const { user } = ctx;
+      const profileId = user.profile.id;
+
+      const profiles = await ctx.prisma.profile.findMany({
+        where: {
+          id: { not: profileId },
+          OR: [
+            { firstName: { contains: searchInput, mode: 'insensitive' } },
+            { lastName: { contains: searchInput, mode: 'insensitive' } },
+          ],
+        },
+      });
+
+      return profiles;
+    }),
 });

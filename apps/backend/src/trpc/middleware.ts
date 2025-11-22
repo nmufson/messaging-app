@@ -1,13 +1,14 @@
 import { TRPCError } from '@trpc/server';
 import { t } from './init';
 import { User } from '@repo/db';
+import { UserWithProfile } from './context';
 
 export const isAuthed = t.middleware<{ ctx: { user: User } }>(
   ({ ctx, next }) => {
-    if (!ctx.user) {
+    if (!ctx.user || !ctx.user.profile) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
-    return next({ ctx: { ...ctx, user: ctx.user } });
+    return next({ ctx: { ...ctx, user: ctx.user as UserWithProfile } });
   }
 );
 

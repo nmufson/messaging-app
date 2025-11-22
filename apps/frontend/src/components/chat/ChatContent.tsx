@@ -1,13 +1,20 @@
 import { MessageBubble } from '@/app/chat/[slug]/MessageBubble';
 import { SelectedProfile } from '@/app/chats/WriteToChatModal';
 import { useAuth } from '@/context/AuthContext';
-import { useModalContext } from '@/context/ModalContext';
 import { useChat } from '@/hooks/chat';
 import { formatDisplayDate, getChatDisplayName } from '@/utils';
 import { ChatType, ObjectId } from '@repo/common';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { Spinner } from 'react-bootstrap';
+import * as R from 'remeda';
+import { FullscreenModal } from '../modal/FullscreenModal';
+import { useModalContext } from '@/context/ModalContext';
+import { ProfileContent } from '@/app/profile/profileContent';
+import { GroupPhoto } from '../GroupPhoto';
+import { ProfileAvatar } from '../ProfileAvatar';
+import { GroupChatInfo } from './GroupChatInfo';
 
 interface ChatContentProps {
   chatId: ObjectId | null;
@@ -20,9 +27,11 @@ export function ChatContent(props: ChatContentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageToViewRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { launchModal } = useModalContext();
 
   const { chatId, messageToView, profiles, inModalView } = props;
   const { profile } = useAuth();
+  const loggedInProfileId = profile?.id;
   const [textInput, setTextInput] = useState('');
   const [imageUrlInput, setImageUrlInput] = useState('');
 
@@ -31,7 +40,7 @@ export function ChatContent(props: ChatContentProps) {
     useChat({
       chatId,
       profileIds,
-      senderProfileId: profile?.id,
+      senderProfileId: loggedInProfileId,
     });
 
   useEffect(() => {
@@ -70,8 +79,8 @@ export function ChatContent(props: ChatContentProps) {
 
   const participants = chat?.participants || [];
 
-  // TODO: find better way to handle this
-  const { name, messages, creatorId, createdAt } = useMemo(() => {
+  // TODO: find better way to handle this??
+  const { name, messages, type, creatorId, createdAt } = useMemo(() => {
     if (chat) return chat;
 
     // potential chat to start
@@ -85,7 +94,7 @@ export function ChatContent(props: ChatContentProps) {
   }, [chat]);
 
   const chatCreator = creatorId
-    ? participants.find((participant) => participant.id === creatorId)
+    ? participants.find((p) => p.id === creatorId)
     : null;
   const createdAtDisplay = createdAt
     ? formatDisplayDate(createdAt, { withPreposition: true })
@@ -94,18 +103,73 @@ export function ChatContent(props: ChatContentProps) {
   const displayName = getChatDisplayName({
     name,
     participants: participants || profiles,
-    profileId: profile?.id,
+    profileId: loggedInProfileId,
   });
 
+  const numParticipantsOnline = participants.filter(
+    (p) => p.isOnline && p.id !== loggedInProfileId
+  ).length;
+  const isAnyOnline = R.isTruthy(numParticipantsOnline);
+
+  const otherProfile =
+    type === 'DIRECT'
+      ? participants.find((p) => p.id !== loggedInProfileId)
+      : null;
+
+  const handleInfoClick = () => {
+    if (type === 'GROUP') {
+      if (!chat) return;
+      launchModal(
+        <FullscreenModal title="Group Info">
+          <GroupChatInfo chat={chat} />
+        </FullscreenModal>
+      );
+    } else if (type === 'DIRECT') {
+      if (!otherProfile) {
+        console.error('Profile not found');
+        return;
+      }
+      launchModal(
+        <FullscreenModal title="Chat">
+          <ProfileContent profileId={otherProfile.id} />
+        </FullscreenModal>
+      );
+    }
+  };
+
+  if (isLoading) return <Spinner />;
+  console.log(type);
   return (
     <div className="flex flex-col h-screen">
-      <div className="header-container p-4 border-b bg-gray-50 flex justify-between items-center flex-shrink-0">
-        <Link href="/chats">
+      <div className="header-container pt-2 pb-1 pb-0 px-4 border-b bg-gray-50 flex justify-between items-center flex-shrink-0">
+        <Link href="/chats" className="no-underline text-inherit">
           <i className="bi bi-caret-left-fill text-3xl" />
         </Link>
-        <h1 className="text-xl font-semibold">{displayName}</h1>
+        <div className="flex flex-col items-center">
+          {type === 'GROUP' ? (
+            <GroupPhoto
+              groupPictureUrl={chat?.groupPictureUrl || null}
+              participants={participants}
+            />
+          ) : (
+            otherProfile && (
+              <ProfileAvatar
+                firstName={otherProfile.firstName}
+                lastName={otherProfile.lastName}
+                avatarUrl={otherProfile.avatarUrl}
+              />
+            )
+          )}
+          <h1 className="text-xl font-semibold">{displayName}</h1>
+          {isAnyOnline && (
+            <div className="flex items-center -mt-2">
+              <i className="bi bi-dot text-4xl text-green-900"></i>
+              <span>{type === 'GROUP' && numParticipantsOnline} Online</span>
+            </div>
+          )}
+        </div>
         {/* have this button go to user profile if its direct chat, if group go to group info */}
-        <i className="bi bi-info-circle text-2xl" />
+        <i className="bi bi-info-circle text-2xl" onClick={handleInfoClick} />
       </div>
       <div className="messages-container flex-1 overflow-y-auto py-4">
         {chatCreator && (

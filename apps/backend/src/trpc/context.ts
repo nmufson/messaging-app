@@ -11,7 +11,7 @@ import { ObjectId } from '@repo/common';
 const SESSION_COOKIE_NAME = 'connect.sid'; // default for express-session
 const SESSION_SECRET = 'secret keyyy'; // must match your express-session secret
 
-type UserWithProfile = User & { profile: { id: ObjectId } | null };
+export type UserWithProfile = User & { profile: { id: ObjectId } | null };
 
 export async function authenticateWebSocketRequest(
   req: IncomingMessage
