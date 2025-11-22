@@ -43,17 +43,10 @@ export const ListProfileDTO = z.object({
   firstName: z.string(),
   lastName: z.string(),
   avatarUrl: z.string().nullable(),
-});
-export type ListProfileDTO = z.infer<typeof ListProfileDTO>;
-
-export const ListProfileWithPresenceDTO = z.object({
-  ...ListProfileDTO.shape,
-  isOnline: z.boolean(),
+  isOnline: z.boolean().nullish(),
   lastOnline: DateTimeSchema.nullish(),
 });
-export type ListProfileWithPresenceDTO = z.infer<
-  typeof ListProfileWithPresenceDTO
->;
+export type ListProfileDTO = z.infer<typeof ListProfileDTO>;
 
 export const PresenceUpdate = z.object({
   profileId: ObjectId,

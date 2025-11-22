@@ -8,7 +8,7 @@ import MainHeader from '@/components/mainHeader/mainHeader';
 
 export default function Chats() {
   const { chats, isLoading, error } = useChatList();
-  const { friendsWithPresence, isLoading: isPresenceLoading } =
+  const { activeFriends: friendsWithPresence, isLoading: isPresenceLoading } =
     useOnlinePresence();
 
   const numFriendsOnline =
@@ -20,7 +20,7 @@ export default function Chats() {
 
   return (
     <div className="bg-blue-500 flex flex-col">
-      {/* <MainHeader numFriendsOnline={numFriendsOnline} /> */}
+      <MainHeader numFriendsOnline={numFriendsOnline} />
       <MessageSearchBar />
       <div>
         {chats &&

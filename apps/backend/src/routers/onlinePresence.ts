@@ -2,7 +2,7 @@ import { tracked, TRPCError } from '@trpc/server';
 import { router, userProcedure } from '../trpc';
 import {
   DurationObject,
-  ListProfileWithPresenceDTO,
+  ListProfileDTO,
   ObjectId,
   PresenceUpdate,
   z,
@@ -16,7 +16,7 @@ export const onlinePresenceRouter = router({
   // friends who are online or recently online
   getFriendsPresence: userProcedure
     .input(z.object({ withinLast: DurationObject.optional() }))
-    .output(ListProfileWithPresenceDTO.array())
+    .output(ListProfileDTO.array())
     .query(async ({ ctx, input }) => {
       const withinLast = input.withinLast || { hours: 1 };
       const { user, prisma } = ctx;
@@ -74,7 +74,7 @@ export const onlinePresenceRouter = router({
       const parsedUpdate = PresenceUpdate.safeParse(presenceUpdate);
       if (parsedUpdate.success) {
         logger.info({ parsedUpdate }, 'parsed successfully, yielding');
-        yield tracked(parsedUpdate.data.profileId, parsedUpdate.data);
+        yield parsedUpdate.data;
       }
     }
   }),

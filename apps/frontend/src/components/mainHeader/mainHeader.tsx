@@ -1,4 +1,9 @@
-export default function MainHeader(numFriendsOnline: number) {
+interface MainHeaderProps {
+  numFriendsOnline: number;
+}
+export default function MainHeader(props: MainHeaderProps) {
+  const { numFriendsOnline } = props;
+
   return (
     <div className="flex items-center justify-between p-4">
       <h1 className="text-2xl font-bold">Chats</h1>

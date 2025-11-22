@@ -33,7 +33,11 @@ export function ProfilePreview(props: ProfilePreviewProps) {
   );
 
   if (asLink) {
-    return <Link href={asLink}>{content}</Link>;
+    return (
+      <Link href={asLink} className="no-underline text-inherit">
+        {content}
+      </Link>
+    );
   }
   return content;
 }

@@ -2,8 +2,9 @@
 
 import { ChatContent } from '@/components/chat/ChatContent';
 import { ChatResultItem } from '@/components/chats/ChatResultItem';
-import { ProfileResultItem } from '@/components/chats/ProfileResultItem';
+
 import { SelectedProfilesInput } from '@/components/chats/SelectedProfilesInput';
+import { ProfileResultItem } from '@/components/profile/ProfileResultItem';
 import { useModalContext } from '@/context/ModalContext';
 import { usePotentialChats } from '@/hooks/chat';
 import { ListProfileDTO, ObjectId } from '@repo/common';

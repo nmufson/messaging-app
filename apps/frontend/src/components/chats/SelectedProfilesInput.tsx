@@ -1,6 +1,6 @@
 import { ObjectId } from '@repo/common';
 import { SelectedProfile } from '@/app/chats/WriteToChatModal';
-import { useEffect, useRef } from 'react';
+import { ChangeEvent, useEffect, useRef } from 'react';
 
 interface SelectedProfilesInputProps {
   selectedProfiles: SelectedProfile[];
@@ -22,13 +22,13 @@ export function SelectedProfilesInput(props: SelectedProfilesInputProps) {
   } = props;
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function handleChangeSearch(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChangeSearch(e: ChangeEvent<HTMLInputElement>) {
     setSearchNameInput(e.target.value);
     if (highlightedProfileId) setHighlightedProfileId(null);
   }
 
   const handleProfileItemKeyDown = (
-    e: React.KeyboardEvent<HTMLSpanElement>,
+    e: KeyboardEvent<HTMLSpanElement>,
     profile: SelectedProfile
   ) => {
     e.preventDefault();

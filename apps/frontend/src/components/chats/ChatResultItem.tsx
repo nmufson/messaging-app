@@ -2,7 +2,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getChatDisplayName } from '@/utils';
 import { ChatListDTO, ListProfileDTO, ObjectId } from '@repo/common';
 import { Dispatch, SetStateAction, useState, MouseEvent } from 'react';
-import { ChatProfileItem } from './ChatProfileItem';
+import { ChatProfileItem } from '../profile/ChatProfileItem';
 
 interface GroupChatResultItemProps {
   chat: ChatListDTO;

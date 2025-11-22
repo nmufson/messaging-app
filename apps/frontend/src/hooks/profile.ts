@@ -41,35 +41,34 @@ export function useOnlinePresence(options?: OnlinePresenceOptions) {
   const friendsPresenceQueryOptions =
     trpc.onlinePresence.getFriendsPresence.queryOptions({ withinLast });
 
-  const { data, isLoading, error } = useQuery(friendsPresenceQueryOptions);
+  const { data, isLoading, error } = useQuery(
+    trpc.onlinePresence.getFriendsPresence.queryOptions({ withinLast })
+  );
 
   const { status, error: subscriptionError } = useSubscription(
     trpc.onlinePresence.onPresenceChange.subscriptionOptions(undefined, {
-      onData(presenceUpdate: PresenceUpdate) {
+      onData(presenceUpdate) {
         console.log('Received presence update:', presenceUpdate);
 
-        queryClient.setQueryData(
-          friendsPresenceQueryKey,
-          (oldData: ListProfileWithPresenceDTO[] | undefined) => {
-            if (!oldData) return oldData;
+        queryClient.setQueryData(friendsPresenceQueryKey, (oldData) => {
+          if (!oldData) return oldData;
 
-            return oldData.map((friend) =>
-              friend.id === presenceUpdate.profileId
-                ? {
-                    ...friend,
-                    isOnline: presenceUpdate.isOnline,
-                    lastOnline: presenceUpdate.lastOnline,
-                  }
-                : friend
-            );
-          }
-        );
+          return oldData.map((friend) =>
+            friend.id === presenceUpdate.profileId
+              ? {
+                  ...friend,
+                  isOnline: presenceUpdate.isOnline,
+                  lastOnline: presenceUpdate.lastOnline,
+                }
+              : friend
+          );
+        });
       },
     })
   );
 
   return {
-    friendsWithPresence: data,
+    activeFriends: data,
     isLoading,
     error,
     subscriptionStatus: status,

@@ -84,3 +84,61 @@ export function getProfileDisplayName({
 export function toDateTime(date: unknown): DateTime | null {
   return DateTimeSchema.parse(date);
 }
+
+interface GetOnlineStatusParams {
+  isOnline?: boolean | null;
+  lastOnline?: DateTimeSchema | null;
+}
+
+interface OnlineStatus {
+  color: string;
+  message: string | null;
+}
+
+export function getOnlineStatus(params: GetOnlineStatusParams): OnlineStatus {
+  const { isOnline, lastOnline } = params;
+
+  if (isOnline) {
+    return {
+      color: 'text-green-900',
+      message: 'online now',
+    };
+  }
+
+  if (!lastOnline) {
+    return {
+      color: 'text-black',
+      message: null,
+    };
+  }
+
+  const now = DateTime.now();
+
+  // last online today
+  if (lastOnline.hasSame(now, 'day')) {
+    const diffInMinutes = now.diff(lastOnline, 'minutes').minutes;
+    const diffInHours = now.diff(lastOnline, 'hours').hours;
+    let timeAgo: string;
+
+    if (diffInMinutes < 1) {
+      timeAgo = 'just now';
+    } else if (diffInMinutes < 60) {
+      const mins = Math.floor(diffInMinutes);
+      timeAgo = `${mins} ${mins === 1 ? 'minute' : 'minutes'} ago`;
+    } else {
+      const hours = Math.floor(diffInHours);
+      timeAgo = `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+    }
+
+    return {
+      color: 'text-yellow-600',
+      message: `last online ${timeAgo}`,
+    };
+  }
+
+  // before today
+  return {
+    color: 'text-black',
+    message: `last online ${formatDisplayDate(lastOnline)}`,
+  };
+}
