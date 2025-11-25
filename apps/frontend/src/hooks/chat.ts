@@ -80,7 +80,7 @@ export function useChat(params: UseChatParams) {
     isPending: isCreateChatPending,
     error: createChatError,
   } = useMutation(
-    trpc.chat.createChat.mutationOptions({
+    trpc.chat.create.mutationOptions({
       onSuccess: (newChat) => {
         queryClient.setQueryData(chatQueryKey, newChat);
       },

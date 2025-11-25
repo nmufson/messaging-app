@@ -76,23 +76,11 @@ export default function Contacts() {
             </h4>
             <div className="divide-y divide-gray-100">
               {filteredActiveFriends.map((profile) => {
-                const { color, message } = getOnlineStatus({
-                  isOnline: profile.isOnline,
-                  lastOnline: profile.lastOnline,
-                });
-
-                const presenceDisplay = (
-                  <div className="flex items-center gap-1">
-                    <i className={`bi bi-dot text-4xl ${color}`}></i>
-                    <span className={`text-sm ${color}`}>{message}</span>
-                  </div>
-                );
-
                 return (
                   <ProfilePreview
                     key={profile.id}
                     profile={profile}
-                    rightContent={presenceDisplay}
+                    showPresence={true}
                     asLink={`/profile?profile=${profile.id}`}
                   />
                 );

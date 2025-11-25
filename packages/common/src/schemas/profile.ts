@@ -2,10 +2,11 @@ import { z } from 'zod';
 import { DateTimeSchema, ObjectId } from './primitives';
 
 export const CreateProfileInput = z.object({
-  userId: ObjectId,
   firstName: z.string(),
   lastName: z.string(),
   avatarUrl: z.string().optional(),
+  headerUrl: z.string().optional(),
+  bio: z.string().optional(),
 });
 export type CreateProfileInput = z.infer<typeof CreateProfileInput>;
 
@@ -14,6 +15,8 @@ export const UpdateProfileInput = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   avatarUrl: z.string().optional(),
+  headerUrl: z.string().optional(),
+  bio: z.string().optional(),
 });
 export type UpdateProfileInput = z.infer<typeof UpdateProfileInput>;
 

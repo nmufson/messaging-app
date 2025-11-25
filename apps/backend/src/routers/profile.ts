@@ -9,6 +9,7 @@ import {
 } from '@repo/common';
 import * as R from 'remeda';
 import { TRPCError } from '@trpc/server';
+import { logger } from '@/lib/pino';
 
 export const profileRouter = router({
   byId: userProcedure
@@ -70,25 +71,29 @@ export const profileRouter = router({
   create: userProcedure
     .input(CreateProfileInput)
     .mutation(async ({ input, ctx }) => {
-      const { userId, firstName, lastName, avatarUrl } = input;
+      const { firstName, lastName, avatarUrl, headerUrl, bio } = input;
       const { user } = ctx;
       if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
 
-      if (userId !== user.id && user.role !== 'ADMIN') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Cannot create this profile.',
-        });
-      }
-
       const newProfile = await ctx.prisma.profile.create({
         data: {
-          user: { connect: { id: userId } },
+          user: { connect: { id: user.id } },
           firstName,
           lastName,
           avatarUrl,
+          headerUrl,
+          bio,
         },
       });
+
+      if (!newProfile) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to create profile',
+        });
+      }
+
+      logger.info({ newProfile }, 'Created new profile successfully');
 
       return newProfile;
     }),
@@ -143,7 +148,7 @@ export const profileRouter = router({
     .query(async ({ input, ctx }) => {
       const { searchInput } = input;
       const { user } = ctx;
-      const profileId = user.profile.id;
+      const profileId = user?.profile?.id;
 
       const profiles = await ctx.prisma.profile.findMany({
         where: {

@@ -4,6 +4,7 @@ import { ChatDTO } from '@repo/common';
 import { ProfilePreview } from '../profile/ProfilePreview';
 import { GroupPhoto } from '../GroupPhoto';
 import { useState } from 'react';
+import { MouseEvent } from 'react';
 
 interface GroupChatInfoProps {
   chat: ChatDTO;
@@ -30,7 +31,7 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
     profileId: profile?.id,
   });
 
-  const handleSaveClick = (e) => {
+  const handleSaveClick = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setEditMode(false);
     // TODO: handle mutation and set queryData
@@ -62,7 +63,7 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
         <h3>Members</h3>
         <div>
           {participants.map((p) => (
-            <ProfilePreview key={p.id} profile={p} />
+            <ProfilePreview key={p.id} profile={p} showPresence={true} />
           ))}
         </div>
       </div>

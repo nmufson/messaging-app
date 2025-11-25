@@ -278,7 +278,7 @@ export const chatRouter = router({
 
       return { profiles, groupChats };
     }),
-  createChat: userProcedure
+  create: userProcedure
     .input(
       z.object({
         creator: ObjectId,
@@ -354,6 +354,66 @@ export const chatRouter = router({
           chatId: chat.id,
         });
       }
+
+      return chat;
+    }),
+  update: userProcedure
+    .input(
+      z.object({
+        chatId: ObjectId,
+        name: z.string().optional(),
+        groupPictureUrl: z.string().nullable().optional(),
+      })
+    )
+    .output(ChatDTO)
+    .mutation(async ({ input, ctx }) => {
+      const { chatId, name, groupPictureUrl } = input;
+      const { user } = ctx;
+      const profileId = user?.profile?.id;
+
+      if (!profileId) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const chat = await ctx.prisma.chat.update({
+        where: { id: chatId },
+        data: {
+          name,
+          groupPictureUrl,
+        },
+        select: {
+          id: true,
+          type: true,
+          name: true,
+          groupPictureUrl: true,
+          createdAt: true,
+          updatedAt: true,
+          creatorId: true,
+          messages: {
+            take: 100,
+            orderBy: { createdAt: 'asc' },
+            select: {
+              id: true,
+              type: true,
+              content: true,
+              createdAt: true,
+              updatedAt: true,
+              imageUrl: true,
+              senderId: true,
+            },
+          },
+          participants: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+              isOnline: true,
+              lastOnline: true,
+            },
+          },
+        },
+      });
 
       return chat;
     }),

@@ -1,4 +1,5 @@
 import { DEFAULT_PROFILE_IMAGE } from '@/constants';
+import { getOnlineStatus } from '@/utils';
 import { ListProfileDTO } from '@repo/common';
 import Link from 'next/link';
 import { ReactNode } from 'react';
@@ -8,14 +9,28 @@ interface ProfilePreviewProps {
   onClick?: () => void;
   rightContent?: ReactNode;
   asLink?: string; // wraps in link if provided
+  showPresence?: boolean;
   className?: string;
 }
 
 export function ProfilePreview(props: ProfilePreviewProps) {
-  const { profile, onClick, rightContent, asLink, className } = props;
+  const { profile, onClick, rightContent, asLink, showPresence, className } =
+    props;
   const { firstName, lastName, avatarUrl } = profile;
   const profileDisplayName = `${firstName} ${lastName}`;
   const profileImage = avatarUrl ? avatarUrl : DEFAULT_PROFILE_IMAGE;
+
+  const { color, message } = getOnlineStatus({
+    isOnline: profile.isOnline,
+    lastOnline: profile.lastOnline,
+  });
+
+  const presenceDisplay = (
+    <div className="flex items-center justify-start gap-1">
+      <i className={`bi bi-dot text-4xl ${color}`}></i>
+      <span className={`text-sm ${color}`}>{message}</span>
+    </div>
+  );
 
   const content = (
     <div
@@ -28,6 +43,7 @@ export function ProfilePreview(props: ProfilePreviewProps) {
         className="w-10 h-10 rounded-full object-cover mr-4 border-2 border-brand-light"
       />
       <p className="text-lg flex-1">{profileDisplayName}</p>
+      {showPresence && presenceDisplay}
       {rightContent}
     </div>
   );

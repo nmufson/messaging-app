@@ -108,7 +108,7 @@ export function getOnlineStatus(params: GetOnlineStatusParams): OnlineStatus {
   if (!lastOnline) {
     return {
       color: 'text-black',
-      message: null,
+      message: 'Offline',
     };
   }
 

@@ -3,12 +3,13 @@ import { getChatDisplayName } from '@/utils';
 import { ChatListDTO, ListProfileDTO, ObjectId } from '@repo/common';
 import { Dispatch, SetStateAction, useState, MouseEvent } from 'react';
 import { ChatProfileItem } from '../profile/ChatProfileItem';
+import { SelectedProfile } from '@/app/chats/WriteToChatModal';
 
 interface GroupChatResultItemProps {
   chat: ChatListDTO;
   onSelectChat: (chatId: ObjectId) => void;
   onClearSelections: () => void;
-  setSelectedProfile: Dispatch<SetStateAction<any>>;
+  setSelectedProfile: Dispatch<SetStateAction<SelectedProfile[]>>;
 }
 
 export function ChatResultItem(props: GroupChatResultItemProps) {
