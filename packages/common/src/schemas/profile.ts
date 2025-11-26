@@ -2,11 +2,39 @@ import { z } from 'zod';
 import { DateTimeSchema, ObjectId } from './primitives';
 
 export const CreateProfileInput = z.object({
-  firstName: z.string(),
-  lastName: z.string(),
-  avatarUrl: z.string().optional(),
-  headerUrl: z.string().optional(),
-  bio: z.string().optional(),
+  firstName: z
+    .string()
+    .min(1, 'First name is required')
+    .max(50, 'First name must be 50 characters or less')
+    .regex(
+      /^[a-zA-Z\s'-]+$/,
+      'First name can only contain letters, spaces, hyphens, and apostrophes'
+    ),
+  lastName: z
+    .string()
+    .min(1, 'Last name is required')
+    .max(50, 'Last name must be 50 characters or less')
+    .regex(
+      /^[a-zA-Z\s'-]+$/,
+      'Last name can only contain letters, spaces, hyphens, and apostrophes'
+    ),
+  avatarUrl: z
+    .string()
+    .url('Must be a valid URL')
+    .max(500, 'URL must be 500 characters or less')
+    .optional()
+    .or(z.literal('')),
+  headerUrl: z
+    .string()
+    .url('Must be a valid URL')
+    .max(500, 'URL must be 500 characters or less')
+    .optional()
+    .or(z.literal('')),
+  bio: z
+    .string()
+    .max(200, 'Bio must be 500 characters or less')
+    .optional()
+    .or(z.literal('')),
 });
 export type CreateProfileInput = z.infer<typeof CreateProfileInput>;
 

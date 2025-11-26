@@ -1,13 +1,35 @@
 'use client';
-import { useState } from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
 import { useTRPC } from '../../lib/trpc';
 import { useMutation } from '@tanstack/react-query';
+import { CreateUserInput } from '@repo/common';
+import { FieldConfig } from '@/components/InputGroup';
 
-const INITIAL_FORM_STATE = {
+const INITIAL_FORM_STATE: CreateUserInput = {
   email: '',
   password: '',
   confirmPassword: '',
 };
+
+const FIELD_CONFIG: FieldConfig<CreateUserInput>[] = [
+  {
+    name: 'email',
+    label: 'Email',
+    type: 'email',
+    required: true,
+  },
+  {
+    name: 'password',
+    label: 'Password',
+    type: 'password',
+    required: true,
+  },
+  {
+    name: 'confirmPassword',
+    label: 'Confirm Password',
+    type: 'password',
+  },
+];
 
 export default function SignUp() {
   const trpc = useTRPC();
@@ -18,11 +40,11 @@ export default function SignUp() {
     trpc.auth.register.mutationOptions()
   );
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSignUpForm({ ...signUpForm, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     mutate(signUpForm);
   };

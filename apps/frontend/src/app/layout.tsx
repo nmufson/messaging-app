@@ -14,6 +14,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { superjson } from '@repo/common';
 import { AuthProvider } from '../context/AuthContext';
 import { ModalContextWrapper } from '@/context/ModalContext';
+import { ToastProvider } from '@/context/ToastContext';
 
 function makeQueryClient() {
   return new QueryClient({
@@ -76,7 +77,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <QueryClientProvider client={queryClient}>
             <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
               <AuthProvider>
-                <ModalContextWrapper>{children}</ModalContextWrapper>
+                <ModalContextWrapper>
+                  <ToastProvider>{children}</ToastProvider>
+                </ModalContextWrapper>
               </AuthProvider>
             </TRPCProvider>
           </QueryClientProvider>

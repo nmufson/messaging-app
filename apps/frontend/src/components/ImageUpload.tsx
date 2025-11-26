@@ -1,27 +1,22 @@
 'use client';
 
-import { type ChangeEvent, Dispatch, SetStateAction, useState } from 'react';
+import { type ChangeEvent, useState } from 'react';
 import { useTRPC } from '@/lib/trpc';
 import { useMutation } from '@tanstack/react-query';
-import { ProfileForm } from '@/app/create-profile/page';
 
 interface ImageUploadProps {
-  fieldName: string;
   label?: string;
   value?: string;
   onChange: (url: string) => void;
   error?: string;
-  setErrors: Dispatch<
-    SetStateAction<Partial<Record<keyof ProfileForm, string>>>
-  >;
+  onError?: (message: string) => void;
   required?: boolean;
 }
 
 export function ImageUpload(props: ImageUploadProps) {
   const trpc = useTRPC();
 
-  const { fieldName, label, value, onChange, error, setErrors, required } =
-    props;
+  const { label, value, onChange, error, onError, required } = props;
   const [previewUrl, setPreviewUrl] = useState<string | null>(value || null);
 
   const { mutateAsync: createUploadSignature, isPending } = useMutation(
@@ -55,10 +50,7 @@ export function ImageUpload(props: ImageUploadProps) {
 
       if (!cloudName || !apiKey) {
         console.error('Missing Cloudinary configuration');
-        setErrors((prev) => ({
-          ...prev,
-          [fieldName]: 'Internal server error, please try again later.',
-        }));
+        onError?.('Internal server error, please try again later.');
         return;
       }
 
@@ -90,10 +82,7 @@ export function ImageUpload(props: ImageUploadProps) {
       setPreviewUrl(data.secure_url);
     } catch (error) {
       console.error('Upload error:', error);
-      setErrors((prev) => ({
-        ...prev,
-        [fieldName]: 'Failed to upload image. Please try again later.',
-      }));
+      onError?.('Failed to upload image. Please try again later.');
       alert('Failed to upload image. Please try again.');
       setPreviewUrl(null);
     }

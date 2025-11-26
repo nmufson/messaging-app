@@ -12,6 +12,7 @@
     "init:tailwind": "tailwindcss init -p"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@repo/backend": "workspace:*",
     "@repo/common": "workspace:*",
     "@repo/db": "workspace:*",
@@ -23,7 +24,8 @@
     "nuqs": "^2.7.2",
     "react": "19.1.0",
     "react-bootstrap": "^2.10.10",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "react-hook-form": "^7.66.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.13",
