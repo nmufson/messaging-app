@@ -1,7 +1,7 @@
 'use client';
 import { CreateProfileInput } from '@repo/common';
 import { ImageUpload } from '@/components/ImageUpload';
-import { InputGroup } from '@/components/InputGroup';
+import { TextFieldGroup } from '@/components/InputGroup';
 import { useMutation } from '@tanstack/react-query';
 import { useTRPC } from '@/lib/trpc';
 import { useToast } from '@/context/ToastContext';
@@ -35,7 +35,9 @@ export default function CreateProfile() {
       onError: (error) => {
         addToast({
           header: 'Error',
-          body: error.message || 'Failed to create profile.',
+          body:
+            error.message ||
+            'Failed to create profile, please try again later.',
           variant: 'danger',
         });
       },
@@ -56,14 +58,14 @@ export default function CreateProfile() {
       <h1>Create your profile here!</h1>
 
       <div>
-        <InputGroup
+        <TextFieldGroup
           type="text"
           label="First Name"
           name="firstName"
           control={control}
         />
 
-        <InputGroup
+        <TextFieldGroup
           type="text"
           label="Last Name"
           name="lastName"
@@ -78,7 +80,7 @@ export default function CreateProfile() {
 
         <ImageUpload label="Header Image" name="headerUrl" control={control} />
 
-        <InputGroup
+        <TextFieldGroup
           type="text"
           as="textarea"
           label="Bio"

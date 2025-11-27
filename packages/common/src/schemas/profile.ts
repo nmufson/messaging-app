@@ -4,7 +4,7 @@ import { DateTimeSchema, ObjectId } from './primitives';
 export const CreateProfileInput = z.object({
   firstName: z
     .string()
-    .min(1, 'First name is required')
+    .min(1, 'Please enter first name')
     .max(50, 'First name must be 50 characters or less')
     .regex(
       /^[a-zA-Z\s'-]+$/,
@@ -13,7 +13,7 @@ export const CreateProfileInput = z.object({
     .default(''),
   lastName: z
     .string()
-    .min(1, 'Last name is required')
+    .min(1, 'Please enter last name')
     .max(50, 'Last name must be 50 characters or less')
     .regex(
       /^[a-zA-Z\s'-]+$/,

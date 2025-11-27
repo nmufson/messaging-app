@@ -24,10 +24,12 @@ export interface BaseInputGroupProps {
   as?: 'input' | 'textarea' | 'select';
 }
 
-export type InputGroupProps<T extends object> = BaseInputGroupProps &
+export type TextFieldGroupProps<T extends object> = BaseInputGroupProps &
   UseControllerProps<T>;
 
-export function InputGroup<T extends object>(props: InputGroupProps<T>) {
+export function TextFieldGroup<T extends object>(
+  props: TextFieldGroupProps<T>
+) {
   const {
     type,
     label,
