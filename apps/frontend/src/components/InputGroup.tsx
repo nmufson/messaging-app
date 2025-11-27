@@ -1,7 +1,11 @@
+import { vestResolver } from '@hookform/resolvers/vest';
+import { Form } from 'react-bootstrap';
+import { UseControllerProps, useController } from 'react-hook-form';
 import * as R from 'remeda';
 
 export type InputType =
   | 'text'
+  | 'textArea'
   | 'email'
   | 'password'
   | 'number'
@@ -9,92 +13,56 @@ export type InputType =
   | 'url'
   | 'date';
 
-export interface InputGroupProps<T extends Record<string, unknown>> {
+export interface BaseInputGroupProps {
   type: InputType;
-  label?: string;
-  name: keyof T & string;
-  value: string;
-  onChange: (field: keyof T & string, value: string) => void;
-  placeholder?: string;
-  required?: boolean;
+  label: string;
+  floatingLabel?: boolean;
+  noLabel?: boolean;
   disabled?: boolean;
-  error?: string;
+  placeholder?: string;
   helperText?: string;
-  maxLength?: number;
-  minLength?: number;
+  as?: 'input' | 'textarea' | 'select';
 }
 
-export function InputGroup<T extends Record<string, unknown>>(
-  props: InputGroupProps<T>
-) {
+export type InputGroupProps<T extends object> = BaseInputGroupProps &
+  UseControllerProps<T>;
+
+export function InputGroup<T extends object>(props: InputGroupProps<T>) {
   const {
     type,
     label,
-    name,
-    value,
-    onChange,
     placeholder,
-    required = false,
     disabled = false,
-    error,
     helperText,
-    maxLength,
-    minLength,
+    as,
+    ...controllerProps
   } = props;
 
+  const {
+    field,
+    fieldState: { error },
+  } = useController(controllerProps);
+
   return (
-    <div className="mb-6">
-      {label && (
-        <label
-          htmlFor={name}
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
-        </label>
-      )}
-      <input
-        id={name}
-        name={name}
-        type={type}
-        value={value}
-        onChange={(e) => onChange(name, e.target.value)}
+    <Form.Group className="mb-3">
+      <Form.Label className={disabled ? 'text-muted' : ''}>{label}</Form.Label>
+      <Form.Control
+        {...field}
+        as={as}
+        type={as ? undefined : type}
         placeholder={placeholder}
-        required={required}
         disabled={disabled}
-        maxLength={maxLength}
-        minLength={minLength}
-        className={`
-          w-full px-4 py-2 
-          border rounded-lg 
-          focus:outline-none focus:ring-2 
-          transition-colors
-          ${
-            error
-              ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-              : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-          }
-          ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
-        `}
-        aria-invalid={R.isTruthy(error)}
-        aria-describedby={
-          error ? `${name}-error` : helperText ? `${name}-helper` : undefined
-        }
+        isInvalid={!!error}
       />
       {error && (
-        <span id={`${name}-error`} className="block mt-1 text-sm text-red-600">
-          {error}
-        </span>
+        <Form.Control.Feedback type="invalid">
+          {error.message}
+        </Form.Control.Feedback>
       )}
       {!error && helperText && (
-        <span
-          id={`${name}-helper`}
-          className="block mt-1 text-sm text-gray-500"
-        >
-          {helperText}
-        </span>
+        <Form.Text className="text-muted">{helperText}</Form.Text>
       )}
-    </div>
+    </Form.Group>
   );
 }
 

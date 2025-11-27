@@ -3,21 +3,29 @@
 import { type ChangeEvent, useState } from 'react';
 import { useTRPC } from '@/lib/trpc';
 import { useMutation } from '@tanstack/react-query';
+import { UseControllerProps, useController } from 'react-hook-form';
 
-interface ImageUploadProps {
+export interface BaseImageUploadProps {
   label?: string;
-  value?: string;
-  onChange: (url: string) => void;
-  error?: string;
-  onError?: (message: string) => void;
   required?: boolean;
 }
 
-export function ImageUpload(props: ImageUploadProps) {
+export type ImageUploadProps<T extends object> = BaseImageUploadProps &
+  UseControllerProps<T>;
+
+export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
   const trpc = useTRPC();
 
-  const { label, value, onChange, error, onError, required } = props;
-  const [previewUrl, setPreviewUrl] = useState<string | null>(value || null);
+  const { label, required, ...controllerProps } = props;
+
+  const {
+    field,
+    fieldState: { error },
+  } = useController(controllerProps);
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    field.value || null
+  );
 
   const { mutateAsync: createUploadSignature, isPending } = useMutation(
     trpc.image.getImageUploadSignature.mutationOptions()
@@ -50,7 +58,7 @@ export function ImageUpload(props: ImageUploadProps) {
 
       if (!cloudName || !apiKey) {
         console.error('Missing Cloudinary configuration');
-        onError?.('Internal server error, please try again later.');
+        alert('Internal server error, please try again later.');
         return;
       }
 
@@ -78,11 +86,10 @@ export function ImageUpload(props: ImageUploadProps) {
       console.log(data);
 
       // Update form with url from Cloudinary
-      onChange(data.secure_url);
+      field.onChange(data.secure_url);
       setPreviewUrl(data.secure_url);
     } catch (error) {
       console.error('Upload error:', error);
-      onError?.('Failed to upload image. Please try again later.');
       alert('Failed to upload image. Please try again.');
       setPreviewUrl(null);
     }
@@ -90,7 +97,7 @@ export function ImageUpload(props: ImageUploadProps) {
 
   const handleRemove = () => {
     setPreviewUrl(null);
-    onChange('');
+    field.onChange('');
   };
 
   return (
@@ -158,7 +165,7 @@ export function ImageUpload(props: ImageUploadProps) {
       </div>
 
       {error && (
-        <span className="block mt-1 text-sm text-red-600">{error}</span>
+        <span className="block mt-1 text-sm text-red-600">{error.message}</span>
       )}
     </div>
   );

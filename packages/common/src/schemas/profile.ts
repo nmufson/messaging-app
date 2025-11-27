@@ -9,7 +9,8 @@ export const CreateProfileInput = z.object({
     .regex(
       /^[a-zA-Z\s'-]+$/,
       'First name can only contain letters, spaces, hyphens, and apostrophes'
-    ),
+    )
+    .default(''),
   lastName: z
     .string()
     .min(1, 'Last name is required')
@@ -17,7 +18,8 @@ export const CreateProfileInput = z.object({
     .regex(
       /^[a-zA-Z\s'-]+$/,
       'Last name can only contain letters, spaces, hyphens, and apostrophes'
-    ),
+    )
+    .default(''),
   avatarUrl: z
     .string()
     .url('Must be a valid URL')

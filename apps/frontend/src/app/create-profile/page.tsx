@@ -1,22 +1,14 @@
 'use client';
-import { CreateProfileInput, z } from '@repo/common';
+import { CreateProfileInput } from '@repo/common';
 import { ImageUpload } from '@/components/ImageUpload';
-import { InputGroup, FieldConfig } from '@/components/InputGroup';
+import { InputGroup } from '@/components/InputGroup';
 import { useMutation } from '@tanstack/react-query';
 import { useTRPC } from '@/lib/trpc';
 import { useToast } from '@/context/ToastContext';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
-
-// const INITIAL_FORM: z.infer<typeof CreateProfileInput> = {
-//   firstName: '',
-//   lastName: '',
-//   avatarUrl: '',
-//   headerUrl: '',
-//   bio: '',
-// };
 
 export default function CreateProfile() {
   const trpc = useTRPC();
@@ -25,12 +17,7 @@ export default function CreateProfile() {
 
   const defaultValues = useMemo(() => CreateProfileInput.parse({}), []);
 
-  const {
-    control,
-    handleSubmit,
-    setError,
-    formState: { errors },
-  } = useForm({
+  const { control, handleSubmit } = useForm({
     resolver: zodResolver(CreateProfileInput),
     defaultValues,
     mode: 'onBlur',
@@ -69,28 +56,37 @@ export default function CreateProfile() {
       <h1>Create your profile here!</h1>
 
       <div>
-        {/* <ImageUpload
-          label={'Profile Picture'}
-          value={value || ''}
-          onChange={onChange}
-          error={errors[field.name]?.message}
-          onError={(msg) =>
-            setError(field.name, { type: 'custom', message: msg })
-          }
-          required={field.required}
+        <InputGroup
+          type="text"
+          label="First Name"
+          name="firstName"
+          control={control}
         />
 
-        <InputGroup<z.infer<typeof CreateProfileInput>>
-          type={field.type}
-          label={field.label}
-          name={field.name}
-          value={value || ''}
-          onChange={(name, val) => onChange(val)}
-          error={errors[field.name]?.message}
-          placeholder={field.placeholder}
-          required={field.required}
-          maxLength={field.maxLength}
-        /> */}
+        <InputGroup
+          type="text"
+          label="Last Name"
+          name="lastName"
+          control={control}
+        />
+
+        <ImageUpload
+          label="Profile Picture"
+          name="avatarUrl"
+          control={control}
+        />
+
+        <ImageUpload label="Header Image" name="headerUrl" control={control} />
+
+        <InputGroup
+          type="text"
+          as="textarea"
+          label="Bio"
+          name="bio"
+          control={control}
+          placeholder="Tell us about yourself"
+          helperText="Max 200 characters"
+        />
       </div>
       <button disabled={isPending}>Done</button>
     </form>
