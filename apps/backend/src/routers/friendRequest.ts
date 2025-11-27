@@ -1,10 +1,10 @@
 import { ObjectId, FriendRequestStatus } from '@repo/common';
-import { router, userProcedure } from '../trpc';
+import { router, profileProcedure } from '../trpc';
 import { z } from '@repo/common';
 import { TRPCError } from '@trpc/server';
 
 export const friendRequestRouter = router({
-  sendRequest: userProcedure
+  sendRequest: profileProcedure
     .input(
       z.object({
         senderId: ObjectId,
@@ -24,7 +24,7 @@ export const friendRequestRouter = router({
 
       return newRequest;
     }),
-  update: userProcedure
+  update: profileProcedure
     .input(
       z.object({
         newStatus: FriendRequestStatus,

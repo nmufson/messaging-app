@@ -11,11 +11,16 @@ import { ObjectId } from '@repo/common';
 const SESSION_COOKIE_NAME = 'connect.sid'; // default for express-session
 const SESSION_SECRET = 'secret keyyy'; // must match your express-session secret
 
-export type UserWithProfile = User & { profile: { id: ObjectId } | null };
+// User might not have a profile yet (just registered)
+export type UserWithOptionalProfile = User & {
+  profile: { id: ObjectId } | null;
+};
+// User definitely has a profile (verified by middleware)
+export type UserWithProfile = User & { profile: { id: ObjectId } };
 
 export async function authenticateWebSocketRequest(
   req: IncomingMessage
-): Promise<UserWithProfile | null> {
+): Promise<UserWithOptionalProfile | null> {
   let user: User | null = null;
 
   try {
@@ -55,11 +60,11 @@ export async function authenticateWebSocketRequest(
     console.error('WS auth error:', err);
   }
 
-  return user as UserWithProfile;
+  return user as UserWithOptionalProfile;
 }
 
 interface BaseContext {
-  user?: UserWithProfile;
+  user?: UserWithOptionalProfile;
   prisma: typeof prisma;
 }
 
@@ -82,7 +87,7 @@ export function createContext({
   return {
     req,
     res,
-    user: req.user as UserWithProfile,
+    user: req.user as UserWithOptionalProfile,
     prisma,
   };
 }

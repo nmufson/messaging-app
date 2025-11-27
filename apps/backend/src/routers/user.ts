@@ -2,10 +2,10 @@ import { TRPCError } from '@trpc/server';
 import { z } from '@repo/common';
 import { handleTRPCError } from '../services/error';
 import { getUserByEmail, getUserById } from '../services/user';
-import { router, userProcedure } from '../trpc';
+import { adminProcedure, router, userProcedure } from '../trpc';
 
 export const userRouter = router({
-  getUserById: userProcedure
+  getUserById: adminProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input, ctx }) => {
       const { userId } = input;
@@ -18,7 +18,7 @@ export const userRouter = router({
         handleTRPCError(err, 'Failed to retrieve user');
       }
     }),
-  getUserByEmail: userProcedure
+  getUserByEmail: adminProcedure
     .input(z.object({ email: z.string().email() }))
     .query(async ({ input, ctx }) => {
       const user = await getUserByEmail(input.email);

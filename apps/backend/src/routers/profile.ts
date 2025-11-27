@@ -1,5 +1,5 @@
 import { ObjectId } from '@repo/common';
-import { router, userProcedure } from '../trpc';
+import { router, userProcedure, profileProcedure } from '../trpc';
 import {
   ProfilePageDTO,
   z,
@@ -12,7 +12,7 @@ import { TRPCError } from '@trpc/server';
 import { logger } from '@/lib/pino';
 
 export const profileRouter = router({
-  byId: userProcedure
+  byId: profileProcedure
     .input(
       z.object({
         profileId: ObjectId,
@@ -21,7 +21,6 @@ export const profileRouter = router({
     .output(ProfilePageDTO)
     .query(async ({ input, ctx }) => {
       const { user } = ctx;
-      if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
 
       const profile = await ctx.prisma.profile.findUnique({
         where: { id: input.profileId },
@@ -54,7 +53,7 @@ export const profileRouter = router({
       const hasOutstandingFriendRequest =
         await ctx.prisma.friendRequest.findFirst({
           where: {
-            senderId: user.profile?.id,
+            senderId: user.profile.id,
             receiverId: input.profileId,
             status: 'PENDING',
           },
@@ -68,12 +67,12 @@ export const profileRouter = router({
         hasOutstandingFriendRequest: R.isTruthy(hasOutstandingFriendRequest),
       };
     }),
+
   create: userProcedure
     .input(CreateProfileInput)
     .mutation(async ({ input, ctx }) => {
       const { firstName, lastName, avatarUrl, headerUrl, bio } = input;
       const { user } = ctx;
-      if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
 
       const newProfile = await ctx.prisma.profile.create({
         data: {
@@ -97,7 +96,8 @@ export const profileRouter = router({
 
       return newProfile;
     }),
-  update: userProcedure
+
+  update: profileProcedure
     .input(UpdateProfileInput)
     .mutation(async ({ input, ctx }) => {
       const { profileId, firstName, lastName, avatarUrl } = input;
@@ -113,7 +113,8 @@ export const profileRouter = router({
 
       return updatedProfile;
     }),
-  friends: userProcedure
+
+  friends: profileProcedure
     .input(z.object({ profileId: ObjectId }))
     .output(ListProfileDTO.array())
     .query(async ({ input, ctx }) => {
@@ -142,13 +143,13 @@ export const profileRouter = router({
 
       return profile.friends;
     }),
-  nonFriends: userProcedure
+  nonFriends: profileProcedure
     .input(z.object({ searchInput: z.string().optional() }))
     .output(ListProfileDTO.array())
     .query(async ({ input, ctx }) => {
       const { searchInput } = input;
       const { user } = ctx;
-      const profileId = user?.profile?.id;
+      const profileId = user.profile.id;
 
       const profiles = await ctx.prisma.profile.findMany({
         where: {

@@ -8,7 +8,12 @@ import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
 import { UserRole, z } from '@repo/common';
 import { eventEmitter } from '../lib/eventBus';
-import { adminProcedure, router, userProcedure } from '../trpc';
+import {
+  adminProcedure,
+  profileProcedure,
+  router,
+  userProcedure,
+} from '../trpc';
 import { mergeAsyncIterators } from '@repo/common';
 import { ChatDTO, ChatType } from '@repo/common';
 import { logger } from '../lib/pino';
@@ -18,7 +23,7 @@ import { sendMessage } from '@/services/message';
 
 export const chatRouter = router({
   // TODO: add something for loading more messages in chat
-  byId: userProcedure
+  byId: profileProcedure
     .input(
       z.object({
         chatId: ObjectId,
@@ -43,7 +48,7 @@ export const chatRouter = router({
       return validatedChat;
     }),
 
-  findChat: userProcedure
+  findChat: profileProcedure
     .input(
       z.object({
         chatId: ObjectId.optional(),
@@ -83,7 +88,7 @@ export const chatRouter = router({
       }
       return chat;
     }),
-  onNewMessageInChat: userProcedure
+  onNewMessageInChat: profileProcedure
     .input(
       z.object({
         profileId: ObjectId,
@@ -122,7 +127,7 @@ export const chatRouter = router({
         }
       }
     }),
-  onNewChat: userProcedure
+  onNewChat: profileProcedure
     .input(
       z.object({
         profileId: ObjectId,
@@ -144,7 +149,7 @@ export const chatRouter = router({
         yield tracked(newChat.id, newChat);
       }
     }),
-  getList: userProcedure
+  getList: profileProcedure
     .input(
       z.object({
         limit: z.number().default(100),
@@ -248,7 +253,7 @@ export const chatRouter = router({
       );
       return validatedChats;
     }),
-  getPotentialChats: userProcedure
+  getPotentialChats: profileProcedure
     .input(
       z.object({
         searchNames: z.string().array(),
@@ -278,7 +283,7 @@ export const chatRouter = router({
 
       return { profiles, groupChats };
     }),
-  create: userProcedure
+  create: profileProcedure
     .input(
       z.object({
         creator: ObjectId,
@@ -357,7 +362,7 @@ export const chatRouter = router({
 
       return chat;
     }),
-  update: userProcedure
+  update: profileProcedure
     .input(
       z.object({
         chatId: ObjectId,

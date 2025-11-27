@@ -1,8 +1,8 @@
 import { v2 as cloudinary } from 'cloudinary';
-import { userProcedure, router } from '../trpc';
+import { userProcedure, router, profileProcedure } from '../trpc';
 
 export const imageRouter = router({
-  getImageUploadSignature: userProcedure.mutation(async () => {
+  getImageUploadSignature: profileProcedure.mutation(async () => {
     // TODO: use luxon here
     const timestamp = Math.round(new Date().getTime() / 1000);
 

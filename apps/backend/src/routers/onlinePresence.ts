@@ -1,5 +1,5 @@
 import { tracked, TRPCError } from '@trpc/server';
-import { router, userProcedure } from '../trpc';
+import { router, profileProcedure } from '../trpc';
 import {
   DurationObject,
   ListProfileDTO,
@@ -14,7 +14,7 @@ import { logger } from '@/lib/pino';
 
 export const onlinePresenceRouter = router({
   // friends who are online or recently online
-  getFriendsPresence: userProcedure
+  getFriendsPresence: profileProcedure
     .input(z.object({ withinLast: DurationObject.optional() }))
     .output(ListProfileDTO.array())
     .query(async ({ ctx, input }) => {
@@ -55,7 +55,7 @@ export const onlinePresenceRouter = router({
       return friendsWithPresence;
     }),
   // real-time presence updates
-  onPresenceChange: userProcedure.subscription(async function* ({
+  onPresenceChange: profileProcedure.subscription(async function* ({
     ctx,
     signal,
   }) {
@@ -79,7 +79,7 @@ export const onlinePresenceRouter = router({
     }
   }),
 
-  onPresenceInChatChange: userProcedure
+  onPresenceInChatChange: profileProcedure
     .input(z.object({ chatId: ObjectId }))
     .subscription(async function* ({ input, ctx, signal }) {
       const { chatId } = input;

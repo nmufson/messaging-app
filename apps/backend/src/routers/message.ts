@@ -16,10 +16,10 @@ import {
   getPhotoMessages,
   sendMessage,
 } from '../services/message';
-import { router, userProcedure } from '../trpc';
+import { router, profileProcedure } from '../trpc';
 
 export const messageRouter = router({
-  onNewMessage: userProcedure
+  onNewMessage: profileProcedure
     .input(
       z.object({
         chatId: ObjectId,
@@ -60,7 +60,7 @@ export const messageRouter = router({
         yield tracked(message.id, message);
       }
     }),
-  sendToChat: userProcedure
+  sendToChat: profileProcedure
     .input(SendMessageInput)
     .output(MessageDTO)
     .mutation(async ({ input, ctx }) => {
@@ -89,7 +89,7 @@ export const messageRouter = router({
 
       return newMessage;
     }),
-  getTextMessages: userProcedure
+  getTextMessages: profileProcedure
     .input(
       z.object({
         searchInput: z.string().optional(),
@@ -115,7 +115,7 @@ export const messageRouter = router({
 
       return messages;
     }),
-  getPhotoMessages: userProcedure
+  getPhotoMessages: profileProcedure
     .input(z.object({ limit: z.number().default(30) }))
     .output(ListPhotoMessageDTO.array())
     .query(async ({ ctx, input }) => {
