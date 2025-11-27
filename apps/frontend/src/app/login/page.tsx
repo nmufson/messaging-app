@@ -1,69 +1,86 @@
 'use client';
-import { ChangeEvent, FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useMemo, useState } from 'react';
 import { useTRPC } from '../../lib/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-
-const INITIAL_FORM_STATE = {
-  email: '',
-  password: '',
-};
+import Link from 'next/link';
+import { useToast } from '@/context/ToastContext';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { LogInUserInput } from '@repo/common';
+import { useForm } from 'react-hook-form';
+import { TextFieldGroup } from '@/components/InputGroup';
 
 export default function LogIn() {
   const trpc = useTRPC();
   const router = useRouter();
+  const { addToast } = useToast();
 
-  const [logInForm, setLogInForm] = useState(INITIAL_FORM_STATE);
+  const defaultValues = useMemo(() => LogInUserInput.parse({}), []);
 
-  const { mutate, isPending, error } = useMutation(
+  const { control, handleSubmit } = useForm({
+    resolver: zodResolver(LogInUserInput),
+    defaultValues,
+    mode: 'onBlur',
+  });
+
+  const {
+    mutate: logInUser,
+    isPending,
+    error,
+  } = useMutation(
     trpc.auth.login.mutationOptions({
-      onSuccess: () => {
-        console.log('Logged in successfully!');
+      onSuccess: (data) => {
+        addToast({
+          header: 'Success',
+          body: 'User logged in successfully!',
+          variant: 'success',
+        });
         router.push('/chats');
+      },
+      onError: (error) => {
+        addToast({
+          header: 'Error',
+          body: error.message || 'Failed to log in, please try again later.',
+          variant: 'danger',
+        });
       },
     })
   );
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setLogInForm({ ...logInForm, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    mutate(logInForm);
+  const onSubmit = async (data: LogInUserInput) => {
+    try {
+      await logInUser(data);
+    } catch (error) {
+      console.error(error, 'Failed to register user.');
+    }
   };
 
   return (
-    <div className="bg-black-500">
+    <form onSubmit={handleSubmit(onSubmit)} className="bg-black-500">
       <h1>Log In Below!</h1>
-      <form onSubmit={handleSubmit}>
-        <div className="label-input">
-          <label htmlFor="email">Email:</label>
-          <input
-            className="border"
-            type="email"
-            name="email"
-            id="email"
-            required
-            autoComplete="email"
-            onChange={handleChange}
-          ></input>
+      <div>
+        <TextFieldGroup
+          type="email"
+          label="Email"
+          name="email"
+          control={control}
+        />
+        <TextFieldGroup
+          type="password"
+          label="Password"
+          name="password"
+          control={control}
+        />
+        <div>
+          <button type="submit">Log In</button>
+          <div className="flex gap-2 items-center ">
+            <small className="text-sm">Not yet registed?</small>
+            <Link className="text-sm" href={'/signup'}>
+              Sign Up
+            </Link>
+          </div>
         </div>
-        <div className="label-input">
-          <label htmlFor="password">Password:</label>
-
-          <input
-            className="border"
-            type="password"
-            name="password"
-            id="password"
-            required
-            autoComplete="current-password"
-            onChange={handleChange}
-          />
-        </div>
-        <button type="submit">Log In</button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }

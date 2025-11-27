@@ -1,17 +1,17 @@
 'use client';
 import { useToast } from '@/context/ToastContext';
-import { useMutation } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FormEvent, useMemo } from 'react';
 import { useTRPC } from '../../lib/trpc';
 import { CreateUserInput } from '@repo/common';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { TextFieldGroup } from '@/components/InputGroup';
+import Link from 'next/link';
 
 export default function SignUp() {
   const trpc = useTRPC();
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const { addToast } = useToast();
 
   const defaultValues = useMemo(() => CreateUserInput.parse({}), []);
@@ -22,17 +22,17 @@ export default function SignUp() {
     mode: 'onBlur',
   });
 
-  const {
-    mutateAsync: registerUser,
-    isPending,
-    error,
-  } = useMutation(
+  const { mutateAsync: registerUser } = useMutation(
     trpc.auth.register.mutationOptions({
-      onSuccess: () => {
+      onSuccess: async () => {
         addToast({
           header: 'Success',
           body: 'User registered successfully!',
           variant: 'success',
+        });
+        // Invalidate auth.me to refetch with new session
+        await queryClient.invalidateQueries({
+          queryKey: trpc.auth.me.queryKey(),
         });
       },
       onError: (error) => {
@@ -48,39 +48,44 @@ export default function SignUp() {
   const onSubmit = async (data: CreateUserInput) => {
     try {
       await registerUser(data);
-      router.push('/create-profile');
     } catch (error) {
       console.error(error, 'Failed to register user.');
     }
   };
 
   return (
-    <div className="bg-black-500">
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <h1>Register Below!</h1>
-        <div>
-          <TextFieldGroup
-            type="email"
-            label="Email"
-            name="email"
-            control={control}
-          />
-          <TextFieldGroup
-            type="password"
-            label="Password"
-            name="password"
-            control={control}
-          />
-          <TextFieldGroup
-            type="password"
-            label="Confirm Password"
-            name="confirmPassword"
-            control={control}
-          />
-        </div>
+    <form className="bg-black-500" onSubmit={handleSubmit(onSubmit)}>
+      <h1>Register Below!</h1>
+      <div>
+        <TextFieldGroup
+          type="email"
+          label="Email"
+          name="email"
+          control={control}
+        />
+        <TextFieldGroup
+          type="password"
+          label="Password"
+          name="password"
+          control={control}
+        />
+        <TextFieldGroup
+          type="password"
+          label="Confirm Password"
+          name="confirmPassword"
+          control={control}
+        />
+      </div>
 
+      <div>
         <button type="submit">Sign Up</button>
-      </form>
-    </div>
+        <div className="flex gap-2 items-center ">
+          <small className="text-sm">Already registered?</small>
+          <Link className="text-sm" href={'/login'}>
+            Log In
+          </Link>
+        </div>
+      </div>
+    </form>
   );
 }

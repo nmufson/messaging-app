@@ -1,9 +1,18 @@
 'use client';
-import { createContext, useContext, useEffect, useState } from 'react';
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { useTRPC } from '../lib/trpc';
 import { useQuery } from '@tanstack/react-query';
 import { ObjectId, UserRole } from '@repo/common';
 import { usePathname, useRouter } from 'next/navigation';
+import * as R from 'remeda';
+import { Spinner } from 'react-bootstrap';
+import { isAuthed } from '@repo/backend/trpc';
 
 interface User {
   id: ObjectId;
@@ -26,26 +35,63 @@ const AuthContext = createContext<{
   profile: null,
 });
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+const AUTH_PAGES = ['/login', '/signup'];
+
+export function checkIfAuthPage(pathname: string) {
+  return R.isIncludedIn(pathname, AUTH_PAGES);
+}
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const trpc = useTRPC();
-  const queryOptions = trpc.auth.me.queryOptions();
-  const { data, error } = useQuery(queryOptions);
   const router = useRouter();
   const pathname = usePathname();
 
-  const isAuthPage = pathname === '/login' || pathname === '/signup';
+  const queryOptions = trpc.auth.me.queryOptions();
+  const {
+    data: authData,
+    isLoading,
+    error,
+  } = useQuery({
+    ...queryOptions,
+    retry: (failureCount, error) => {
+      // Don't retry on UNAUTHORIZED
+      if (error?.data?.code === 'UNAUTHORIZED') {
+        return false;
+      }
+      return failureCount < 3;
+    },
+  });
+
+  const isAuthPage = checkIfAuthPage(pathname);
+  const isCreateProfilePage = pathname === '/create-profile';
 
   useEffect(() => {
+    // Unauthorized -> redirect to home (unless already on auth page)
     if (error?.data?.code === 'UNAUTHORIZED' && !isAuthPage) {
-      // TODO: change this to home page?
-      router.push('/login');
+      console.log('Navigating unauthorized user to Home page.');
+      router.push('/');
+      return;
     }
-  }, [error, isAuthPage, router]);
+
+    // Authorized with profile on auth page -> redirect to chats
+    if (authData?.profile && isAuthPage) {
+      console.log('Navigating authorized user to Chats page.');
+      router.push('/chats');
+      return;
+    }
+
+    // Authorized without profile -> redirect to create-profile (unless already there)
+    if (authData && !authData.profile && !isAuthPage && !isCreateProfilePage) {
+      console.log('Navigating user without profile to Create Profile page.');
+      router.push('/create-profile');
+      return;
+    }
+  }, [error, isAuthPage, isCreateProfilePage, router, authData]);
 
   let user = null;
   let profile = null;
-  if (data) {
-    const { profile: p, ...restOfUser } = data;
+  if (authData) {
+    const { profile: p, ...restOfUser } = authData;
     user = restOfUser;
     profile = p;
   }
