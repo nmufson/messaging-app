@@ -6,7 +6,7 @@ import { useTRPC } from '../../lib/trpc';
 import { CreateUserInput } from '@repo/common';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { TextFieldGroup } from '@/components/InputGroup';
+import { TextFieldGroup } from '@/components/FieldGroup';
 import Link from 'next/link';
 
 export default function SignUp() {
@@ -24,16 +24,16 @@ export default function SignUp() {
 
   const { mutateAsync: registerUser } = useMutation(
     trpc.auth.register.mutationOptions({
-      onSuccess: async () => {
+      onSuccess: (data) => {
         addToast({
           header: 'Success',
           body: 'User registered successfully!',
           variant: 'success',
         });
-        // Invalidate auth.me to refetch with new session
-        await queryClient.invalidateQueries({
-          queryKey: trpc.auth.me.queryKey(),
-        });
+        // Set auth data immediately
+        queryClient.setQueryData(trpc.auth.me.queryKey(), data);
+        // Force full reload to reconnect WebSocket with new session
+        window.location.href = '/create-profile';
       },
       onError: (error) => {
         addToast({

@@ -45,6 +45,8 @@ export function useOnlinePresence(options?: OnlinePresenceOptions) {
     trpc.onlinePresence.getFriendsPresence.queryOptions({ withinLast })
   );
 
+  console.log('Setting up presence subscription...');
+
   const { status, error: subscriptionError } = useSubscription(
     trpc.onlinePresence.onPresenceChange.subscriptionOptions(undefined, {
       onData(presenceUpdate) {
@@ -64,8 +66,13 @@ export function useOnlinePresence(options?: OnlinePresenceOptions) {
           );
         });
       },
+      onError(error) {
+        console.error('Presence subscription error:', error);
+      },
     })
   );
+
+  console.log('Presence subscription status:', status);
 
   return {
     activeFriends: data,

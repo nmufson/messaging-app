@@ -16,6 +16,7 @@ function isExpressRequest(req: unknown): req is Request {
 export const authRouter = router({
   register: publicProcedure
     .input(CreateUserInput)
+    .output(AuthUserDTO)
     .mutation(async ({ input, ctx }) => {
       if (!isExpressRequest(ctx.req)) {
         throw new TRPCError({
@@ -46,7 +47,15 @@ export const authRouter = router({
         console.log(user, 'User created successfully!');
 
         // Auto-login the user after registration
-        return await loginUser({ req: ctx.req, user });
+        await loginUser({ req: ctx.req, user });
+
+        // Return full user data with profile (will be null for new users)
+        return {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          profile: null,
+        };
       } catch (err) {
         console.error(err);
         throw new TRPCError({
@@ -57,6 +66,7 @@ export const authRouter = router({
     }),
   login: publicProcedure
     .input(LogInUserInput)
+    .output(AuthUserDTO)
     .mutation(async ({ input, ctx }) => {
       if (!isExpressRequest(ctx.req)) {
         throw new TRPCError({
@@ -78,8 +88,34 @@ export const authRouter = router({
           if (!user) return reject(new Error('Invalid credentials'));
 
           try {
-            const result = await loginUser({ req, user });
-            resolve(result);
+            await loginUser({ req, user });
+
+            // Fetch user with profile data
+            const userWithProfile = await ctx.prisma.user.findUnique({
+              where: { id: user.id },
+              select: {
+                id: true,
+                email: true,
+                role: true,
+                profile: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+            });
+
+            if (!userWithProfile) {
+              return reject(new Error('User not found'));
+            }
+
+            resolve({
+              ...userWithProfile,
+              profile: userWithProfile.profile || null,
+            });
           } catch (loginErr) {
             reject(loginErr);
           }
@@ -87,7 +123,7 @@ export const authRouter = router({
       });
     }),
 
-  logout: userProcedure.mutation(({ ctx }) => {
+  logout: userProcedure.mutation(async ({ ctx }) => {
     if (!isExpressRequest(ctx.req)) {
       throw new TRPCError({
         code: 'METHOD_NOT_SUPPORTED',
@@ -95,10 +131,24 @@ export const authRouter = router({
       });
     }
 
-    ctx.req.logout(() => {});
-    return { success: true };
+    const req = ctx.req;
+
+    return new Promise<{ success: true }>((resolve, reject) => {
+      req.logout((err: Error | null) => {
+        if (err) {
+          console.error('Logout error:', err);
+          return reject(
+            new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Failed to logout',
+            })
+          );
+        }
+        resolve({ success: true });
+      });
+    });
   }),
-  me: userProcedure.output(AuthUserDTO).query(async ({ ctx }) => {
+  me: userProcedure.output(AuthUserDTO.nullable()).query(async ({ ctx }) => {
     const user = await ctx.prisma.user.findUnique({
       where: { id: ctx.user.id },
       select: {

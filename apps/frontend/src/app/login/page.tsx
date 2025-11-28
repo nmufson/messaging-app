@@ -1,18 +1,18 @@
 'use client';
-import { ChangeEvent, FormEvent, useMemo, useState } from 'react';
-import { useTRPC } from '../../lib/trpc';
-import { useMutation } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { TextFieldGroup } from '@/components/FieldGroup';
 import { useToast } from '@/context/ToastContext';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LogInUserInput } from '@repo/common';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { TextFieldGroup } from '@/components/InputGroup';
+import { useTRPC } from '../../lib/trpc';
+import { query } from 'express';
 
 export default function LogIn() {
   const trpc = useTRPC();
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const { addToast } = useToast();
 
   const defaultValues = useMemo(() => LogInUserInput.parse({}), []);
@@ -35,7 +35,10 @@ export default function LogIn() {
           body: 'User logged in successfully!',
           variant: 'success',
         });
-        router.push('/chats');
+        // Set auth data immediately
+        queryClient.setQueryData(trpc.auth.me.queryKey(), data);
+        // Force full reload to reconnect WebSocket with new session
+        window.location.href = '/chats';
       },
       onError: (error) => {
         addToast({

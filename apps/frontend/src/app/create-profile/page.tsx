@@ -1,7 +1,7 @@
 'use client';
 import { CreateProfileInput } from '@repo/common';
 import { ImageUpload } from '@/components/ImageUpload';
-import { TextFieldGroup } from '@/components/InputGroup';
+import { TextFieldGroup } from '@/components/FieldGroup';
 import { useMutation } from '@tanstack/react-query';
 import { useTRPC } from '@/lib/trpc';
 import { useToast } from '@/context/ToastContext';
@@ -31,6 +31,7 @@ export default function CreateProfile() {
           body: 'Profile created successfully!',
           variant: 'success',
         });
+        router.push('/chats');
       },
       onError: (error) => {
         addToast({

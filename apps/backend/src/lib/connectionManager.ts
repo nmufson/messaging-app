@@ -4,6 +4,7 @@ import { eventEmitter } from './eventBus';
 import { logger } from './pino';
 import { DateTime } from 'luxon';
 import { DateTimeSchema, ObjectId } from '@repo/common';
+import { last } from 'remeda';
 
 interface ConnectionInfo {
   ws: WebSocket;
@@ -53,7 +54,13 @@ class ConnectionManager {
 
   removeConnection(connectionId: ObjectId) {
     const connectionInfo = this.connections.get(connectionId);
-    if (!connectionInfo) return;
+    if (!connectionInfo) {
+      logger.warn(
+        { connectionId },
+        'Attempted to remove non-existent connection'
+      );
+      return;
+    }
 
     const { profileId } = connectionInfo;
 
@@ -64,8 +71,21 @@ class ConnectionManager {
     if (profileConnectionsSet) {
       profileConnectionsSet.delete(connectionId);
 
+      logger.info(
+        {
+          profileId,
+          connectionId,
+          remainingConnections: profileConnectionsSet.size,
+        },
+        'Connection removed from profile'
+      );
+
       // If no more connections for this profile, mark them offline
       if (profileConnectionsSet.size === 0) {
+        logger.info(
+          { profileId },
+          'Last connection removed, setting profile offline'
+        );
         this.profileConnections.delete(profileId);
         this.setProfileOnline(profileId, false);
       }
@@ -95,20 +115,34 @@ class ConnectionManager {
           },
         },
       });
+      logger.info(profileWithFriends, 'Fetched profile with friends');
 
       if (profileWithFriends) {
+        logger.info(
+          {
+            profileWithChange: profileId,
+            isOnline,
+            lastOnline: newLastOnline,
+            friendsCount: profileWithFriends.friends.length,
+            friendIds: profileWithFriends.friends.map((f) => f.id),
+          },
+          'Emitting presence update events to friends'
+        );
         // Notify friends about presence change
         profileWithFriends.friends.forEach((friend) => {
-          logger.info(
-            { friendId: friend.id },
-            'Emitting presence update event'
-          );
-          eventEmitter.emit(`presenceUpdate:${friend.id}`, {
+          const eventName = `presenceUpdate:${friend.id}`;
+          logger.info({ eventName, profileId, isOnline }, 'Emitting event');
+          eventEmitter.emit(eventName, {
             profileId,
             isOnline,
             lastOnline: newLastOnline,
           });
         });
+      } else {
+        logger.warn(
+          { profileId },
+          'Profile not found when trying to emit presence updates'
+        );
       }
 
       logger.info({ profileId, isOnline }, 'Profile online status updated');

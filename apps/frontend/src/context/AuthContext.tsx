@@ -35,7 +35,7 @@ const AuthContext = createContext<{
   profile: null,
 });
 
-const AUTH_PAGES = ['/login', '/signup'];
+const AUTH_PAGES = ['/login', '/signup', '/'];
 
 export function checkIfAuthPage(pathname: string) {
   return R.isIncludedIn(pathname, AUTH_PAGES);
@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // Authorized with profile on auth page -> redirect to chats
-    if (authData?.profile && isAuthPage) {
+    if (authData?.profile && (isAuthPage || isCreateProfilePage)) {
       console.log('Navigating authorized user to Chats page.');
       router.push('/chats');
       return;

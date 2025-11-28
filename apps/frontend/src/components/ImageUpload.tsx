@@ -6,7 +6,7 @@ import { useMutation } from '@tanstack/react-query';
 import { UseControllerProps, useController } from 'react-hook-form';
 
 export interface BaseImageUploadProps {
-  label?: string;
+  label: string;
   required?: boolean;
 }
 
@@ -22,6 +22,8 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
     field,
     fieldState: { error },
   } = useController(controllerProps);
+
+  const inputId = `image-upload-${controllerProps.name}`;
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     field.value || null
@@ -62,14 +64,14 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
         return;
       }
 
-      // Create form data for Cloudinary
+      // form data for Cloudinary
       const formData = new FormData();
       formData.append('file', file);
       formData.append('timestamp', timestamp.toString());
       formData.append('signature', signature);
       formData.append('api_key', apiKey);
 
-      // Upload to Cloudinary
+      // upload
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
         {
@@ -85,7 +87,7 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
       const data = await response.json();
       console.log(data);
 
-      // Update form with url from Cloudinary
+      // ppdate form with url from Cloudinary
       field.onChange(data.secure_url);
       setPreviewUrl(data.secure_url);
     } catch (error) {
@@ -136,10 +138,10 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
             onChange={handleFileChange}
             disabled={isPending}
             className="hidden"
-            id="image-upload"
+            id={inputId}
           />
           <label
-            htmlFor="image-upload"
+            htmlFor={inputId}
             className={`
               inline-block px-4 py-2 
               border border-gray-300 rounded-lg 

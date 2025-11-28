@@ -65,12 +65,13 @@ export const onlinePresenceRouter = router({
     if (!userProfileId) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
-
+    logger.info({ userProfileId }, 'Starting presence update subscription');
     for await (const [presenceUpdate] of on(
       eventEmitter,
       `presenceUpdate:${userProfileId}`,
       { signal }
     )) {
+      logger.info({ presenceUpdate }, 'Received presence update');
       const parsedUpdate = PresenceUpdate.safeParse(presenceUpdate);
       if (parsedUpdate.success) {
         logger.info({ parsedUpdate }, 'parsed successfully, yielding');
