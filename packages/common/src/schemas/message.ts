@@ -28,7 +28,7 @@ export const MessageDTO = z.object({
 });
 export type MessageDTO = z.infer<typeof MessageDTO>;
 
-export const MessageWithSenderDTO = MessageDTO.extend({
+export const MessageWithSenderDTO = MessageDTO.omit({ senderId: true }).extend({
   sender: z.object({
     id: ObjectId,
     firstName: z.string(),
@@ -38,7 +38,7 @@ export const MessageWithSenderDTO = MessageDTO.extend({
 });
 export type MessageWithSenderDTO = z.infer<typeof MessageWithSenderDTO>;
 
-export const MessageSearchResultDTO = MessageWithSenderDTO.extend({
+export const TextMessageSearchResultDTO = MessageWithSenderDTO.extend({
   chat: z.object({
     id: ObjectId,
     name: z.string().nullish(),
@@ -51,12 +51,16 @@ export const MessageSearchResultDTO = MessageWithSenderDTO.extend({
     ),
   }),
 });
-export type MessageSearchResultDTO = z.infer<typeof MessageSearchResultDTO>;
+export type TextMessageSearchResultDTO = z.infer<
+  typeof TextMessageSearchResultDTO
+>;
 
-export const ListPhotoMessageDTO = z.object({
-  id: ObjectId,
+export const PhotoMessageSearchResultDTO = MessageWithSenderDTO.omit({
+  content: true,
+}).extend({
+  type: z.literal('IMAGE'),
   imageUrl: z.string(),
-  createdAt: DateTimeSchema,
-  senderId: ObjectId,
 });
-export type ListPhotoMessageDTO = z.infer<typeof ListPhotoMessageDTO>;
+export type PhotoMessageSearchResultDTO = z.infer<
+  typeof PhotoMessageSearchResultDTO
+>;

@@ -9,8 +9,9 @@ import {
   ChatListDTO,
   ListProfileDTO,
   MessageDTO,
-  MessageSearchResultDTO,
+  TextMessageSearchResultDTO,
   ObjectId,
+  PhotoMessageSearchResultDTO,
 } from '@repo/common';
 import { ChangeEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -79,19 +80,44 @@ export function SearchModal() {
         <h5>Messages</h5>
         <div>
           {textMessages?.slice(0, 5).map((text) => (
-            <MessagePreview key={text.id} message={text} />
+            <TextMessagePreview key={text.id} message={text} />
           ))}
         </div>
       </div>
       <div>
         <h5>Photos</h5>
-        <div>{/* TODO: put photo stuff here */}</div>
+        <div className="flex flex-wrap">
+          {photoMessages?.map((message) => (
+            <PhotoMessagePreview key={message.id} photoMessage={message} />
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-function MessagePreview({ message }: { message: MessageSearchResultDTO }) {
+function PhotoMessagePreview({
+  photoMessage,
+}: {
+  photoMessage: PhotoMessageSearchResultDTO;
+}) {
+  const { imageUrl, sender } = photoMessage;
+
+  return (
+    <div className="relative w-45 max-h-150 border-2 border-white">
+      <img src={imageUrl} className="w-full h-full object-cover" />
+      <div className="absolute top-2 right-2">
+        <ProfileAvatar {...sender} />
+      </div>
+    </div>
+  );
+}
+
+function TextMessagePreview({
+  message,
+}: {
+  message: TextMessageSearchResultDTO;
+}) {
   const { profile } = useAuth();
   const { closeModal } = useModalContext();
   const router = useRouter();

@@ -1,8 +1,9 @@
 import { getChat } from '@/services/chat';
 import {
-  ListPhotoMessageDTO,
+  PhotoMessageSearchResultDTO,
   MessageDTO,
-  MessageSearchResultDTO,
+  TextMessageSearchResultDTO,
+  MessageWithSenderDTO,
   ObjectId,
   SendMessageInput,
   z,
@@ -96,7 +97,7 @@ export const messageRouter = router({
         limit: z.number().default(50),
       })
     )
-    .output(MessageSearchResultDTO.array())
+    .output(TextMessageSearchResultDTO.array())
     .query(async ({ ctx, input }) => {
       const { user } = ctx;
       const { searchInput, limit } = input;
@@ -117,7 +118,7 @@ export const messageRouter = router({
     }),
   getPhotoMessages: profileProcedure
     .input(z.object({ limit: z.number().default(30) }))
-    .output(ListPhotoMessageDTO.array())
+    .output(PhotoMessageSearchResultDTO.array())
     .query(async ({ ctx, input }) => {
       const { user } = ctx;
       const userProfileId = user?.profile?.id;

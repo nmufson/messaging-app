@@ -138,7 +138,7 @@ export function ChatContent(props: ChatContentProps) {
   };
 
   if (isLoading) return <Spinner />;
-  console.log(type);
+
   return (
     <div className="flex flex-col h-screen">
       <div className="header-container pt-2 pb-1 pb-0 px-4 border-b bg-gray-50 flex justify-between items-center flex-shrink-0">

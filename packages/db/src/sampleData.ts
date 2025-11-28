@@ -360,6 +360,39 @@ export const messagesData = [
   },
   {
     id: randomUUID(),
+    type: MessageType.IMAGE,
+    imageUrl:
+      'https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg',
+    senderId: profileIds.alice,
+    chatId: chatIds.ketchupStains,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.IMAGE,
+    imageUrl:
+      'https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg',
+    senderId: profileIds.bob,
+    chatId: chatIds.bigGroup2,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.IMAGE,
+    imageUrl:
+      'https://plus.unsplash.com/premium_photo-1673967831980-1d377baaded2?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2F0c3xlbnwwfHwwfHx8MA%3D%3D',
+    senderId: profileIds.nick,
+    chatId: chatIds.coolestKats,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.IMAGE,
+    imageUrl:
+      'https://plus.unsplash.com/premium_photo-1673967831980-1d377baaded2?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2F0c3xlbnwwfHwwfHx8MA%3D%3D',
+    senderId: profileIds.alice,
+    chatId: chatIds.ketchupStains,
+  },
+
+  {
+    id: randomUUID(),
     type: MessageType.TEXT,
     content: 'How are you doing today?',
     senderId: profileIds.alice,

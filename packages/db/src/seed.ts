@@ -71,7 +71,8 @@ async function main() {
     await prisma.message.create({
       data: {
         type: msg.type,
-        content: msg.content,
+        content: msg.content || null,
+        imageUrl: msg.imageUrl || null,
         senderId: msg.senderId,
         chatId: msg.chatId,
       },
