@@ -26,7 +26,8 @@ export function useMessages({ searchInput, limit }: MessagesParams) {
     error: photosError,
   } = useQuery(
     trpc.message.getPhotoMessages.queryOptions({
-      limit: limit ?? 30,
+      searchInput,
+      limit,
     })
   );
 

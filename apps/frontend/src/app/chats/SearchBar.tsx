@@ -8,7 +8,7 @@ export function MessageSearchBar() {
 
   const handleOpenMainSearchModal = () => {
     launchModal(
-      <FullscreenModal>
+      <FullscreenModal showHeader={false}>
         <SearchModal />
       </FullscreenModal>
     );

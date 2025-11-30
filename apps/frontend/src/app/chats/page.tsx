@@ -5,9 +5,14 @@ import { MessageSearchBar } from './SearchBar';
 import { useOnlinePresence } from '@/hooks/profile';
 import { useRouter } from 'next/navigation';
 import MainHeader from '@/components/mainHeader/mainHeader';
+import { useContext, useState } from 'react';
+import { ToastContainer } from 'react-bootstrap';
+import { useToast } from '@/context/ToastContext';
 
 export default function Chats() {
   const { chats, isLoading, error } = useChatList();
+  const { addToast } = useToast();
+  const [count, setCount] = useState(0);
   const { activeFriends: friendsWithPresence, isLoading: isPresenceLoading } =
     useOnlinePresence();
 
@@ -17,8 +22,13 @@ export default function Chats() {
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
+  const toastTest = () => {
+    addToast({ header: 'typeee', body: `ishhh ${count}` });
+    setCount((prev) => prev + 1);
+  };
+
   return (
-    <div className="bg-blue-500 flex flex-col">
+    <div onClick={toastTest} className="bg-blue-500 flex flex-col">
       <MainHeader numFriendsOnline={numFriendsOnline} />
       <MessageSearchBar />
       <div>

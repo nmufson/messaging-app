@@ -15,6 +15,7 @@ import { ProfileContent } from '@/app/profile/profileContent';
 import { GroupPhoto } from '../GroupPhoto';
 import { ProfileAvatar } from '../ProfileAvatar';
 import { GroupChatInfo } from './GroupChatInfo';
+import { useNavigation } from '@/utils/Navigation';
 
 interface ChatContentProps {
   chatId: ObjectId | null;
@@ -26,7 +27,7 @@ interface ChatContentProps {
 export function ChatContent(props: ChatContentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageToViewRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+  const { navigateToChat } = useNavigation();
   const { launchModal } = useModalContext();
 
   const { chatId, messageToView, profiles, inModalView } = props;
@@ -67,7 +68,7 @@ export function ChatContent(props: ChatContentProps) {
       imageUrl: imageUrlInput || null,
       onSuccess: (chatId) => {
         if (inModalView) {
-          router.push(`/chat/chat?chat=${chatId}`);
+          navigateToChat(chatId);
         }
       },
     });
@@ -183,6 +184,7 @@ export function ChatContent(props: ChatContentProps) {
             if (!sender) {
               console.error('Sender not found in chat participants', {
                 chat,
+                message,
                 senderId: message.senderId,
               });
             }

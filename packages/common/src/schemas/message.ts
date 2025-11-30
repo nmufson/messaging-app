@@ -58,6 +58,7 @@ export type TextMessageSearchResultDTO = z.infer<
 export const PhotoMessageSearchResultDTO = MessageWithSenderDTO.omit({
   content: true,
 }).extend({
+  chatId: ObjectId,
   type: z.literal('IMAGE'),
   imageUrl: z.string(),
 });

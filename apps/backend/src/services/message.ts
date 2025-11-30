@@ -129,7 +129,7 @@ interface GetPhotoMessagesParams {
   limit?: number;
 }
 
-export const getPhotoMessages = async (
+export const getMatchingPhotoMessages = async (
   prisma: PrismaClient,
   params: GetPhotoMessagesParams
 ): Promise<PhotoMessageSearchResultDTO[]> => {
@@ -190,6 +190,7 @@ export const getPhotoMessages = async (
       imageUrl: true,
       createdAt: true,
       updatedAt: true,
+      chatId: true,
       sender: {
         select: {
           id: true,

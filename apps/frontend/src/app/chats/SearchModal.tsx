@@ -5,16 +5,14 @@ import { useModalContext } from '@/context/ModalContext';
 import { usePotentialChats } from '@/hooks/chat';
 import { useMessages } from '@/hooks/messages';
 import { formatDisplayDate, getChatDisplayName } from '@/utils';
+import { useNavigation } from '@/utils/Navigation';
 import {
   ChatListDTO,
   ListProfileDTO,
-  MessageDTO,
-  TextMessageSearchResultDTO,
-  ObjectId,
   PhotoMessageSearchResultDTO,
+  TextMessageSearchResultDTO,
 } from '@repo/common';
 import { ChangeEvent, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { MessageBubble } from '../chat/[slug]/MessageBubble';
 
 export function SearchModal() {
@@ -46,7 +44,8 @@ export function SearchModal() {
             type="text"
             value={searchInput}
             onChange={handleInputChange}
-          ></input>
+            autoFocus
+          />
         </div>
         <button className="border-none p-0" onClick={closeModal}>
           Cancel
@@ -101,10 +100,18 @@ function PhotoMessagePreview({
 }: {
   photoMessage: PhotoMessageSearchResultDTO;
 }) {
-  const { imageUrl, sender } = photoMessage;
+  const { imageUrl, sender, chatId, id: messageId } = photoMessage;
+  const { navigateToMessage } = useNavigation();
+
+  const handleNavigateToMessage = () => {
+    navigateToMessage(chatId, messageId);
+  };
 
   return (
-    <div className="relative w-45 max-h-150 border-2 border-white">
+    <div
+      onClick={handleNavigateToMessage}
+      className="relative w-45 max-h-150 border-2 border-white"
+    >
       <img src={imageUrl} className="w-full h-full object-cover" />
       <div className="absolute top-2 right-2">
         <ProfileAvatar {...sender} />
@@ -119,9 +126,9 @@ function TextMessagePreview({
   message: TextMessageSearchResultDTO;
 }) {
   const { profile } = useAuth();
-  const { closeModal } = useModalContext();
-  const router = useRouter();
-  const { content, sender, createdAt, chat } = message;
+  const { navigateToMessage } = useNavigation();
+
+  const { sender, createdAt, chat } = message;
   const { name: chatName, participants } = chat;
   const { firstName, lastName } = sender;
 
@@ -129,17 +136,14 @@ function TextMessagePreview({
   const displayDate = formatDisplayDate(createdAt);
 
   const chatDisplayName = getChatDisplayName({
-    name: chat.name || null,
-    participants: chat.participants || [],
+    name: chatName || null,
+    participants: participants || [],
     profileId: profile?.id,
     truncate: 50,
   });
 
   const handleNavigateToMessage = () => {
-    const chatId = message.chat.id;
-
-    router.push(`/chat/chat?chat=${chatId}&message=${message.id}`);
-    closeModal();
+    navigateToMessage(chat.id, message.id);
   };
 
   return (
@@ -152,7 +156,12 @@ function TextMessagePreview({
         <small className="text-xs">{displayDate}</small>
       </div>
       <div className="flex justify-between items-center">
-        <MessageBubble message={message} showName={false} showTime={false} />
+        <MessageBubble
+          message={message}
+          showName={false}
+          showTime={false}
+          onClick={handleNavigateToMessage}
+        />
         <button onClick={handleNavigateToMessage} className="p-1">
           <i className="bi bi-caret-right-fill text-gray-700 text-3xl" />
         </button>

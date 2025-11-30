@@ -10,6 +10,7 @@ interface MessageBubbleProps {
   showAvatar?: boolean;
   showTime?: boolean;
   ref?: RefObject<HTMLDivElement | null> | null;
+  onClick?: () => void;
 }
 
 export function MessageBubble(props: MessageBubbleProps) {
@@ -20,6 +21,7 @@ export function MessageBubble(props: MessageBubbleProps) {
     showAvatar = true,
     showTime = true,
     ref,
+    onClick,
   } = props;
   const { sender, content, imageUrl, createdAt } = message;
 
@@ -33,6 +35,7 @@ export function MessageBubble(props: MessageBubbleProps) {
   return (
     <div
       ref={ref}
+      onClick={onClick}
       className={`flex mt-2 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
     >
       <div className="flex items-end gap-1 w-full">

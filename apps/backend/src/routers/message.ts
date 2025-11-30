@@ -14,7 +14,7 @@ import { logger } from 'src/lib/pino';
 import { eventEmitter } from '../lib/eventBus';
 import {
   getMatchingTextMessages,
-  getPhotoMessages,
+  getMatchingPhotoMessages,
   sendMessage,
 } from '../services/message';
 import { router, profileProcedure } from '../trpc';
@@ -110,16 +110,21 @@ export const messageRouter = router({
 
       const messages = await getMatchingTextMessages(ctx.prisma, {
         profileId: userProfileId,
-        searchInput,
-        limit,
+        ...input,
       });
 
       return messages;
     }),
   getPhotoMessages: profileProcedure
-    .input(z.object({ limit: z.number().default(30) }))
+    .input(
+      z.object({
+        searchInput: z.string().optional(),
+        limit: z.number().default(30),
+      })
+    )
     .output(PhotoMessageSearchResultDTO.array())
     .query(async ({ ctx, input }) => {
+      const { searchInput, limit } = input;
       const { user } = ctx;
       const userProfileId = user?.profile?.id;
 
@@ -127,9 +132,9 @@ export const messageRouter = router({
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
 
-      const photoMessages = await getPhotoMessages(ctx.prisma, {
+      const photoMessages = await getMatchingPhotoMessages(ctx.prisma, {
         profileId: userProfileId,
-        limit: input.limit,
+        ...input,
       });
 
       return photoMessages;

@@ -63,6 +63,7 @@ export function ModalContextWrapper({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // auto close modals on path change
     setModalStack([]);
   }, [pathname]);
 

@@ -300,7 +300,8 @@ export const chatsData = [
     creatorId: profileIds.alice,
     type: ChatType.GROUP,
     participantIds: [profileIds.alice, profileIds.bob, profileIds.nick],
-    groupPictureUrl: 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp',
+    groupPictureUrl:
+      'https://t3.ftcdn.net/jpg/04/79/93/20/360_F_479932092_BmeQGwL1ljKI368UJVlIwczA8MtjbBnj.jpg',
   },
   {
     id: chatIds.coolestKats,
@@ -308,7 +309,8 @@ export const chatsData = [
     creatorId: profileIds.charlie,
     type: ChatType.GROUP,
     participantIds: [profileIds.charlie, profileIds.diana, profileIds.nick],
-    groupPictureUrl: 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp',
+    groupPictureUrl:
+      'https://media.istockphoto.com/id/1322842973/photo/diverse-business-people-putting-their-hands-together-in-cirle.jpg?s=612x612&w=0&k=20&c=9BAYCv8tAsgYPQdTsFxLzLJsmt6tGYE5Etwd63OccxQ=',
   },
   {
     id: chatIds.groupChat1,
@@ -322,7 +324,6 @@ export const chatsData = [
       profileIds.bob,
       profileIds.nick,
     ],
-    groupPictureUrl: 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp',
   },
   {
     id: chatIds.bigGroup2,
@@ -333,6 +334,7 @@ export const chatsData = [
       profileIds.diana,
       profileIds.alice,
       profileIds.nick,
+      profileIds.bob,
     ],
   },
   {

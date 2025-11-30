@@ -52,9 +52,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ addToast, removeToast }}>
       {children}
       <ToastContainer
-        position="top-end"
         className="p-3"
-        style={{ zIndex: 9999 }}
+        position="top-end"
+        style={{ zIndex: 9999, position: 'fixed' }}
       >
         {toasts.map((toast) => (
           <Toast
@@ -63,13 +63,25 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             delay={toast.delay || DEFAULT_DELAY}
             autohide
             bg={toast.variant?.toLowerCase()}
+            show={true}
+            style={{
+              borderRadius: '10px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              border: 'none',
+              overflow: 'hidden',
+              background: 'gray',
+            }}
           >
             {toast.header && (
               <Toast.Header>
                 <strong className="me-auto">{toast.header}</strong>
               </Toast.Header>
             )}
-            <Toast.Body>{toast.body}</Toast.Body>
+            <Toast.Body
+              className={toast.variant === 'light' ? 'text-dark' : 'text-white'}
+            >
+              {toast.body}
+            </Toast.Body>
           </Toast>
         ))}
       </ToastContainer>
