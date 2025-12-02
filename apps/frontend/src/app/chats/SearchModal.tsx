@@ -1,5 +1,6 @@
 import { GroupPhoto } from '@/components/GroupPhoto';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
+import { SearchInput } from '@/components/SearchInput';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
 import { usePotentialChats } from '@/hooks/chat';
@@ -37,16 +38,12 @@ export function SearchModal() {
 
   return (
     <div className="px-1">
-      <div className="flex justify-between p-3">
-        <div className="border border-black">
-          <i className="bi bi-search" />
-          <input
-            type="text"
-            value={searchInput}
-            onChange={handleInputChange}
-            autoFocus
-          />
-        </div>
+      <div className="flex justify-between items-center gap-3 p-3">
+        <SearchInput
+          value={searchInput}
+          onChange={handleInputChange}
+          autoFocus
+        />
         <button className="border-none p-0" onClick={closeModal}>
           Cancel
         </button>

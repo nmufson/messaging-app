@@ -4,12 +4,11 @@ import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSubscription } from '@trpc/tanstack-react-query';
 import { useMemo } from 'react';
 
-// TODO: combine these into one hook, disabling other based on if chatId is provided??
 interface OnlinePresenceOptions {
   chatId?: ObjectId;
   withinLast?: DurationObject;
 }
-// general online presence of friends
+
 export function useOnlinePresence(options?: OnlinePresenceOptions) {
   const { chatId } = options || {};
   const trpc = useTRPC();
@@ -64,14 +63,15 @@ export function useOnlinePresence(options?: OnlinePresenceOptions) {
     )
   );
 
-  const numProfilesOnline = useMemo(
-    () => data?.filter((p) => p.isOnline).length ?? 0,
+  const onlineProfiles = useMemo(
+    () => data?.filter((p) => p.isOnline) || [],
     [data]
   );
 
   return {
-    activeProfiles: data,
-    numProfilesOnline,
+    activeProfiles: data, // those online or recently online
+    onlineProfiles,
+    numProfilesOnline: onlineProfiles.length,
     isLoading,
     error,
     subscriptionStatus: status,

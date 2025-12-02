@@ -9,27 +9,20 @@ import { useContext, useState } from 'react';
 import { ToastContainer } from 'react-bootstrap';
 import { useToast } from '@/context/ToastContext';
 import { useOnlinePresence } from '@/hooks/onlinePresence';
+import { Nanum_Pen_Script } from 'next/font/google';
 
 export default function Chats() {
   const { chats, isLoading, error } = useChatList();
   const { addToast } = useToast();
-  const [count, setCount] = useState(0);
-  const {
-    activeProfiles: activeFriends,
-    numFriendsOnline,
-    isLoading: isPresenceLoading,
-  } = useOnlinePresence();
+
+  const { numProfilesOnline: numFriendsOnline, isLoading: isPresenceLoading } =
+    useOnlinePresence();
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  const toastTest = () => {
-    addToast({ header: 'typeee', body: `ishhh ${count}` });
-    setCount((prev) => prev + 1);
-  };
-
   return (
-    <div onClick={toastTest} className="bg-blue-500 flex flex-col">
+    <div className="bg-blue-500 flex flex-col">
       <MainHeader numFriendsOnline={numFriendsOnline} />
       <MessageSearchBar />
       <div>

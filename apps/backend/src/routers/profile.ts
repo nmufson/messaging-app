@@ -144,21 +144,62 @@ export const profileRouter = router({
       return profile.friends;
     }),
   nonFriends: profileProcedure
-    .input(z.object({ searchInput: z.string().optional() }))
+    .input(z.object({ searchInput: z.string() }))
     .output(ListProfileDTO.array())
     .query(async ({ input, ctx }) => {
       const { searchInput } = input;
       const { user } = ctx;
       const profileId = user.profile.id;
 
+      const loggedInProfile = await ctx.prisma.profile.findUnique({
+        where: { id: profileId },
+        include: {
+          friends: {
+            select: { id: true },
+          },
+        },
+      });
+
+      if (!loggedInProfile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Logged in profile not found',
+        });
+      }
+
       const profiles = await ctx.prisma.profile.findMany({
         where: {
           id: { not: profileId },
-          OR: [
-            { firstName: { contains: searchInput, mode: 'insensitive' } },
-            { lastName: { contains: searchInput, mode: 'insensitive' } },
+          AND: [
+            // not already a friend
+            {
+              NOT: {
+                id: { in: loggedInProfile.friends.map((f) => f.id) },
+              },
+            },
+            searchInput
+              ? {
+                  OR: [
+                    {
+                      user: {
+                        email: { contains: searchInput, mode: 'insensitive' },
+                      },
+                    },
+                    {
+                      firstName: { contains: searchInput, mode: 'insensitive' },
+                    },
+                    {
+                      lastName: { contains: searchInput, mode: 'insensitive' },
+                    },
+                  ],
+                }
+              : {},
           ],
         },
+        orderBy: [
+          { isOnline: 'desc' },
+          { lastOnline: { sort: 'desc', nulls: 'last' } },
+        ],
       });
 
       return profiles;
