@@ -2,18 +2,11 @@
 import { useChatList } from '@/hooks/chat';
 import { ChatPreview } from './ChatPreview';
 import { MessageSearchBar } from './SearchBar';
-
-import { useRouter } from 'next/navigation';
 import MainHeader from '@/components/mainHeader/mainHeader';
-import { useContext, useState } from 'react';
-import { ToastContainer } from 'react-bootstrap';
-import { useToast } from '@/context/ToastContext';
 import { useOnlinePresence } from '@/hooks/onlinePresence';
-import { Nanum_Pen_Script } from 'next/font/google';
 
 export default function Chats() {
   const { chats, isLoading, error } = useChatList();
-  const { addToast } = useToast();
 
   const { numProfilesOnline: numFriendsOnline, isLoading: isPresenceLoading } =
     useOnlinePresence();

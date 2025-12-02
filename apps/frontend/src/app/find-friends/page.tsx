@@ -6,6 +6,7 @@ import { useFriendRequest } from '@/hooks/friendRequest';
 import { useTRPC } from '@/lib/trpc';
 import { ObjectId } from '@repo/common';
 import { skipToken, useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 import { ChangeEvent, useState } from 'react';
 import { Spinner } from 'react-bootstrap';
 
@@ -47,7 +48,13 @@ export default function FindFriends() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-semibold mb-4">Find Friends</h1>
+      <div className="flex justify-between items-center pb-2">
+        <Link href="/chats" className="no-underline text-inherit">
+          <i className="bi bi-caret-left-fill text-3xl" />
+        </Link>
+        <h1 className="text-2xl font-semibold m-0">Find Friends</h1>
+        <div></div>
+      </div>
       <SearchInput
         value={searchInput}
         onChange={handleInputChange}
