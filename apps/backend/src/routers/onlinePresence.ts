@@ -15,10 +15,17 @@ import { logger } from '@/lib/pino';
 export const onlinePresenceRouter = router({
   // friends who are online or recently online
   getFriendsPresence: profileProcedure
-    .input(z.object({ withinLast: DurationObject.optional() }))
+    .input(
+      z
+        .object({
+          chatId: ObjectId.optional(),
+          withinLast: DurationObject.optional().default({ hours: 1 }),
+        })
+        .optional()
+    )
     .output(ListProfileDTO.array())
     .query(async ({ ctx, input }) => {
-      const withinLast = input.withinLast || { hours: 1 };
+      const { chatId, withinLast } = input || {};
       const { user, prisma } = ctx;
       const userProfileId = user?.profile?.id;
 
@@ -28,17 +35,43 @@ export const onlinePresenceRouter = router({
 
       const friendsWithPresence = await prisma.profile.findMany({
         where: {
-          friends: {
-            some: {
-              id: userProfileId,
-            },
-          },
-          OR: [
-            { isOnline: true },
+          AND: [
             {
-              lastOnline: {
-                gte: DateTime.now().minus(withinLast).toJSDate(),
-              },
+              id: { not: userProfileId },
+            },
+            {
+              OR: [
+                {
+                  friends: {
+                    some: {
+                      id: userProfileId,
+                    },
+                  },
+                },
+                ...(chatId
+                  ? [
+                      {
+                        chats: {
+                          some: {
+                            id: chatId,
+                          },
+                        },
+                      },
+                    ]
+                  : []),
+              ],
+            },
+            {
+              OR: [
+                { isOnline: true },
+                {
+                  lastOnline: {
+                    gte: DateTime.now()
+                      .minus(withinLast || { hours: 1 })
+                      .toJSDate(),
+                  },
+                },
+              ],
             },
           ],
         },
@@ -91,33 +124,36 @@ export const onlinePresenceRouter = router({
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
 
-      const chatWithParticipants = await prisma.chat.findUnique({
-        where: { id: chatId },
+      const profileWithChats = await prisma.profile.findUnique({
+        where: { id: userProfileId },
         include: {
-          participants: {
+          chats: {
             select: { id: true },
           },
         },
       });
 
-      if (!chatWithParticipants) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Chat not found' });
+      if (!profileWithChats) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
+      }
+
+      const isMember = profileWithChats.chats.some((c) => c.id === chatId);
+      if (!isMember) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You are not a member of this chat',
+        });
       }
 
       for await (const [presenceUpdate] of on(
         eventEmitter,
-        `presenceUpdate:${userProfileId}`,
+        `presenceInChatUpdate:${chatId}`,
         { signal }
       )) {
-        // only yield if the changing profile is in the chat
-        const profileWithChange = presenceUpdate.profileId;
-        const isRelevantToChat = chatWithParticipants.participants.some(
-          (p) => p.id === profileWithChange
-        );
-
-        if (isRelevantToChat) {
-          yield presenceUpdate;
-        }
+        yield presenceUpdate;
       }
     }),
 });

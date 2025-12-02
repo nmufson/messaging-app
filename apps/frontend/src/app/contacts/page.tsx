@@ -3,16 +3,16 @@
 import * as R from 'remeda';
 import { ProfilePreview } from '@/components/profile/ProfilePreview';
 import { useAuth } from '@/context/AuthContext';
-import { useFriends, useOnlinePresence } from '@/hooks/profile';
-import { getOnlineStatus } from '@/utils/formatting';
 import { ChangeEvent, useState } from 'react';
 import Link from 'next/link';
+import { useOnlinePresence } from '@/hooks/onlinePresence';
+import { useFriends } from '@/hooks/profile';
 
 export default function Contacts() {
   const { profile } = useAuth();
   const [searchInput, setSearchInput] = useState('');
 
-  const { activeFriends, isLoading: isPresenceLoading } = useOnlinePresence();
+  const { activeProfiles: activeFriends } = useOnlinePresence();
 
   const presenceIds = activeFriends?.map((friend) => friend.id);
 

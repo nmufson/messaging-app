@@ -2,22 +2,23 @@
 import { useChatList } from '@/hooks/chat';
 import { ChatPreview } from './ChatPreview';
 import { MessageSearchBar } from './SearchBar';
-import { useOnlinePresence } from '@/hooks/profile';
+
 import { useRouter } from 'next/navigation';
 import MainHeader from '@/components/mainHeader/mainHeader';
 import { useContext, useState } from 'react';
 import { ToastContainer } from 'react-bootstrap';
 import { useToast } from '@/context/ToastContext';
+import { useOnlinePresence } from '@/hooks/onlinePresence';
 
 export default function Chats() {
   const { chats, isLoading, error } = useChatList();
   const { addToast } = useToast();
   const [count, setCount] = useState(0);
-  const { activeFriends: friendsWithPresence, isLoading: isPresenceLoading } =
-    useOnlinePresence();
-
-  const numFriendsOnline =
-    friendsWithPresence?.filter((friend) => friend.isOnline)?.length ?? 0;
+  const {
+    activeProfiles: activeFriends,
+    numFriendsOnline,
+    isLoading: isPresenceLoading,
+  } = useOnlinePresence();
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;

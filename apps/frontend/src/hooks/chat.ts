@@ -51,7 +51,6 @@ export function useChat(params: UseChatParams) {
   }, [chatId, profileIds]);
 
   const chatQueryKey = trpc.chat.findChat.queryKey(queryInput ?? {});
-  const chatQueryFilter = trpc.chat.findChat.queryFilter(queryInput ?? {});
 
   const queryOptions = trpc.chat.findChat.queryOptions(queryInput ?? skipToken);
 
@@ -163,6 +162,7 @@ interface useDirectMessageParams {
   receiverId: ObjectId;
 }
 
+// TODO: remove this??
 export function useDirectMessage({
   senderId,
   receiverId,

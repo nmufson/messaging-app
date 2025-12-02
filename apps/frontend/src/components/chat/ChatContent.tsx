@@ -1,21 +1,21 @@
 import { MessageBubble } from '@/app/chat/[slug]/MessageBubble';
 import { SelectedProfile } from '@/app/chats/WriteToChatModal';
+import { ProfileContent } from '@/app/profile/profileContent';
 import { useAuth } from '@/context/AuthContext';
+import { useModalContext } from '@/context/ModalContext';
 import { useChat } from '@/hooks/chat';
 import { formatDisplayDate, getChatDisplayName } from '@/utils';
+import { useNavigation } from '@/utils/Navigation';
 import { ChatType, ObjectId } from '@repo/common';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { Spinner } from 'react-bootstrap';
+import { OverlayTrigger, Spinner, Tooltip } from 'react-bootstrap';
 import * as R from 'remeda';
-import { FullscreenModal } from '../modal/FullscreenModal';
-import { useModalContext } from '@/context/ModalContext';
-import { ProfileContent } from '@/app/profile/profileContent';
 import { GroupPhoto } from '../GroupPhoto';
+import { FullscreenModal } from '../modal/FullscreenModal';
 import { ProfileAvatar } from '../ProfileAvatar';
 import { GroupChatInfo } from './GroupChatInfo';
-import { useNavigation } from '@/utils/Navigation';
+import { useOnlinePresence } from '@/hooks/onlinePresence';
 
 interface ChatContentProps {
   chatId: ObjectId | null;
@@ -36,13 +36,25 @@ export function ChatContent(props: ChatContentProps) {
   const [textInput, setTextInput] = useState('');
   const [imageUrlInput, setImageUrlInput] = useState('');
 
+  const {
+    activeProfiles: activeParticipants,
+    numProfilesOnline: numParticipantsOnline,
+  } = useOnlinePresence({
+    chatId: chatId ?? undefined,
+  });
+  const isAnyOnline = R.isTruthy(numParticipantsOnline);
+
+  const onlineParticipants = useMemo(
+    () => activeParticipants?.filter((p) => p.isOnline) || [],
+    [activeParticipants]
+  );
+
   const profileIds = profiles?.map((profile) => profile.id);
-  const { chat, isLoading, error, sendMessageToChat, createChat, sendMessage } =
-    useChat({
-      chatId,
-      profileIds,
-      senderProfileId: loggedInProfileId,
-    });
+  const { chat, isLoading, sendMessage } = useChat({
+    chatId,
+    profileIds,
+    senderProfileId: loggedInProfileId,
+  });
 
   useEffect(() => {
     if (messageToView && messageToViewRef.current) {
@@ -107,11 +119,6 @@ export function ChatContent(props: ChatContentProps) {
     profileId: loggedInProfileId,
   });
 
-  const numParticipantsOnline = participants.filter(
-    (p) => p.isOnline && p.id !== loggedInProfileId
-  ).length;
-  const isAnyOnline = R.isTruthy(numParticipantsOnline);
-
   const otherProfile =
     type === 'DIRECT'
       ? participants.find((p) => p.id !== loggedInProfileId)
@@ -142,7 +149,7 @@ export function ChatContent(props: ChatContentProps) {
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="header-container pt-2 pb-1 pb-0 px-4 border-b bg-gray-50 flex justify-between items-center flex-shrink-0">
+      <div className="header-container pt-2 pb-0 px-4 border-b bg-gray-50 flex justify-between items-center flex-shrink-0">
         <Link href="/chats" className="no-underline text-inherit">
           <i className="bi bi-caret-left-fill text-3xl" />
         </Link>
@@ -163,10 +170,31 @@ export function ChatContent(props: ChatContentProps) {
           )}
           <h1 className="text-xl font-semibold">{displayName}</h1>
           {isAnyOnline && (
-            <div className="flex items-center -mt-2">
-              <i className="bi bi-dot text-4xl text-green-900"></i>
-              <span>{type === 'GROUP' && numParticipantsOnline} Online</span>
-            </div>
+            <OverlayTrigger
+              placement="bottom"
+              overlay={(props) => (
+                <Tooltip id="online-participants-tooltip" {...props}>
+                  {onlineParticipants.slice(0, 5).map((p) => (
+                    <div key={p.id}>
+                      {p.id === loggedInProfileId
+                        ? 'You'
+                        : `${p.firstName} ${p.lastName}`}
+                    </div>
+                  ))}
+                  {onlineParticipants.length > 5 && (
+                    <div>+ {onlineParticipants.length - 5} more...</div>
+                  )}
+                </Tooltip>
+              )}
+            >
+              <div
+                className="flex items-center -mt-2 cursor-pointer"
+                tabIndex={0}
+              >
+                <i className="bi bi-dot text-4xl text-green-900"></i>
+                <span>{type === 'GROUP' && numParticipantsOnline} Online</span>
+              </div>
+            </OverlayTrigger>
           )}
         </div>
         {/* have this button go to user profile if its direct chat, if group go to group info */}

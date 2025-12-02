@@ -107,36 +107,49 @@ class ConnectionManager {
       });
 
       // Get the updated profile with friends
-      const profileWithFriends = await prisma.profile.findUnique({
+      const populatedProfile = await prisma.profile.findUnique({
         where: { id: profileId },
         include: {
           friends: {
             select: { id: true },
           },
+          chats: {
+            select: { id: true },
+          },
         },
       });
-      logger.info(profileWithFriends, 'Fetched profile with friends');
+      logger.info(populatedProfile, 'Fetched profile with friends');
 
-      if (profileWithFriends) {
+      if (populatedProfile) {
         logger.info(
           {
             profileWithChange: profileId,
             isOnline,
             lastOnline: newLastOnline,
-            friendsCount: profileWithFriends.friends.length,
-            friendIds: profileWithFriends.friends.map((f) => f.id),
+            friendsCount: populatedProfile.friends.length,
+            friendIds: populatedProfile.friends.map((f) => f.id),
+            chatIds: populatedProfile.chats.map((c) => c.id),
           },
           'Emitting presence update events to friends'
         );
+
+        const payload = {
+          profileId,
+          isOnline,
+          lastOnline: newLastOnline,
+        };
+
         // Notify friends about presence change
-        profileWithFriends.friends.forEach((friend) => {
+        populatedProfile.friends.forEach((friend) => {
           const eventName = `presenceUpdate:${friend.id}`;
           logger.info({ eventName, profileId, isOnline }, 'Emitting event');
-          eventEmitter.emit(eventName, {
-            profileId,
-            isOnline,
-            lastOnline: newLastOnline,
-          });
+          eventEmitter.emit(eventName, payload);
+        });
+
+        populatedProfile.chats.forEach((chat) => {
+          const eventName = `presenceInChatUpdate:${chat.id}`;
+          logger.info({ eventName, profileId, isOnline }, 'Emitting event');
+          eventEmitter.emit(eventName, payload);
         });
       } else {
         logger.warn(
