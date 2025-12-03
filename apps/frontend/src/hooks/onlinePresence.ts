@@ -69,7 +69,7 @@ export function useOnlinePresence(options?: OnlinePresenceOptions) {
   );
 
   return {
-    activeProfiles: data, // those online or recently online
+    activeProfiles: data ?? [], // those online or recently online
     onlineProfiles,
     numProfilesOnline: onlineProfiles.length,
     isLoading,

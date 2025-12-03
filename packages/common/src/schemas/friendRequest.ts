@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { DateTimeSchema, ObjectId } from './primitives';
+import { id } from 'zod/v4/locales';
 
 export const FriendRequestStatus = z.enum([
   'PENDING',
@@ -9,17 +10,16 @@ export const FriendRequestStatus = z.enum([
   'ACCEPTED',
 ]);
 
-// export const FriendRequest = z.object({
-//   id: ObjectId,
-//   status: FriendRequestStatus,
-
-//   get sender() {
-//     return z.union([ObjectId, Profile]);
-//   },
-//   get receiver() {
-//     return z.union([ObjectId, Profile]);
-//   },
-
-//   createdAt: DateTimeSchema,
-//   updatedAt: DateTimeSchema.optional(),
-// });
+export const FriendRequestDTO = z.object({
+  id: ObjectId,
+  status: FriendRequestStatus,
+  sender: z.object({
+    id: ObjectId,
+    firstName: z.string(),
+    lastName: z.string(),
+    avatarUrl: z.string().nullable().optional(),
+  }),
+  createdAt: DateTimeSchema,
+  updatedAt: DateTimeSchema.optional(),
+});
+export type FriendRequestDTO = z.infer<typeof FriendRequestDTO>;

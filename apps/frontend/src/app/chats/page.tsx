@@ -8,15 +8,12 @@ import { useOnlinePresence } from '@/hooks/onlinePresence';
 export default function Chats() {
   const { chats, isLoading, error } = useChatList();
 
-  const { numProfilesOnline: numFriendsOnline, isLoading: isPresenceLoading } =
-    useOnlinePresence();
-
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
     <div className="bg-blue-500 flex flex-col">
-      <MainHeader numFriendsOnline={numFriendsOnline} />
+      <MainHeader />
       <MessageSearchBar />
       <div>
         {!chats || chats.length === 0 ? (

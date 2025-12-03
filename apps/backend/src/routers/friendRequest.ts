@@ -1,9 +1,53 @@
-import { ObjectId, FriendRequestStatus } from '@repo/common';
+import { ObjectId, FriendRequestStatus, FriendRequestDTO } from '@repo/common';
 import { router, profileProcedure } from '../trpc';
 import { z } from '@repo/common';
 import { TRPCError } from '@trpc/server';
+import { profile } from 'console';
 
 export const friendRequestRouter = router({
+  getPendingRequests: profileProcedure
+
+    .output(FriendRequestDTO.array())
+    .query(async ({ ctx, input }) => {
+      const { user } = ctx;
+
+      const userProfileId = user.profile.id;
+
+      if (!userProfileId) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const pendingRequests = await ctx.prisma.friendRequest.findMany({
+        where: {
+          receiverId: userProfileId,
+          status: FriendRequestStatus.enum.PENDING,
+        },
+        select: {
+          id: true,
+          status: true,
+          createdAt: true,
+          sender: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return pendingRequests;
+    }),
+
+  // getNotifications: profileProcedure
+
+  //   .output(FriendRequestDTO.array())
+  //   .query(async ({ ctx, input }) => {
+  //     const { profileId, status } = input;
+  //   }),
+
   sendRequest: profileProcedure
     .input(
       z.object({
@@ -29,16 +73,17 @@ export const friendRequestRouter = router({
       z.object({
         newStatus: FriendRequestStatus,
         senderId: ObjectId,
-        receiverId: ObjectId,
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { newStatus, senderId, receiverId } = input;
+      const { newStatus, senderId } = input;
+      const { user } = ctx;
+      const actionerId = user.profile.id;
 
       const latestRequest = await ctx.prisma.friendRequest.findFirst({
         where: {
           senderId,
-          receiverId,
+          receiverId: actionerId,
           status: FriendRequestStatus.enum.PENDING,
         },
         orderBy: { createdAt: 'desc' },

@@ -7,6 +7,7 @@ import { useFriendRequest } from '@/hooks/friendRequest';
 import { useProfile } from '@/hooks/profile';
 import { formatDisplayDate } from '@/utils';
 import { ObjectId } from '@repo/common';
+import Link from 'next/link';
 
 export function ProfileContent({ profileId }: { profileId: ObjectId }) {
   const { launchModal, closeModal } = useModalContext();
@@ -105,6 +106,12 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
     <div className="flex flex-col items-center">
       {/* header */}
       <div className="relative h-50 w-full">
+        <Link
+          href="/chats"
+          className="no-underline text-inherit absolute top-3 left-2"
+        >
+          <i className="bi bi-caret-left-fill text-3xl" />
+        </Link>
         {usersHeader ? (
           <img
             src={usersHeader}

@@ -85,6 +85,12 @@ export function toDateTime(date: unknown): DateTime | null {
   return DateTimeSchema.parse(date);
 }
 
+const PRESENCE_COLORS = {
+  online: 'text-green-900',
+  recentlyActive: 'text-yellow-600',
+  offline: 'text-black',
+} as const;
+
 interface GetOnlineStatusParams {
   isOnline?: boolean | null;
   lastOnline?: DateTimeSchema | null;
@@ -100,14 +106,14 @@ export function getOnlineStatus(params: GetOnlineStatusParams): OnlineStatus {
 
   if (isOnline) {
     return {
-      color: 'text-green-900',
+      color: PRESENCE_COLORS.online,
       message: 'online now',
     };
   }
 
   if (!lastOnline) {
     return {
-      color: 'text-black',
+      color: PRESENCE_COLORS.offline,
       message: 'Offline',
     };
   }
@@ -131,14 +137,49 @@ export function getOnlineStatus(params: GetOnlineStatusParams): OnlineStatus {
     }
 
     return {
-      color: 'text-yellow-600',
+      color: PRESENCE_COLORS.recentlyActive,
       message: `last online ${timeAgo}`,
     };
   }
 
   // before today
   return {
-    color: 'text-black',
+    color: PRESENCE_COLORS.offline,
     message: `last online ${formatDisplayDate(lastOnline)}`,
+  };
+}
+
+interface FriendsOnlineSummaryParams {
+  numOnline: number;
+  numRecentlyActive: number;
+}
+
+interface FriendsOnlineSummary {
+  dotColor: string;
+  message: string;
+}
+
+export function getFriendsOnlineSummary(
+  params: FriendsOnlineSummaryParams
+): FriendsOnlineSummary {
+  const { numOnline, numRecentlyActive } = params;
+
+  if (numOnline > 0) {
+    return {
+      dotColor: PRESENCE_COLORS.online,
+      message: `${numOnline} online`,
+    };
+  }
+
+  if (numRecentlyActive > 0) {
+    return {
+      dotColor: PRESENCE_COLORS.recentlyActive,
+      message: `${numRecentlyActive} recently active`,
+    };
+  }
+
+  return {
+    dotColor: PRESENCE_COLORS.offline,
+    message: 'None online',
   };
 }
