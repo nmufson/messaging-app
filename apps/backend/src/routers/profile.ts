@@ -50,11 +50,20 @@ export const profileRouter = router({
         });
       }
 
-      const hasOutstandingFriendRequest =
+      const pendingFriendRequestFromMe =
         await ctx.prisma.friendRequest.findFirst({
           where: {
             senderId: user.profile.id,
             receiverId: input.profileId,
+            status: 'PENDING',
+          },
+        });
+
+      const pendingFriendRequestForMe =
+        await ctx.prisma.friendRequest.findFirst({
+          where: {
+            senderId: input.profileId,
+            receiverId: user.profile.id,
             status: 'PENDING',
           },
         });
@@ -64,7 +73,8 @@ export const profileRouter = router({
         numOfFriends: profile._count.friends,
         numOfChats: profile._count.chats,
         numOfMessages: profile._count.messages,
-        hasOutstandingFriendRequest: R.isTruthy(hasOutstandingFriendRequest),
+        hasPendingFriendRequestFromMe: R.isTruthy(pendingFriendRequestFromMe),
+        hasPendingFriendRequestForMe: R.isTruthy(pendingFriendRequestForMe),
       };
     }),
 

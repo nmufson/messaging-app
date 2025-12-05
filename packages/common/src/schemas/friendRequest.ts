@@ -9,6 +9,7 @@ export const FriendRequestStatus = z.enum([
   'DECLINED',
   'ACCEPTED',
 ]);
+export type FriendRequestStatus = z.infer<typeof FriendRequestStatus>;
 
 export const FriendRequestDTO = z.object({
   id: ObjectId,

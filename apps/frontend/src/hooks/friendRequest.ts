@@ -1,10 +1,18 @@
 import { useTRPC } from '@/lib/trpc';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { FriendRequestStatus } from '@repo/common';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-export const useFriendRequest = () => {
+export const useFriendRequest = (requestStatuses?: FriendRequestStatus[]) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
+  const requestListQueryKey = trpc.friendRequest.getRequests.queryKey();
+
+  const { data: requests, isLoading: isLoadingRequests } = useQuery(
+    trpc.friendRequest.getRequests.queryOptions({ statuses: requestStatuses })
+  );
+
+  const numPending = requests?.length ?? 0;
   const {
     mutate: sendFriendRequest,
     isPending: isSending,
@@ -12,36 +20,42 @@ export const useFriendRequest = () => {
   } = useMutation(
     trpc.friendRequest.sendRequest.mutationOptions({
       onSuccess: (data, variables) => {
-        const profileQueryKey = trpc.profile.byId.queryKey({
+        // Update cache for receiver's profile to reflect change on their profile view
+        const receiverProfileQueryKey = trpc.profile.byId.queryKey({
           profileId: variables.receiverId,
         });
-        queryClient.setQueryData(profileQueryKey, (old) =>
-          old ? { ...old, hasOutstandingFriendRequest: true } : old
+        queryClient.setQueryData(receiverProfileQueryKey, (old) =>
+          old ? { ...old, hasPendingFriendRequestFromMe: true } : old
         );
       },
     })
   );
 
   const {
-    mutate: cancelFriendRequest,
+    mutate: updateFriendRequest,
     isPending: isUpdating,
     error: updateError,
   } = useMutation(
     trpc.friendRequest.update.mutationOptions({
       onSuccess: (data, variables) => {
-        const profileQueryKey = trpc.profile.byId.queryKey({
-          profileId: variables.receiverId,
+        // Update cache for sender's profile to reflect change on their profile view
+        const senderProfileQueryKey = trpc.profile.byId.queryKey({
+          profileId: variables.senderId,
         });
-        queryClient.setQueryData(profileQueryKey, (old) =>
-          old ? { ...old, hasOutstandingFriendRequest: false } : old
+        queryClient.setQueryData(senderProfileQueryKey, (old) =>
+          old ? { ...old, hasPendingFriendRequestForMe: false } : old
         );
+
+        queryClient.invalidateQueries({ queryKey: requestListQueryKey });
       },
     })
   );
 
   return {
     sendFriendRequest,
-    cancelFriendRequest,
+    updateFriendRequest,
+    requests,
+    numPending,
     isLoading: isSending || isUpdating,
     sendError,
     updateError,

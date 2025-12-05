@@ -1,4 +1,10 @@
-import { usersData, profilesData, chatsData, messagesData } from './sampleData';
+import {
+  usersData,
+  profilesData,
+  chatsData,
+  messagesData,
+  friendRequestsData,
+} from './sampleData';
 import { prisma } from './index';
 import { hash } from 'bcrypt';
 
@@ -48,6 +54,17 @@ async function main() {
         },
       });
     }
+  }
+
+  for (const request of friendRequestsData) {
+    await prisma.friendRequest.create({
+      data: {
+        id: request.id,
+        senderId: request.senderId,
+        receiverId: request.receiverId,
+        status: request.status,
+      },
+    });
   }
 
   // Create chats

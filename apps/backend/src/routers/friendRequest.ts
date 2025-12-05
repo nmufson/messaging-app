@@ -2,51 +2,28 @@ import { ObjectId, FriendRequestStatus, FriendRequestDTO } from '@repo/common';
 import { router, profileProcedure } from '../trpc';
 import { z } from '@repo/common';
 import { TRPCError } from '@trpc/server';
-import { profile } from 'console';
+import { getFriendRequests } from '@/services/friendRequest';
 
 export const friendRequestRouter = router({
-  getPendingRequests: profileProcedure
-
+  getRequests: profileProcedure
+    .input(
+      z.object({
+        statuses: FriendRequestStatus.array().optional().default(['PENDING']),
+      })
+    )
     .output(FriendRequestDTO.array())
     .query(async ({ ctx, input }) => {
       const { user } = ctx;
+      const { statuses } = input;
 
-      const userProfileId = user.profile.id;
+      const requests = await getFriendRequests(
+        ctx.prisma,
+        user.profile.id,
+        statuses
+      );
 
-      if (!userProfileId) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
-      }
-
-      const pendingRequests = await ctx.prisma.friendRequest.findMany({
-        where: {
-          receiverId: userProfileId,
-          status: FriendRequestStatus.enum.PENDING,
-        },
-        select: {
-          id: true,
-          status: true,
-          createdAt: true,
-          sender: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              avatarUrl: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
-
-      return pendingRequests;
+      return requests;
     }),
-
-  // getNotifications: profileProcedure
-
-  //   .output(FriendRequestDTO.array())
-  //   .query(async ({ ctx, input }) => {
-  //     const { profileId, status } = input;
-  //   }),
 
   sendRequest: profileProcedure
     .input(

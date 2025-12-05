@@ -41,6 +41,14 @@ const profileIds = {
   harper: randomUUID(),
 };
 
+const friendRequestIds = {
+  request1: randomUUID(),
+  request2: randomUUID(),
+  request3: randomUUID(),
+  request4: randomUUID(),
+  request5: randomUUID(),
+};
+
 const chatIds = {
   ketchupStains: randomUUID(),
   coolestKats: randomUUID(),
@@ -198,9 +206,6 @@ export const profilesData = [
       profileIds.mia,
       profileIds.noah,
       profileIds.lucas,
-      profileIds.elijah,
-      profileIds.grace,
-      profileIds.harper,
     ],
   },
   {
@@ -273,7 +278,7 @@ export const profilesData = [
     lastName: 'Hall',
     avatarUrl: PROFILE_PIC_URL,
     userId: userIds.elijah,
-    friends: [profileIds.nick],
+    friends: [],
   },
   {
     id: profileIds.grace,
@@ -281,7 +286,7 @@ export const profilesData = [
     lastName: 'Allen',
     avatarUrl: PROFILE_PIC_URL,
     userId: userIds.grace,
-    friends: [profileIds.nick],
+    friends: [],
   },
   {
     id: profileIds.harper,
@@ -289,7 +294,40 @@ export const profilesData = [
     lastName: 'Young',
     avatarUrl: PROFILE_PIC_URL,
     userId: userIds.harper,
-    friends: [profileIds.nick],
+    friends: [],
+  },
+];
+
+export const friendRequestsData = [
+  {
+    id: friendRequestIds.request1,
+    senderId: profileIds.charlie,
+    receiverId: profileIds.nick,
+    status: 'PENDING' as const,
+  },
+  {
+    id: friendRequestIds.request2,
+    senderId: profileIds.diana,
+    receiverId: profileIds.nick,
+    status: 'PENDING' as const,
+  },
+  {
+    id: friendRequestIds.request3,
+    senderId: profileIds.elijah,
+    receiverId: profileIds.nick,
+    status: 'PENDING' as const,
+  },
+  {
+    id: friendRequestIds.request4,
+    senderId: profileIds.grace,
+    receiverId: profileIds.nick,
+    status: 'PENDING' as const,
+  },
+  {
+    id: friendRequestIds.request5,
+    senderId: profileIds.harper,
+    receiverId: profileIds.nick,
+    status: 'ACCEPTED' as const,
   },
 ];
 

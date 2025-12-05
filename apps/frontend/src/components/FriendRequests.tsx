@@ -12,12 +12,6 @@ export function FriendRequests() {
   const trpc = useTRPC();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const { data: pendingRequests, isLoading } = useQuery(
-    trpc.friendRequest.getPendingRequests.queryOptions()
-  );
-
-  const numPending = pendingRequests?.length ?? 0;
-
   return (
     <div>
       {/* Expandable Header */}

@@ -67,7 +67,8 @@ export const ProfilePageDTO = z.object({
   numOfFriends: z.number(),
   numOfChats: z.number(),
   numOfMessages: z.number(),
-  hasOutstandingFriendRequest: z.boolean(),
+  hasPendingFriendRequestFromMe: z.boolean(),
+  hasPendingFriendRequestForMe: z.boolean(),
 });
 export type ProfilePageDTO = z.infer<typeof ProfilePageDTO>;
 
