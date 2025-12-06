@@ -2,29 +2,30 @@
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { Button } from '@/components/button/button';
 import { useFriendRequest } from '@/hooks/friendRequest';
+import { useToggle } from '@/hooks/general';
 import { useTRPC } from '@/lib/trpc';
 import { FriendRequestDTO, FriendRequestStatus } from '@repo/common';
-import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 import { Spinner } from 'react-bootstrap';
 
 export function FriendRequests() {
   const trpc = useTRPC();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const { status: isExpanded, toggleStatus: toggleExpanded } = useToggle();
+
+  const { requests, numRequests, isLoading } = useFriendRequest(['PENDING']);
 
   return (
     <div>
       {/* Expandable Header */}
       <button
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={toggleExpanded}
         className="flex items-center justify-between w-full p-3 hover:bg-gray-100 text-left"
       >
         <div className="flex items-center gap-3">
           <div className="relative">
             <i className="bi bi-person-plus text-xl" />
-            {numPending > 0 && (
+            {numRequests > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {numPending}
+                {numRequests}
               </span>
             )}
           </div>
@@ -40,13 +41,13 @@ export function FriendRequests() {
         <div className="max-h-60 overflow-y-auto mt-1">
           {isLoading ? (
             <Spinner />
-          ) : numPending === 0 ? (
+          ) : numRequests === 0 ? (
             <div className="p-3 text-center text-gray-500">
               No pending requests
             </div>
           ) : (
             <ul className="divide-y divide-gray-100">
-              {pendingRequests?.map((request) => (
+              {requests?.map((request) => (
                 <FriendRequestItem key={request.id} request={request} />
               ))}
             </ul>

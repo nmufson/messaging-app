@@ -1,29 +1,28 @@
 import { ListProfileDTO } from '@repo/common';
 import { ProfilePreview } from '@/components/profile/ProfilePreview';
-import { Dispatch, SetStateAction, MouseEvent } from 'react';
+import { MouseEvent } from 'react';
 import { useModalContext } from '@/context/ModalContext';
 import { ProfileContent } from '@/app/profile/profileContent';
 import { FullscreenModal } from '@/components/modal/FullscreenModal';
+import { SelectedProfile } from '@/app/chats/WriteToChatModal';
 
 interface ChatProfileItemProps {
   profile: ListProfileDTO;
   onClearSelections: () => void;
-  setSelectedProfile: Dispatch<SetStateAction<any>>;
+  addSelectedProfile: (profile: SelectedProfile) => void;
 }
 
 export function ChatProfileItem(props: ChatProfileItemProps) {
-  const { profile, onClearSelections, setSelectedProfile } = props;
+  const { profile, onClearSelections, addSelectedProfile } = props;
   const { launchModal, closeModal } = useModalContext();
 
   const handleProfileClick = () => {
     onClearSelections();
-    setSelectedProfile([
-      {
-        id: profile.id,
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-      },
-    ]);
+    addSelectedProfile({
+      id: profile.id,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+    });
   };
 
   const handleOpenProfileModal = (e: MouseEvent<HTMLDivElement>) => {

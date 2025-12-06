@@ -14,7 +14,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { superjson } from '@repo/common';
 import { AuthProvider } from '../context/AuthContext';
 import { ModalContextWrapper } from '@/context/ModalContext';
-import { ToastProvider } from '@/context/ToastContext';
+import { ToastProvider } from '@/context/Toast/ToastContext';
 
 function makeQueryClient() {
   return new QueryClient({

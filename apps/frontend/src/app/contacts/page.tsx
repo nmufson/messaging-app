@@ -3,14 +3,14 @@
 import * as R from 'remeda';
 import { ProfilePreview } from '@/components/profile/ProfilePreview';
 import { useAuth } from '@/context/AuthContext';
-import { ChangeEvent, useState } from 'react';
 import Link from 'next/link';
 import { useOnlinePresence } from '@/hooks/onlinePresence';
 import { useFriends } from '@/hooks/profile';
+import { useInput } from '@/hooks/general';
 
 export default function Contacts() {
   const { profile } = useAuth();
-  const [searchInput, setSearchInput] = useState('');
+  const { value: searchInput, onChange: onSearchInputChange } = useInput();
 
   const { activeProfiles: activeFriends } = useOnlinePresence();
 
@@ -43,10 +43,6 @@ export default function Contacts() {
     }))
   );
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchInput(e.target.value);
-  };
-
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm flex justify-between">
@@ -64,7 +60,7 @@ export default function Contacts() {
           <input
             type="text"
             value={searchInput}
-            onChange={handleInputChange}
+            onChange={onSearchInputChange}
           ></input>
         </div>
       </div>

@@ -16,6 +16,7 @@ import { FullscreenModal } from '../modal/FullscreenModal';
 import { ProfileAvatar } from '../ProfileAvatar';
 import { GroupChatInfo } from './GroupChatInfo';
 import { useOnlinePresence } from '@/hooks/onlinePresence';
+import { useInput } from '@/hooks/general';
 
 interface ChatContentProps {
   chatId: ObjectId | null;
@@ -33,8 +34,12 @@ export function ChatContent(props: ChatContentProps) {
   const { chatId, messageToView, profiles, inModalView } = props;
   const { profile } = useAuth();
   const loggedInProfileId = profile?.id;
-  const [textInput, setTextInput] = useState('');
-  const [imageUrlInput, setImageUrlInput] = useState('');
+  const {
+    value: textInput,
+    setValue: setTextInput,
+    onChange: onTextInputChange,
+  } = useInput();
+  const { value: imageUrlInput, setValue: setImageUrlInput } = useInput();
 
   const {
     activeProfiles: activeParticipants,
@@ -258,7 +263,7 @@ export function ChatContent(props: ChatContentProps) {
           className="w-7/10 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 "
           aria-label="Message input"
           value={textInput}
-          onChange={(e) => setTextInput(e.target.value)}
+          onChange={onTextInputChange}
           required
         />
         <button type="submit" disabled={textInput.trim() === ''}>

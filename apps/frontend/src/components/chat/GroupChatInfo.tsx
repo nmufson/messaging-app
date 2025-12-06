@@ -5,13 +5,15 @@ import { ProfilePreview } from '../profile/ProfilePreview';
 import { GroupPhoto } from '../GroupPhoto';
 import { useState } from 'react';
 import { MouseEvent } from 'react';
+import { useToggle } from '@/hooks/general';
 
 interface GroupChatInfoProps {
   chat: ChatDTO;
 }
 
 export function GroupChatInfo(props: GroupChatInfoProps) {
-  const [editMode, setEditMode] = useState(false);
+  const { status: editMode, toggleStatus: toggleEditMode } = useToggle();
+
   const { chat } = props;
   const { profile } = useAuth();
   const {
@@ -33,7 +35,7 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
 
   const handleSaveClick = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setEditMode(false);
+    toggleEditMode();
     // TODO: handle mutation and set queryData
   };
 
@@ -49,7 +51,7 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
           <button
             onClick={(e) => {
               e.preventDefault();
-              setEditMode(true);
+              toggleEditMode();
             }}
           >
             Change name or picture

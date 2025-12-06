@@ -4,29 +4,31 @@ import { ChatListDTO, ListProfileDTO, ObjectId } from '@repo/common';
 import { Dispatch, SetStateAction, useState, MouseEvent } from 'react';
 import { ChatProfileItem } from '../profile/ChatProfileItem';
 import { SelectedProfile } from '@/app/chats/WriteToChatModal';
+import { useToggle } from '@/hooks/general';
 
 interface GroupChatResultItemProps {
   chat: ChatListDTO;
   onSelectChat: (chatId: ObjectId) => void;
   onClearSelections: () => void;
-  setSelectedProfile: Dispatch<SetStateAction<SelectedProfile[]>>;
+  addSelectedProfile: (profile: SelectedProfile) => void;
 }
 
 export function ChatResultItem(props: GroupChatResultItemProps) {
-  const { chat, onSelectChat, onClearSelections, setSelectedProfile } = props;
+  const { chat, onSelectChat, onClearSelections, addSelectedProfile } = props;
   const { profile } = useAuth();
   const { name, groupPictureUrl, participants, id: chatId } = chat;
+  const { status: showProfiles, toggleStatus: toggleShowProfiles } =
+    useToggle();
 
   const chatDisplayName = getChatDisplayName({
     name,
     participants,
     profileId: profile?.id,
   });
-  const [showProfiles, setShowProfiles] = useState(false);
 
   const handleShowChatParticipants = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    setShowProfiles((prev) => !prev);
+    toggleShowProfiles();
   };
 
   return (
@@ -64,7 +66,7 @@ export function ChatResultItem(props: GroupChatResultItemProps) {
               key={profile.id}
               profile={profile}
               onClearSelections={onClearSelections}
-              setSelectedProfile={setSelectedProfile}
+              addSelectedProfile={addSelectedProfile}
             />
           ))}
         </div>

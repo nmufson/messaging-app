@@ -3,17 +3,17 @@ import { ProfilePreview } from '@/components/profile/ProfilePreview';
 import { SearchInput } from '@/components/SearchInput';
 import { useAuth } from '@/context/AuthContext';
 import { useFriendRequest } from '@/hooks/friendRequest';
+import { useInput } from '@/hooks/general';
 import { useTRPC } from '@/lib/trpc';
 import { ObjectId } from '@repo/common';
 import { skipToken, useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
-import { ChangeEvent, useState } from 'react';
 import { Spinner } from 'react-bootstrap';
 
 export default function FindFriends() {
   const trpc = useTRPC();
   const { profile } = useAuth();
-  const [searchInput, setSearchInput] = useState('');
+  const { value: searchInput, onChange: onSearchInputChange } = useInput();
   const { sendFriendRequest, isLoading: isSendingRequest } = useFriendRequest();
 
   const {
@@ -25,10 +25,6 @@ export default function FindFriends() {
       searchInput ? { searchInput } : skipToken
     )
   );
-
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchInput(e.target.value);
-  };
 
   const addFriendButton = (profileId: ObjectId) => (
     <button
@@ -57,7 +53,7 @@ export default function FindFriends() {
       </div>
       <SearchInput
         value={searchInput}
-        onChange={handleInputChange}
+        onChange={onSearchInputChange}
         placeholder="Search by name or email..."
         autoFocus
       />

@@ -12,7 +12,7 @@ export const useFriendRequest = (requestStatuses?: FriendRequestStatus[]) => {
     trpc.friendRequest.getRequests.queryOptions({ statuses: requestStatuses })
   );
 
-  const numPending = requests?.length ?? 0;
+  const numRequests = requests?.length ?? 0;
   const {
     mutate: sendFriendRequest,
     isPending: isSending,
@@ -55,7 +55,7 @@ export const useFriendRequest = (requestStatuses?: FriendRequestStatus[]) => {
     sendFriendRequest,
     updateFriendRequest,
     requests,
-    numPending,
+    numRequests,
     isLoading: isSending || isUpdating,
     sendError,
     updateError,

@@ -1,30 +1,31 @@
 import { ObjectId } from '@repo/common';
 import { SelectedProfile } from '@/app/chats/WriteToChatModal';
 import { ChangeEvent, useEffect, useRef } from 'react';
+import { KeyboardEvent } from 'react';
 
 interface SelectedProfilesInputProps {
   selectedProfiles: SelectedProfile[];
   highlightedProfileId: ObjectId | null;
-  setHighlightedProfileId: (id: ObjectId | null) => void;
-  setSelectedProfiles: (profiles: SelectedProfile[]) => void;
+  onHighlightedProfileIdChange: (id: ObjectId | null) => void;
+  removeSelectedProfile: (profile: SelectedProfile) => void;
   searchNameInput: string;
-  setSearchNameInput: (val: string) => void;
+  onSearchNameInputChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function SelectedProfilesInput(props: SelectedProfilesInputProps) {
   const {
     selectedProfiles,
     highlightedProfileId,
-    setHighlightedProfileId,
-    setSelectedProfiles,
+    onHighlightedProfileIdChange,
+    removeSelectedProfile,
     searchNameInput,
-    setSearchNameInput,
+    onSearchNameInputChange,
   } = props;
   const inputRef = useRef<HTMLInputElement>(null);
 
   function handleChangeSearch(e: ChangeEvent<HTMLInputElement>) {
-    setSearchNameInput(e.target.value);
-    if (highlightedProfileId) setHighlightedProfileId(null);
+    onSearchNameInputChange(e);
+    if (highlightedProfileId) onHighlightedProfileIdChange(null);
   }
 
   const handleProfileItemKeyDown = (
@@ -34,8 +35,8 @@ export function SelectedProfilesInput(props: SelectedProfilesInputProps) {
     e.preventDefault();
 
     if (highlightedProfileId === profile.id && e.key === 'Backspace') {
-      setSelectedProfiles(selectedProfiles.filter((p) => p.id !== profile.id));
-      setHighlightedProfileId(null);
+      removeSelectedProfile(profile);
+      onHighlightedProfileIdChange(null);
     }
   };
 
@@ -43,13 +44,15 @@ export function SelectedProfilesInput(props: SelectedProfilesInputProps) {
     inputRef.current?.focus();
   }, [selectedProfiles]);
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (
       e.key === 'Backspace' &&
       searchNameInput === '' &&
       selectedProfiles.length > 0
     ) {
-      setHighlightedProfileId(selectedProfiles[selectedProfiles.length - 1].id);
+      onHighlightedProfileIdChange(
+        selectedProfiles[selectedProfiles.length - 1].id
+      );
     }
   };
 
@@ -60,8 +63,8 @@ export function SelectedProfilesInput(props: SelectedProfilesInputProps) {
         <span
           key={profile.id}
           tabIndex={0}
-          onClick={() => setHighlightedProfileId(profile.id)}
-          onBlur={() => setHighlightedProfileId(null)}
+          onClick={() => onHighlightedProfileIdChange(profile.id)}
+          onBlur={() => onHighlightedProfileIdChange(null)}
           className={`px-2 py-1 bg-gray-100 rounded-full text-sm whitespace-nowrap cursor-pointer transition-colors ${highlightedProfileId === profile.id ? 'ring-2 ring-brand bg-brand-light text-brand-dark' : ''}`}
           onKeyDown={(e) => handleProfileItemKeyDown(e, profile)}
         >

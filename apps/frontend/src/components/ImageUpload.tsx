@@ -4,6 +4,7 @@ import { type ChangeEvent, useState } from 'react';
 import { useTRPC } from '@/lib/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { UseControllerProps, useController } from 'react-hook-form';
+import { useSelectedValue } from '@/hooks/general';
 
 export interface BaseImageUploadProps {
   label: string;
@@ -25,9 +26,9 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
 
   const inputId = `image-upload-${controllerProps.name}`;
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(
-    field.value || null
-  );
+  const { value: previewUrl, onChange: onPreviewUrlChange } = useSelectedValue<
+    string | null
+  >(field.value || null);
 
   const { mutateAsync: createUploadSignature, isPending } = useMutation(
     trpc.image.getImageUploadSignature.mutationOptions()
@@ -52,7 +53,7 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
     try {
       // Show preview immediately
       const localPreview = URL.createObjectURL(file);
-      setPreviewUrl(localPreview);
+      onPreviewUrlChange(localPreview);
 
       // Get upload signature
       const { timestamp, signature, cloudName, apiKey } =
@@ -89,16 +90,16 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
 
       // ppdate form with url from Cloudinary
       field.onChange(data.secure_url);
-      setPreviewUrl(data.secure_url);
+      onPreviewUrlChange(data.secure_url);
     } catch (error) {
       console.error('Upload error:', error);
       alert('Failed to upload image. Please try again.');
-      setPreviewUrl(null);
+      onPreviewUrlChange(null);
     }
   };
 
   const handleRemove = () => {
-    setPreviewUrl(null);
+    onPreviewUrlChange(null);
     field.onChange('');
   };
 

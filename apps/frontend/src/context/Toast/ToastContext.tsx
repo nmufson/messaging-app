@@ -1,7 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useSelectedValues } from '@/hooks/general';
+import { createContext, ReactNode, useContext } from 'react';
 import { Toast, ToastContainer } from 'react-bootstrap';
+import './Toast.css';
 
 const DEFAULT_DELAY = 3000;
 
@@ -37,15 +39,20 @@ export function useToast() {
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const {
+    values: toasts,
+    add: addNewToast,
+    removeBy,
+  } = useSelectedValues<ToastMessage>([]);
 
   const addToast = (toast: Omit<ToastMessage, 'id'>) => {
+    // TODO: use UUID?
     const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { ...toast, id }]);
+    addNewToast({ ...toast, id });
   };
 
   const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+    removeBy((toast) => toast.id === id);
   };
 
   return (
@@ -72,8 +79,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               background: 'gray',
             }}
           >
+            {/* TODO: use our own button? */}
             {toast.header && (
-              <Toast.Header>
+              <Toast.Header
+                closeVariant={toast.variant === 'light' ? undefined : 'white'}
+                style={{
+                  background: 'transparent',
+                  borderBottom: 'none',
+                }}
+              >
                 <strong className="me-auto">{toast.header}</strong>
               </Toast.Header>
             )}

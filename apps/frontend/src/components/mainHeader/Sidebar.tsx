@@ -4,7 +4,8 @@ import Link from 'next/link';
 import LogOutButton from '../logOutButton';
 import { useOnlinePresence } from '@/hooks/onlinePresence';
 import { useAuth } from '@/context/AuthContext';
-import { FriendRequests } from '../friendRequests';
+import { FriendRequests } from '../FriendRequests';
+import { useToast } from '@/context/Toast/ToastContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -25,6 +26,10 @@ export function Sidebar(props: SidebarProps) {
     numOnline: numProfilesOnline,
     numRecentlyActive,
   });
+  const { addToast } = useToast();
+  const handleTestToast = () => {
+    addToast({ header: 'Toast Test!', body: 'Heres a test', delay: 300000 });
+  };
 
   return (
     <>
@@ -46,7 +51,9 @@ export function Sidebar(props: SidebarProps) {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="text-lg font-semibold">Menu</h2>
+            <h2 className="text-lg font-semibold" onClick={handleTestToast}>
+              Menu
+            </h2>
             <button
               onClick={onClose}
               className="p-1 hover:bg-gray-100 rounded"

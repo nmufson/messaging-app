@@ -13,16 +13,13 @@ import {
   PhotoMessageSearchResultDTO,
   TextMessageSearchResultDTO,
 } from '@repo/common';
-import { ChangeEvent, useState } from 'react';
+
 import { MessageBubble } from '../chat/[slug]/MessageBubble';
+import { useInput } from '@/hooks/general';
 
 export function SearchModal() {
   const { closeModal } = useModalContext();
-  const [searchInput, setSearchInput] = useState('');
-
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchInput(e.target.value);
-  };
+  const { value: searchInput, onChange: onChangeSearchInput } = useInput();
 
   const { profiles, groupChats } = usePotentialChats({
     searchInput: searchInput,
@@ -41,7 +38,7 @@ export function SearchModal() {
       <div className="flex justify-between items-center gap-3 p-3">
         <SearchInput
           value={searchInput}
-          onChange={handleInputChange}
+          onChange={onChangeSearchInput}
           autoFocus
         />
         <button className="border-none p-0" onClick={closeModal}>

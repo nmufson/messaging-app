@@ -7,6 +7,7 @@ import { SelectedProfilesInput } from '@/components/chats/SelectedProfilesInput'
 import { ProfileResultItem } from '@/components/profile/ProfileResultItem';
 import { useModalContext } from '@/context/ModalContext';
 import { usePotentialChats } from '@/hooks/chat';
+import { useInput, useSelectedValue, useSelectedValues } from '@/hooks/general';
 import { ListProfileDTO, ObjectId } from '@repo/common';
 import { useMemo, useState } from 'react';
 
@@ -20,15 +21,24 @@ export interface SelectedProfile {
 
 export function WriteToChatModal() {
   const { closeModal } = useModalContext();
-  const [searchNameInput, setSearchNameInput] = useState('');
-  const [selectedProfiles, setSelectedProfiles] = useState<SelectedProfile[]>(
-    []
-  );
-  const [selectedGroupChat, setSelectedGroupChat] = useState<ObjectId | null>(
-    null
-  );
-  const [highlightedProfileId, setHighlightedProfileId] =
-    useState<ObjectId | null>(null);
+  const {
+    value: searchNameInput,
+    setValue: setSearchNameInput,
+    onChange: onSearchNameInputChange,
+  } = useInput();
+
+  const {
+    values: selectedProfiles,
+    add: addSelectedProfile,
+    remove: removeSelectedProfile,
+    clear: clearSelectedProfiles,
+  } = useSelectedValues<SelectedProfile>([]);
+  const { value: selectedGroupChat, onChange: onSelectedGroupChatChange } =
+    useSelectedValue<ObjectId | null>(null);
+  const {
+    value: highlightedProfileId,
+    onChange: onHighlightedProfileIdChange,
+  } = useSelectedValue<ObjectId | null>(null);
 
   const selectedProfileIds = selectedProfiles.map((p) => p.id);
 
@@ -46,17 +56,14 @@ export function WriteToChatModal() {
   const handleProfileClick = (profile: ListProfileDTO) => {
     const { avatarUrl, ...profileWithoutAvatar } = profile;
 
-    setSelectedProfiles((prev) => [...prev, profileWithoutAvatar]);
+    addSelectedProfile(profileWithoutAvatar);
     setSearchNameInput('');
-    setHighlightedProfileId(null);
-  };
-  const handleGroupChatClick = (chatId: ObjectId) => {
-    setSelectedGroupChat(chatId);
+    onHighlightedProfileIdChange(null);
   };
 
   const handleClearSelections = () => {
-    setSelectedGroupChat(null);
-    setSelectedProfiles([]);
+    onSelectedGroupChatChange(null);
+    clearSelectedProfiles();
   };
 
   return (
@@ -78,10 +85,10 @@ export function WriteToChatModal() {
         <SelectedProfilesInput
           selectedProfiles={selectedProfiles}
           highlightedProfileId={highlightedProfileId}
-          setHighlightedProfileId={setHighlightedProfileId}
-          setSelectedProfiles={setSelectedProfiles}
+          onHighlightedProfileIdChange={onHighlightedProfileIdChange}
+          removeSelectedProfile={removeSelectedProfile}
           searchNameInput={searchNameInput}
-          setSearchNameInput={setSearchNameInput}
+          onSearchNameInputChange={onSearchNameInputChange}
         />
         {/* TODO: click this for Friends List modal */}
         <button type="button" className="text-brand">
@@ -99,9 +106,9 @@ export function WriteToChatModal() {
               <ChatResultItem
                 key={chat.id}
                 chat={chat}
-                onSelectChat={handleGroupChatClick}
+                onSelectChat={onSelectedGroupChatChange}
                 onClearSelections={handleClearSelections}
-                setSelectedProfile={setSelectedProfiles}
+                addSelectedProfile={addSelectedProfile}
               />
             ))}
           </div>

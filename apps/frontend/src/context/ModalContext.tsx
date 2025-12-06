@@ -1,3 +1,4 @@
+import { useSelectedValues } from '@/hooks/general';
 import { DateTime } from 'luxon';
 import { usePathname } from 'next/navigation';
 import React, {
@@ -16,7 +17,7 @@ interface ModalStackItem {
 }
 
 interface ModalContext {
-  modalStack: ModalStackItem[];
+  modals: ModalStackItem[];
   showModal: boolean;
   launchModal: (content: ReactNode) => void;
   closeModal: () => void;
@@ -24,7 +25,7 @@ interface ModalContext {
 }
 
 const defaultModalContext = {
-  modalStack: [],
+  modals: [],
   showModal: false,
   closeModal: R.doNothing,
   closeAllModals: R.doNothing,
@@ -42,44 +43,47 @@ export const useModalContext = () => {
 
 export function ModalContextWrapper({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [modalStack, setModalStack] = useState<ModalStackItem[]>([]);
-
-  const showModal = modalStack.length > 0;
+  const {
+    values: modals,
+    setValues: setModals,
+    add: addModal,
+    clear: clearModals,
+    hasAny: showModal,
+  } = useSelectedValues<ModalStackItem>([]);
 
   const launchModal = (node: ReactNode) => {
     const key = `modal-${DateTime.now().toMillis()}`;
-    setModalStack((prev) => [
-      ...prev,
-      { key, node: <Fragment key={key}>{node}</Fragment> },
-    ]);
+    addModal({ key, node: <Fragment key={key}>{node}</Fragment> });
   };
 
   const closeModal = () => {
-    setModalStack((prev) => prev.slice(0, -1));
-  };
-
-  const closeAllModals = () => {
-    setModalStack([]);
+    setModals((prev) => prev.slice(0, -1));
   };
 
   useEffect(() => {
     // auto close modals on path change
-    setModalStack([]);
-  }, [pathname]);
+    clearModals();
+  }, [pathname, clearModals]);
 
   return (
     <ModalContext.Provider
-      value={{ modalStack, showModal, launchModal, closeModal, closeAllModals }}
+      value={{
+        modals,
+        showModal,
+        launchModal,
+        closeModal,
+        closeAllModals: clearModals,
+      }}
     >
       {children}
 
-      {modalStack.map((modalItem, index) => (
+      {modals.map((modalItem, index) => (
         <div
           key={modalItem.key}
           style={{
             zIndex: index + 1,
             // only the top modal is interactive
-            pointerEvents: index === modalStack.length - 1 ? 'auto' : 'none',
+            pointerEvents: index === modals.length - 1 ? 'auto' : 'none',
           }}
         >
           {modalItem.node}
