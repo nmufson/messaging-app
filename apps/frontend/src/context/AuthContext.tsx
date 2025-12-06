@@ -1,18 +1,10 @@
 'use client';
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { createContext, ReactNode, useContext, useEffect } from 'react';
 import { useTRPC } from '../lib/trpc';
 import { useQuery } from '@tanstack/react-query';
 import { ObjectId, UserRole } from '@repo/common';
 import { usePathname, useRouter } from 'next/navigation';
 import * as R from 'remeda';
-import { Spinner } from 'react-bootstrap';
-import { isAuthed } from '@repo/backend/trpc';
 
 interface User {
   id: ObjectId;
