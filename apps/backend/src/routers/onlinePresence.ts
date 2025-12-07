@@ -88,30 +88,29 @@ export const onlinePresenceRouter = router({
       return friendsWithPresence;
     }),
   // real-time presence updates
-  onPresenceChange: profileProcedure.subscription(async function* ({
-    ctx,
-    signal,
-  }) {
-    const { user } = ctx;
-    const userProfileId = user?.profile?.id;
+  onPresenceChange: profileProcedure
+    .input(z.object({}))
+    .subscription(async function* ({ ctx, signal }) {
+      const { user } = ctx;
+      const userProfileId = user?.profile?.id;
 
-    if (!userProfileId) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
-    }
-    logger.info({ userProfileId }, 'Starting presence update subscription');
-    for await (const [presenceUpdate] of on(
-      eventEmitter,
-      `presenceUpdate:${userProfileId}`,
-      { signal }
-    )) {
-      logger.info({ presenceUpdate }, 'Received presence update');
-      const parsedUpdate = PresenceUpdate.safeParse(presenceUpdate);
-      if (parsedUpdate.success) {
-        logger.info({ parsedUpdate }, 'parsed successfully, yielding');
-        yield parsedUpdate.data;
+      if (!userProfileId) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
-    }
-  }),
+      logger.info({ userProfileId }, 'Starting presence update subscription');
+      for await (const [presenceUpdate] of on(
+        eventEmitter,
+        `presenceUpdate:${userProfileId}`,
+        { signal }
+      )) {
+        logger.info({ presenceUpdate }, 'Received presence update');
+        const parsedUpdate = PresenceUpdate.safeParse(presenceUpdate);
+        if (parsedUpdate.success) {
+          logger.info({ parsedUpdate }, 'parsed successfully, yielding');
+          yield parsedUpdate.data;
+        }
+      }
+    }),
 
   onPresenceInChatChange: profileProcedure
     .input(z.object({ chatId: ObjectId }))

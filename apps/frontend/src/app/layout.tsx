@@ -77,9 +77,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <QueryClientProvider client={queryClient}>
             <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
               <AuthProvider>
-                <ModalContextWrapper>
-                  <ToastProvider>{children}</ToastProvider>
-                </ModalContextWrapper>
+                <ToastProvider>
+                  <ModalContextWrapper>{children}</ModalContextWrapper>
+                </ToastProvider>
               </AuthProvider>
             </TRPCProvider>
           </QueryClientProvider>

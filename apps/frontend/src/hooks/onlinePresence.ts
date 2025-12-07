@@ -3,6 +3,7 @@ import { DurationObject, ObjectId, PresenceUpdate } from '@repo/common';
 import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSubscription } from '@trpc/tanstack-react-query';
 import { useMemo } from 'react';
+import * as R from 'remeda';
 
 interface OnlinePresenceOptions {
   chatId?: ObjectId;
@@ -44,11 +45,12 @@ export function useOnlinePresence(options?: OnlinePresenceOptions) {
 
   const { status, error: subscriptionError } = useSubscription(
     trpc.onlinePresence.onPresenceChange.subscriptionOptions(
-      // disable general subscription if specific chatId provided
-      chatId ? skipToken : undefined,
+      // only run when not in specific chat
+      chatId ? skipToken : {},
       {
         onData: handlePresenceUpdate,
         onError: handlePresenceError,
+        enabled: !R.isTruthy(chatId),
       }
     )
   );
@@ -59,6 +61,7 @@ export function useOnlinePresence(options?: OnlinePresenceOptions) {
       {
         onData: handlePresenceUpdate,
         onError: handlePresenceError,
+        enabled: R.isTruthy(chatId),
       }
     )
   );

@@ -1,15 +1,15 @@
-import { ObjectId } from '@repo/common';
+import { ObjectId, UpdateProfileInput } from '@repo/common';
 import { router, userProcedure, profileProcedure } from '../trpc';
 import {
   ProfilePageDTO,
   z,
   CreateProfileInput,
   ListProfileDTO,
-  UpdateProfileInput,
 } from '@repo/common';
 import * as R from 'remeda';
 import { TRPCError } from '@trpc/server';
 import { logger } from '@/lib/pino';
+import { use } from 'passport';
 
 export const profileRouter = router({
   byId: profileProcedure
@@ -32,6 +32,7 @@ export const profileRouter = router({
           lastName: true,
           avatarUrl: true,
           headerUrl: true,
+          title: true,
           bio: true,
           _count: {
             select: {
@@ -110,14 +111,20 @@ export const profileRouter = router({
   update: profileProcedure
     .input(UpdateProfileInput)
     .mutation(async ({ input, ctx }) => {
-      const { profileId, firstName, lastName, avatarUrl } = input;
+      const { id, ...updatedFields } = input;
+      const { user } = ctx;
+
+      if (user.profile.id !== id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You can only update your own profile',
+        });
+      }
 
       const updatedProfile = await ctx.prisma.profile.update({
-        where: { id: profileId },
+        where: { id },
         data: {
-          firstName,
-          lastName,
-          avatarUrl,
+          ...updatedFields,
         },
       });
 

@@ -35,12 +35,13 @@ model Profile {
   lastName                    String
   avatarUrl                   String?
   headerUrl                   String?
-  bio                         String?
+  title                       String?           @db.VarChar(50)
+  bio                         String?           @db.VarChar(250)
   isOnline                    Boolean           @default(false)
   lastOnline                  DateTime?
 
-  friends                     Profile[]            @relation("UserFriends")
-  friendOf                    Profile[]            @relation("UserFriends")
+  friends                       Profile[]            @relation("UserFriends")
+  friendOf                      Profile[]            @relation("UserFriends")
   sentFriendRequests          FriendRequest[]   @relation("SentRequests")
   receivedFriendRequests      FriendRequest[]   @relation("ReceivedRequests")
   messages                    Message[]         @relation("SentMessages")

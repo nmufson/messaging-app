@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useCallback, useMemo, useState } from 'react';
 import * as R from 'remeda';
 
 export function useToggle(initialStatus: boolean = false) {
@@ -50,9 +50,9 @@ export function useSelectedValues<T>(initialValues: T[] = []) {
     );
   };
 
-  const clear = () => {
+  const clear = useCallback(() => {
     setValues([]);
-  };
+  }, []);
 
   const has = (item: T) => R.isIncludedIn(item, values);
 

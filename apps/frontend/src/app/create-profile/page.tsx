@@ -1,14 +1,14 @@
 'use client';
-import { CreateProfileInput } from '@repo/common';
-import { ImageUpload } from '@/components/ImageUpload';
 import { TextFieldGroup } from '@/components/FieldGroup';
-import { useMutation } from '@tanstack/react-query';
-import { useTRPC } from '@/lib/trpc';
+import { ImageUpload } from '@/components/ImageUpload';
 import { useToast } from '@/context/Toast/ToastContext';
-import { useForm } from 'react-hook-form';
+import { useTRPC } from '@/lib/trpc';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { CreateProfileInput } from '@repo/common';
+import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
+import { useForm } from 'react-hook-form';
 
 export default function CreateProfile() {
   const trpc = useTRPC();
@@ -56,8 +56,6 @@ export default function CreateProfile() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <h1>Create your profile here!</h1>
-
       <div>
         <TextFieldGroup
           type="text"
@@ -88,7 +86,7 @@ export default function CreateProfile() {
           name="bio"
           control={control}
           placeholder="Tell us about yourself"
-          helperText="Max 200 characters"
+          helperText="Max 250 characters"
         />
       </div>
       <button disabled={isPending}>Done</button>

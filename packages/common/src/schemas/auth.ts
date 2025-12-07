@@ -4,9 +4,8 @@ import { ObjectId } from './primitives';
 export const CreateUserInput = z
   .object({
     email: z
-      .string()
-      .min(1, 'Please enter email address')
       .email('Must be a valid email address')
+      .min(1, 'Please enter email address')
       .default(''),
     password: z
       .string()
@@ -43,12 +42,12 @@ export const AuthProfileDTO = z.object({
   id: ObjectId,
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
-  avatarUrl: z.string().url().nullable(),
+  avatarUrl: z.url().nullable(),
 });
 
 export const AuthUserDTO = z.object({
   id: ObjectId,
-  email: z.string().email(),
+  email: z.email(),
   role: UserRole,
   profile: AuthProfileDTO.nullable(),
 });

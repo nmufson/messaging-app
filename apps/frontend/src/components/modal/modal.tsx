@@ -4,13 +4,13 @@ import { Fragment, ReactNode } from 'react';
 
 interface ModalProps {
   header?: ReactNode;
-  content?: ReactNode;
+  children?: ReactNode;
   buttons?: ReactNode[];
   className?: string;
 }
 
 export function Modal(props: ModalProps) {
-  const { header, content, buttons = [], className } = props;
+  const { header, children, buttons = [], className } = props;
   const { showModal, closeModal } = useModalContext();
 
   if (!showModal) return null;
@@ -37,11 +37,7 @@ export function Modal(props: ModalProps) {
             <h2>{header}</h2>
           </div>
         )}
-        {content && (
-          <div className="mb-4">
-            {typeof content === 'string' ? <p>{content}</p> : content}
-          </div>
-        )}
+        {children}
         {buttons.length > 0 && (
           <div className="flex gap-2 mt-4 justify-end">
             {buttons.map((node, i) => (

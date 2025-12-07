@@ -21,32 +21,30 @@ export const CreateProfileInput = z.object({
     )
     .default(''),
   avatarUrl: z
-    .string()
     .url('Must be a valid URL')
     .max(500, 'URL must be 500 characters or less')
-    .optional()
-    .or(z.literal('')),
+    .optional(),
   headerUrl: z
-    .string()
     .url('Must be a valid URL')
     .max(500, 'URL must be 500 characters or less')
-    .optional()
-    .or(z.literal('')),
-  bio: z
-    .string()
-    .max(200, 'Bio must be 500 characters or less')
-    .optional()
-    .or(z.literal('')),
+    .optional(),
+  title: z.string().max(50, 'Title must be 50 characters or less').optional(),
+  bio: z.string().max(250, 'Bio must be 250 characters or less').optional(),
 });
 export type CreateProfileInput = z.infer<typeof CreateProfileInput>;
 
-export const UpdateProfileInput = z.object({
-  profileId: ObjectId,
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-  avatarUrl: z.string().optional(),
-  headerUrl: z.string().optional(),
-  bio: z.string().optional(),
+export const UpdateProfileInput = CreateProfileInput.extend({
+  id: ObjectId,
+  avatarUrl: z
+    .url('Must be a valid URL')
+    .max(500, 'URL must be 500 characters or less')
+    .nullish(),
+  headerUrl: z
+    .url('Must be a valid URL')
+    .max(500, 'URL must be 500 characters or less')
+    .nullish(),
+  title: z.string().max(50, 'Title must be 50 characters or less').nullish(),
+  bio: z.string().max(250, 'Bio must be 250 characters or less').nullish(),
 });
 export type UpdateProfileInput = z.infer<typeof UpdateProfileInput>;
 
@@ -58,6 +56,7 @@ export const ProfileDTO = z.object({
   lastName: z.string(),
   avatarUrl: z.string().nullable(),
   headerUrl: z.string().nullable(),
+  title: z.string().nullable(),
   bio: z.string().nullable(),
 });
 export type ProfileDTO = z.infer<typeof ProfileDTO>;
@@ -69,6 +68,8 @@ export const ProfilePageDTO = z.object({
   numOfMessages: z.number(),
   hasPendingFriendRequestFromMe: z.boolean(),
   hasPendingFriendRequestForMe: z.boolean(),
+  isOnline: z.boolean().nullish(),
+  lastOnline: DateTimeSchema.nullish(),
 });
 export type ProfilePageDTO = z.infer<typeof ProfilePageDTO>;
 

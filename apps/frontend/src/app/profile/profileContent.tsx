@@ -8,6 +8,7 @@ import { useProfile } from '@/hooks/profile';
 import { formatDisplayDate } from '@/utils';
 import { ObjectId } from '@repo/common';
 import Link from 'next/link';
+import { UpdateProfileModal } from './updateProfileModal';
 
 export function ProfileContent({ profileId }: { profileId: ObjectId }) {
   const { launchModal, closeModal } = useModalContext();
@@ -21,7 +22,7 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
     error: profileError,
   } = useProfile(profileId);
 
-  const { sendFriendRequest, cancelFriendRequest, isLoading } =
+  const { sendFriendRequest, updateFriendRequest, isLoading } =
     useFriendRequest();
 
   if (isProfileLoading) {
@@ -58,10 +59,9 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
       return;
     }
     try {
-      await cancelFriendRequest({
+      await updateFriendRequest({
         newStatus: 'CANCELLED',
         senderId: loggedInProfile?.id,
-        receiverId: profileId,
       });
       closeModal();
     } catch (error) {
@@ -73,7 +73,6 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
     launchModal(
       <Modal
         header="Cancel Request?"
-        content="Click to cancel friend request."
         buttons={[
           <CancelButton key="close" />,
           <Button
@@ -83,19 +82,28 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
             className="bg-red-500 text-white"
           />,
         ]}
-      />
+      >
+        Click to cancel friend request.
+      </Modal>
     );
+  };
+
+  const handleUpdateProfileClick = () => {
+    launchModal(<UpdateProfileModal profile={profile} />);
   };
 
   const {
     firstName,
     lastName,
     avatarUrl,
+    title,
+    bio,
     createdAt,
     numOfChats,
     numOfFriends,
     numOfMessages,
-    hasOutstandingFriendRequest,
+    hasPendingFriendRequestFromMe,
+    hasPendingFriendRequestForMe,
   } = profile;
 
   const formattedJoinDate = `Joined ${formatDisplayDate(createdAt)}`;
@@ -134,32 +142,38 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
       <div className="px-4">
         <div className="flex flex-col items-center">
           <h1 className="text-3xl text-brand-dark">{displayName}</h1>
-          <p className="text-sm text-brand-accent">Title (add to model)</p>
+          <p className="text-sm text-brand-accent">{title}</p>
         </div>
 
         <div className="flex justify-center text-center my-5">
-          <p>This is where the bio will go. add bios after migration</p>
+          <p>{bio}</p>
         </div>
 
         <div className="flex gap-5 justify-center">
           {isOwnProfile ? (
-            // TODO: implement this, maybe combine with get byId in hook
-            <button className="w-40 rounded-3xl text-white bg-brand-dark">
+            <button
+              onClick={handleUpdateProfileClick}
+              className="w-40 rounded-3xl text-white bg-brand-dark"
+            >
               Update Profile
             </button>
           ) : (
             <>
               <Button
                 onClick={
-                  hasOutstandingFriendRequest
+                  hasPendingFriendRequestFromMe
                     ? handleOpenCancelFriendRequestModal
                     : handleSendFriendRequest
                 }
                 className={
-                  hasOutstandingFriendRequest ? 'bg-gray-400' : 'bg-brand-dark'
+                  hasPendingFriendRequestFromMe
+                    ? 'bg-gray-400'
+                    : 'bg-brand-dark'
                 }
                 label={
-                  hasOutstandingFriendRequest ? 'Request Sent' : 'Add as Friend'
+                  hasPendingFriendRequestFromMe
+                    ? 'Request Sent'
+                    : 'Add as Friend'
                 }
               />
 

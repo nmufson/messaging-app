@@ -164,6 +164,8 @@ export const profilesData = [
     avatarUrl: PROFILE_PIC_URL,
     userId: userIds.alice,
     friends: [profileIds.bob, profileIds.charlie, profileIds.nick],
+    title: 'Software Engineer',
+    bio: 'Passionate about building scalable web applications and exploring new technologies.',
   },
   {
     id: profileIds.bob,
@@ -207,6 +209,8 @@ export const profilesData = [
       profileIds.noah,
       profileIds.lucas,
     ],
+    title: 'Team Lead',
+    bio: 'Leading teams to success with a focus on collaboration and innovation.',
   },
   {
     id: profileIds.emma,
@@ -215,6 +219,8 @@ export const profilesData = [
     avatarUrl: PROFILE_PIC_URL,
     userId: userIds.emma,
     friends: [profileIds.nick],
+    title: 'UI/UX Designer',
+    bio: 'Designing intuitive user experiences with a keen eye for detail.',
   },
   {
     id: profileIds.oliver,
@@ -223,6 +229,8 @@ export const profilesData = [
     avatarUrl: PROFILE_PIC_URL,
     userId: userIds.oliver,
     friends: [profileIds.nick],
+    title: 'DevOps Engineer',
+    bio: 'Ensuring smooth deployments and maintaining infrastructure reliability.',
   },
   {
     id: profileIds.sophia,
@@ -231,6 +239,8 @@ export const profilesData = [
     avatarUrl: PROFILE_PIC_URL,
     userId: userIds.sophia,
     friends: [profileIds.nick],
+    title: 'Data Scientist',
+    bio: 'Turning data into actionable insights to drive business decisions.',
   },
   {
     id: profileIds.liam,

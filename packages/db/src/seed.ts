@@ -35,6 +35,9 @@ async function main() {
         firstName: profile.firstName,
         lastName: profile.lastName,
         avatarUrl: profile.avatarUrl,
+        // headerUrl: profile.headerUrl,
+        title: profile.title,
+        bio: profile.bio,
         user: {
           connect: { id: profile.userId },
         },
