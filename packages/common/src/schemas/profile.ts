@@ -35,6 +35,24 @@ export type CreateProfileInput = z.infer<typeof CreateProfileInput>;
 
 export const UpdateProfileInput = CreateProfileInput.extend({
   id: ObjectId,
+  firstName: z
+    .string()
+    .min(1, 'Please enter first name')
+    .max(50, 'First name must be 50 characters or less')
+    .regex(
+      /^[a-zA-Z\s'-]+$/,
+      'First name can only contain letters, spaces, hyphens, and apostrophes'
+    )
+    .optional(),
+  lastName: z
+    .string()
+    .min(1, 'Please enter last name')
+    .max(50, 'Last name must be 50 characters or less')
+    .regex(
+      /^[a-zA-Z\s'-]+$/,
+      'Last name can only contain letters, spaces, hyphens, and apostrophes'
+    )
+    .optional(),
   avatarUrl: z
     .url('Must be a valid URL')
     .max(500, 'URL must be 500 characters or less')
@@ -54,10 +72,22 @@ export const ProfileDTO = z.object({
   updatedAt: DateTimeSchema.nullable(),
   firstName: z.string(),
   lastName: z.string(),
-  avatarUrl: z.string().nullable(),
-  headerUrl: z.string().nullable(),
-  title: z.string().nullable(),
-  bio: z.string().nullable(),
+  avatarUrl: z
+    .string()
+    .nullable()
+    .transform((val) => val ?? ''),
+  headerUrl: z
+    .string()
+    .nullable()
+    .transform((val) => val ?? ''),
+  title: z
+    .string()
+    .nullable()
+    .transform((val) => val ?? ''),
+  bio: z
+    .string()
+    .nullable()
+    .transform((val) => val ?? ''),
 });
 export type ProfileDTO = z.infer<typeof ProfileDTO>;
 

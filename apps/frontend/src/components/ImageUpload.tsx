@@ -1,14 +1,18 @@
 'use client';
 
-import { type ChangeEvent, useState } from 'react';
+import { type ChangeEvent, ReactNode, useState } from 'react';
 import { useTRPC } from '@/lib/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { UseControllerProps, useController } from 'react-hook-form';
 import { useSelectedValue } from '@/hooks/general';
+import { Button } from './button/button';
 
 export interface BaseImageUploadProps {
-  label: string;
+  label?: string;
   required?: boolean;
+  imageClassName?: string;
+  imageSize?: number;
+  fallback?: ReactNode;
 }
 
 export type ImageUploadProps<T extends object> = BaseImageUploadProps &
@@ -17,7 +21,23 @@ export type ImageUploadProps<T extends object> = BaseImageUploadProps &
 export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
   const trpc = useTRPC();
 
-  const { label, required, ...controllerProps } = props;
+  const {
+    label,
+    required,
+    imageClassName = '',
+    imageSize,
+    ...controllerProps
+  } = props;
+  let { fallback } = props;
+
+  fallback = fallback ?? (
+    <div
+      className={`flex items-center justify-center bg-gray-200 text-gray-500 ${imageClassName}`}
+      style={imageSize ? { width: imageSize, height: imageSize } : {}}
+    >
+      <i className="bi bi-plus-lg text-2xl" />
+    </div>
+  );
 
   const {
     field,
@@ -104,7 +124,16 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
   };
 
   return (
-    <div className="mb-6">
+    <div className="relative inline-block">
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        disabled={isPending}
+        className="hidden"
+        id={inputId}
+      />
+
       {label && (
         <label className="block text-sm font-medium text-gray-700 mb-2">
           {label}
@@ -112,60 +141,27 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
         </label>
       )}
 
-      <div className="space-y-4">
-        {/* Preview */}
-        {previewUrl && (
-          <div className="relative inline-block">
+      <label
+        htmlFor={inputId}
+        className={`cursor-pointer block ${isPending ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80'} transition-opacity`}
+        style={imageSize ? { width: imageSize, height: imageSize } : {}}
+      >
+        {previewUrl ? (
+          <>
             <img
               src={previewUrl}
-              alt="Preview"
-              className="w-32 h-32 object-cover rounded-lg border-2 border-gray-300"
+              alt="Upload preview"
+              className={imageClassName}
+              style={imageSize ? { width: imageSize, height: imageSize } : {}}
             />
-            <button
-              type="button"
-              onClick={handleRemove}
-              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
-            >
-              ×
-            </button>
-          </div>
+            <div className="absolute -top-2 -right-2 bg-brand-dark text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-brand-light transition-colors z-10 pointer-events-none">
+              <i className="bi bi-pencil text-sm" />
+            </div>
+          </>
+        ) : (
+          fallback
         )}
-
-        {/* Upload Button */}
-        <div>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            disabled={isPending}
-            className="hidden"
-            id={inputId}
-          />
-          <label
-            htmlFor={inputId}
-            className={`
-              inline-block px-4 py-2 
-              border border-gray-300 rounded-lg 
-              cursor-pointer
-              transition-colors
-              ${
-                isPending
-                  ? 'bg-gray-100 cursor-not-allowed'
-                  : 'bg-white hover:bg-gray-50'
-              }
-            `}
-          >
-            {isPending
-              ? 'Uploading...'
-              : previewUrl
-                ? 'Change Image'
-                : 'Upload Image'}
-          </label>
-        </div>
-
-        {/* Helper text */}
-        <p className="text-sm text-gray-500">PNG, JPG, GIF up to 5MB</p>
-      </div>
+      </label>
 
       {error && (
         <span className="block mt-1 text-sm text-red-600">{error.message}</span>

@@ -209,8 +209,6 @@ export const profilesData = [
       profileIds.noah,
       profileIds.lucas,
     ],
-    title: 'Team Lead',
-    bio: 'Leading teams to success with a focus on collaboration and innovation.',
   },
   {
     id: profileIds.emma,

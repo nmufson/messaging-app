@@ -1,4 +1,4 @@
-import { ObjectId, UpdateProfileInput } from '@repo/common';
+import { ObjectId, ProfileDTO, UpdateProfileInput } from '@repo/common';
 import { router, userProcedure, profileProcedure } from '../trpc';
 import {
   ProfilePageDTO,
@@ -110,10 +110,11 @@ export const profileRouter = router({
 
   update: profileProcedure
     .input(UpdateProfileInput)
+    .output(ProfileDTO)
     .mutation(async ({ input, ctx }) => {
       const { id, ...updatedFields } = input;
       const { user } = ctx;
-
+      logger.info({ input }, 'Updating profile');
       if (user.profile.id !== id) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -126,9 +127,22 @@ export const profileRouter = router({
         data: {
           ...updatedFields,
         },
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          firstName: true,
+          lastName: true,
+          avatarUrl: true,
+          headerUrl: true,
+          title: true,
+          bio: true,
+        },
       });
 
-      return updatedProfile;
+      return {
+        ...updatedProfile,
+      };
     }),
 
   friends: profileProcedure

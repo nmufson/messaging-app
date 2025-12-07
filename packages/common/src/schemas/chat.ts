@@ -6,6 +6,13 @@ export const ChatType = z.enum(['GROUP', 'DIRECT']);
 export type ChatType = z.infer<typeof ChatType>;
 // ? may need to separate ChatDetailDTO and ChatListItemDTO
 
+export const UpdateChatInput = z.object({
+  id: ObjectId,
+  name: z.string().nullish(),
+  groupPictureUrl: z.string().nullish(),
+});
+export type UpdateChatInput = z.infer<typeof UpdateChatInput>;
+
 export const ChatDTO = z.object({
   id: ObjectId,
   type: ChatType,

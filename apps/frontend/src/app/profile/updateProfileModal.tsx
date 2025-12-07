@@ -4,34 +4,53 @@ import { useModalContext } from '@/context/ModalContext';
 import { useToast } from '@/context/Toast/ToastContext';
 import { useTRPC } from '@/lib/trpc';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ProfilePageDTO, UpdateProfileInput } from '@repo/common';
-import { useMutation } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
+import { ProfileDTO, ProfilePageDTO, UpdateProfileInput } from '@repo/common';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { TextFieldGroup } from '@/components/FieldGroup';
 import { ImageUpload } from '@/components/ImageUpload';
+import * as R from 'remeda';
 
 export function UpdateProfileModal({ profile }: { profile: ProfilePageDTO }) {
   const trpc = useTRPC();
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const { closeModal } = useModalContext();
   const { addToast } = useToast();
 
   const defaultValues = useMemo(
-    () => UpdateProfileInput.parse(profile),
+    () =>
+      ProfileDTO.omit({ id: true, createdAt: true, updatedAt: true }).parse(
+        profile
+      ),
     [profile]
   );
 
-  const { control, handleSubmit } = useForm({
-    resolver: zodResolver(UpdateProfileInput),
+  const { control, handleSubmit, formState, getValues } = useForm({
+    resolver: zodResolver(
+      ProfileDTO.omit({ id: true, createdAt: true, updatedAt: true })
+    ),
     defaultValues,
     mode: 'onBlur',
   });
+  const { dirtyFields } = formState;
 
   const { mutateAsync: updateProfile, isPending } = useMutation(
     trpc.profile.update.mutationOptions({
-      onSuccess: () => {
+      onSuccess: (updatedProfile) => {
+        const profileQueryKey = trpc.profile.byId.queryKey({
+          profileId: profile.id,
+        });
+        const oldData = queryClient.getQueryData(profileQueryKey);
+
+        if (oldData) {
+          queryClient.setQueryData(profileQueryKey, {
+            ...oldData,
+            ...updatedProfile,
+          });
+        }
+
         addToast({
           header: 'Success',
           body: 'Profile updated successfully!',
@@ -50,9 +69,12 @@ export function UpdateProfileModal({ profile }: { profile: ProfilePageDTO }) {
     })
   );
 
-  const onSubmit = async (data: UpdateProfileInput) => {
+  const onSubmit = async (data: Omit<UpdateProfileInput, 'id'>) => {
     try {
-      await updateProfile(data);
+      const dirtyFieldKeys = R.keys(dirtyFields);
+      const updatedFields = R.pick(data, dirtyFieldKeys);
+      console.log({ updatedFields }, 'sending updates');
+      await updateProfile({ id: profile.id, ...updatedFields });
       closeModal();
     } catch (error) {
       console.error(error, 'Failed to update profile.');
@@ -87,6 +109,16 @@ export function UpdateProfileModal({ profile }: { profile: ProfilePageDTO }) {
             label="Header Image"
             name="headerUrl"
             control={control}
+          />
+
+          <TextFieldGroup
+            type="text"
+            as="textarea"
+            label="Title"
+            name="title"
+            control={control}
+            placeholder="Add a title"
+            helperText="Max 50 characters"
           />
 
           <TextFieldGroup

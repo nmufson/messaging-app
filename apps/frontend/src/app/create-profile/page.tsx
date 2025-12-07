@@ -82,6 +82,15 @@ export default function CreateProfile() {
         <TextFieldGroup
           type="text"
           as="textarea"
+          label="Title"
+          name="title"
+          control={control}
+          placeholder="Add a title"
+          helperText="Max 50 characters"
+        />
+        <TextFieldGroup
+          type="text"
+          as="textarea"
           label="Bio"
           name="bio"
           control={control}

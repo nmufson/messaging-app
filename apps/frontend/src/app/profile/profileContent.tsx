@@ -77,10 +77,11 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
           <CancelButton key="close" />,
           <Button
             key="cancel-request"
-            label="Cancel Friend Request"
             onClick={handleCancelFriendRequest}
             className="bg-red-500 text-white"
-          />,
+          >
+            Cancel Friend Request
+          </Button>,
         ]}
       >
         Click to cancel friend request.
@@ -170,18 +171,18 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
                     ? 'bg-gray-400'
                     : 'bg-brand-dark'
                 }
-                label={
-                  hasPendingFriendRequestFromMe
-                    ? 'Request Sent'
-                    : 'Add as Friend'
-                }
-              />
+              >
+                {hasPendingFriendRequestFromMe
+                  ? 'Request Sent'
+                  : 'Add as Friend'}
+              </Button>
 
               <Button
                 onClick={() => {}}
                 className="w-30 border border-brand-light text-brand-light bg-white"
-                label="Message"
-              />
+              >
+                Message
+              </Button>
             </>
           )}
         </div>

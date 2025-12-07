@@ -7,8 +7,8 @@ export default function Profile() {
   const [profileId, setProfileId] = useQueryState('profile');
 
   if (!profileId) {
-    // ! redirect to home page?
-    return null;
+    window.location.href = '/chats';
+    return;
   }
 
   return <ProfileContent profileId={profileId} />;

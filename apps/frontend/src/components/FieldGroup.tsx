@@ -15,9 +15,8 @@ export type InputType =
 
 export interface BaseInputGroupProps {
   type: InputType;
-  label: string;
+  label?: string;
   floatingLabel?: boolean;
-  noLabel?: boolean;
   disabled?: boolean;
   placeholder?: string;
   helperText?: string;
@@ -47,7 +46,11 @@ export function TextFieldGroup<T extends object>(
 
   return (
     <Form.Group className="mb-3">
-      <Form.Label className={disabled ? 'text-muted' : ''}>{label}</Form.Label>
+      {label && (
+        <Form.Label className={disabled ? 'text-muted' : ''}>
+          {label}
+        </Form.Label>
+      )}
       <Form.Control
         {...field}
         as={as}

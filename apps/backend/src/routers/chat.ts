@@ -3,6 +3,7 @@ import {
   MessageType,
   ObjectId,
   ChatListDTO,
+  UpdateChatInput,
 } from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
@@ -363,16 +364,10 @@ export const chatRouter = router({
       return chat;
     }),
   update: profileProcedure
-    .input(
-      z.object({
-        chatId: ObjectId,
-        name: z.string().optional(),
-        groupPictureUrl: z.string().nullable().optional(),
-      })
-    )
+    .input(UpdateChatInput)
     .output(ChatDTO)
     .mutation(async ({ input, ctx }) => {
-      const { chatId, name, groupPictureUrl } = input;
+      const { id, name, groupPictureUrl } = input;
       const { user } = ctx;
       const profileId = user?.profile?.id;
 
@@ -381,7 +376,7 @@ export const chatRouter = router({
       }
 
       const chat = await ctx.prisma.chat.update({
-        where: { id: chatId },
+        where: { id },
         data: {
           name,
           groupPictureUrl,

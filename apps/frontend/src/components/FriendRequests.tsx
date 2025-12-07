@@ -93,17 +93,19 @@ function FriendRequestItem({ request }: { request: FriendRequestDTO }) {
       </div>
       <div className="flex gap-2 mt-2">
         <Button
-          label="Accept"
           onClick={handleAccept}
           disabled={isLoading}
           className="flex-1 bg-blue-500 text-white text-sm hover:bg-blue-600"
-        />
+        >
+          Accept
+        </Button>
         <Button
-          label="Decline"
           onClick={handleDecline}
           disabled={isLoading}
           className="flex-1 bg-gray-200 text-gray-700 text-sm hover:bg-gray-300"
-        />
+        >
+          Decline
+        </Button>
       </div>
     </li>
   );
