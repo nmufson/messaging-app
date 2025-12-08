@@ -4,6 +4,7 @@ import {
   ObjectId,
   ChatListDTO,
   UpdateChatInput,
+  ChatActionDTO,
 } from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
@@ -15,6 +16,7 @@ import {
   router,
   userProcedure,
 } from '../trpc';
+import * as R from 'remeda';
 import { mergeAsyncIterators } from '@repo/common';
 import { ChatDTO, ChatType } from '@repo/common';
 import { logger } from '../lib/pino';
@@ -347,6 +349,22 @@ export const chatRouter = router({
         },
       });
 
+      const createdChatAction = await ctx.prisma.chatAction.create({
+        data: {
+          chatId: chat.id,
+          actionType: 'CHAT_CREATED',
+          actorId: creator,
+        },
+        select: {
+          id: true,
+          chatId: true,
+          actionType: true,
+          actorId: true,
+          targetId: true,
+          createdAt: true,
+        },
+      });
+
       participants.forEach((userId) => {
         eventEmitter.emit(`newChat:${userId}`, chat);
       });
@@ -361,13 +379,13 @@ export const chatRouter = router({
         });
       }
 
-      return chat;
+      return { ...chat, actions: [createdChatAction] };
     }),
-  update: profileProcedure
+  updateInfo: profileProcedure
     .input(UpdateChatInput)
-    .output(ChatDTO)
+    .output(ChatActionDTO.array())
     .mutation(async ({ input, ctx }) => {
-      const { id, name, groupPictureUrl } = input;
+      const { id, ...updatedFields } = input;
       const { user } = ctx;
       const profileId = user?.profile?.id;
 
@@ -377,10 +395,7 @@ export const chatRouter = router({
 
       const chat = await ctx.prisma.chat.update({
         where: { id },
-        data: {
-          name,
-          groupPictureUrl,
-        },
+        data: updatedFields,
         select: {
           id: true,
           type: true,
@@ -402,6 +417,18 @@ export const chatRouter = router({
               senderId: true,
             },
           },
+          actions: {
+            take: 100,
+            orderBy: { createdAt: 'asc' },
+            select: {
+              id: true,
+              chatId: true,
+              actionType: true,
+              actorId: true,
+              targetId: true,
+              createdAt: true,
+            },
+          },
           participants: {
             select: {
               id: true,
@@ -415,6 +442,164 @@ export const chatRouter = router({
         },
       });
 
-      return chat;
+      const actionPromises = R.keys(updatedFields)
+        .map((field) => {
+          if (!field) return;
+
+          return ctx.prisma.chatAction.create({
+            data: {
+              chatId: id,
+              // TODO add a config map for this
+              actionType: field === 'name' ? 'NAME_CHANGED' : 'PICTURE_CHANGED',
+              actorId: profileId,
+            },
+            select: {
+              id: true,
+              chatId: true,
+              actionType: true,
+              actorId: true,
+              targetId: true,
+              createdAt: true,
+            },
+          });
+        })
+        .filter((p) => p !== undefined);
+
+      const actions = await Promise.all(actionPromises);
+
+      return actions;
+    }),
+
+  // TODO: move these to new chatActions router?
+  addMemberToChat: profileProcedure
+    .input(
+      z.object({
+        chatId: ObjectId,
+        profileId: ObjectId,
+      })
+    )
+    .output(ChatActionDTO)
+    .mutation(async ({ input, ctx }) => {
+      const { chatId, profileId: profileIdToAdd } = input;
+      const { user } = ctx;
+
+      const addMemberAction = await ctx.prisma.chatAction.create({
+        data: {
+          chatId: chatId,
+          actionType: 'MEMBER_ADDED',
+          actorId: user.profile.id,
+          targetId: profileIdToAdd,
+        },
+        select: {
+          id: true,
+          chatId: true,
+          actionType: true,
+          actorId: true,
+          targetId: true,
+          createdAt: true,
+        },
+      });
+
+      const updatedChat = await ctx.prisma.chat.update({
+        where: { id: chatId },
+        data: {
+          participants: {
+            connect: { id: profileIdToAdd },
+          },
+        },
+      });
+
+      logger.info({ addMemberAction, updatedChat }, 'Added member to chat');
+
+      return addMemberAction;
+    }),
+
+  removeProfileFromChat: profileProcedure
+    .input(
+      z.object({
+        chatId: ObjectId,
+        profileId: ObjectId,
+      })
+    )
+    .output(ChatActionDTO)
+    .mutation(async ({ input, ctx }) => {
+      const { chatId, profileId: profileIdToRemove } = input;
+      const { user } = ctx;
+
+      const removeMemberAction = await ctx.prisma.chatAction.create({
+        data: {
+          chatId: chatId,
+          actionType: 'MEMBER_REMOVED',
+          actorId: user.profile.id,
+          targetId: profileIdToRemove,
+        },
+        select: {
+          id: true,
+          chatId: true,
+          actionType: true,
+          actorId: true,
+          targetId: true,
+          createdAt: true,
+        },
+      });
+
+      const updatedChat = await ctx.prisma.chat.update({
+        where: { id: chatId },
+        data: {
+          participants: {
+            disconnect: { id: profileIdToRemove },
+          },
+        },
+      });
+
+      logger.info(
+        { removeMemberAction, updatedChat },
+        'Removed member from chat'
+      );
+
+      return removeMemberAction;
+    }),
+  leaveChat: profileProcedure
+    .input(
+      z.object({
+        chatId: ObjectId,
+      })
+    )
+    .output(ChatActionDTO)
+    .mutation(async ({ input, ctx }) => {
+      const { chatId } = input;
+      const { user } = ctx;
+
+      const profileIdToLeave = user.profile.id;
+
+      const leaveChatAction = await ctx.prisma.chatAction.create({
+        data: {
+          chatId: chatId,
+          actionType: 'MEMBER_LEFT',
+          actorId: profileIdToLeave,
+          targetId: profileIdToLeave,
+        },
+        select: {
+          id: true,
+          chatId: true,
+          actionType: true,
+          actorId: true,
+          targetId: true,
+          createdAt: true,
+        },
+      });
+
+      const updatedChat = await ctx.prisma.chat.update({
+        where: { id: chatId },
+        data: {
+          participants: {
+            disconnect: { id: profileIdToLeave },
+          },
+        },
+      });
+
+      logger.info({ leaveChatAction, updatedChat }, 'Member left chat');
+
+      return leaveChatAction;
     }),
 });

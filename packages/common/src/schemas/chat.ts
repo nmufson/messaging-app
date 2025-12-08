@@ -13,6 +13,26 @@ export const UpdateChatInput = z.object({
 });
 export type UpdateChatInput = z.infer<typeof UpdateChatInput>;
 
+export const ChatActionType = z.enum([
+  'CHAT_CREATED',
+  'MEMBER_ADDED',
+  'MEMBER_REMOVED',
+  'MEMBER_LEFT',
+  'NAME_CHANGED',
+  'PICTURE_CHANGED',
+]);
+export type ChatActionType = z.infer<typeof ChatActionType>;
+
+export const ChatActionDTO = z.object({
+  id: ObjectId,
+  chatId: ObjectId,
+  actionType: ChatActionType,
+  actorId: ObjectId,
+  targetId: ObjectId.nullable(),
+  createdAt: DateTimeSchema,
+});
+export type ChatActionDTO = z.infer<typeof ChatActionDTO>;
+
 export const ChatDTO = z.object({
   id: ObjectId,
   type: ChatType,
@@ -29,6 +49,7 @@ export const ChatDTO = z.object({
     })
   ),
   messages: MessageDTO.array(),
+  actions: ChatActionDTO.array(),
   // Group-specific fields
   name: z.string().nullable(),
   groupPictureUrl: z.string().nullable(),

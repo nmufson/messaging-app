@@ -4,6 +4,7 @@ import {
   chatsData,
   messagesData,
   friendRequestsData,
+  chatActionsData,
 } from './sampleData';
 import { prisma } from './index';
 import { hash } from 'bcrypt';
@@ -82,6 +83,18 @@ async function main() {
         participants: {
           connect: chat.participantIds.map((id) => ({ id })),
         },
+      },
+    });
+  }
+
+  for (const action of chatActionsData) {
+    await prisma.chatAction.create({
+      data: {
+        id: action.id,
+        chatId: action.chatId,
+        actionType: action.actionType,
+        actorId: action.actorId,
+        targetId: action.targetId,
       },
     });
   }

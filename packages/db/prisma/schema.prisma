@@ -47,6 +47,8 @@ model Profile {
   messages                    Message[]         @relation("SentMessages")
   chats                       Chat[]            @relation("ChatParticipants")
   createdChats                Chat[]            @relation("ChatCreator")
+  performedActions            ChatAction[]      @relation("ActingProfile")
+  targetedActions             ChatAction[]      @relation("TargetProfile")
 
   userId                      String            @unique
   user                        User              @relation(fields: [userId], references: [id])
@@ -82,12 +84,13 @@ enum ChatType {
 model Chat {
   id                  String @id    @default(uuid())
   creatorId           String
-  creator             Profile      @relation("ChatCreator", fields: [creatorId], references: [id])
+  creator             Profile       @relation("ChatCreator", fields: [creatorId], references: [id])
   type                ChatType
   name                String?
   groupPictureUrl     String?
   messages            Message[]
   participants        Profile[]     @relation("ChatParticipants")
+  actions             ChatAction[]
 
   createdAt           DateTime      @default(now())
   updatedAt           DateTime?
@@ -106,9 +109,32 @@ model Message {
   senderId          String
   sender            Profile         @relation("SentMessages", fields: [senderId], references: [id])
   chatId            String
-  chat              Chat    @relation(fields: [chatId], references: [id])
+  chat              Chat            @relation(fields: [chatId], references: [id])
 
   createdAt         DateTime        @default(now())
   updatedAt         DateTime?            
 }
+
+enum ChatActionType {
+  MEMBER_ADDED
+  MEMBER_REMOVED
+  MEMBER_LEFT
+  NAME_CHANGED
+  PICTURE_CHANGED
+  CHAT_CREATED
+}
+
+model ChatAction {
+  id          String          @id @default(uuid())
+  chatId      String
+  chat        Chat            @relation(fields: [chatId], references: [id])
+  actionType  ChatActionType
+  actorId     String          
+  actor       Profile         @relation("ActingProfile", fields: [actorId], references: [id])
+  targetId    String?         
+  target      Profile?        @relation("TargetProfile", fields: [targetId], references: [id])
+  createdAt   DateTime        @default(now())
+}
+
+
 

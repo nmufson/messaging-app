@@ -1,4 +1,9 @@
-import { ChatType, MessageType, UserRole } from '@prisma/client';
+import {
+  ChatActionType,
+  ChatType,
+  MessageType,
+  UserRole,
+} from '@prisma/client';
 import { randomUUID } from 'crypto';
 
 const PROFILE_PIC_URL = 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp';
@@ -775,5 +780,43 @@ export const messagesData = [
     content: 'See you all soon!',
     senderId: profileIds.charlie,
     chatId: chatIds.bigGroup2,
+  },
+];
+
+const chatActionIds = {
+  ketchupStainsCreated: randomUUID(),
+  coolestKatsCreated: randomUUID(),
+  groupChat1Created: randomUUID(),
+  bigGroup2Created: randomUUID(),
+};
+
+export const chatActionsData = [
+  {
+    id: chatActionIds.ketchupStainsCreated,
+    chatId: chatIds.ketchupStains,
+    actionType: ChatActionType.CHAT_CREATED,
+    actorId: profileIds.alice,
+    targetId: null,
+  },
+  {
+    id: chatActionIds.coolestKatsCreated,
+    chatId: chatIds.coolestKats,
+    actionType: ChatActionType.CHAT_CREATED,
+    actorId: profileIds.charlie,
+    targetId: null,
+  },
+  {
+    id: chatActionIds.groupChat1Created,
+    chatId: chatIds.groupChat1,
+    actionType: ChatActionType.CHAT_CREATED,
+    actorId: profileIds.charlie,
+    targetId: null,
+  },
+  {
+    id: chatActionIds.bigGroup2Created,
+    chatId: chatIds.bigGroup2,
+    actionType: ChatActionType.CHAT_CREATED,
+    actorId: profileIds.charlie,
+    targetId: null,
   },
 ];
