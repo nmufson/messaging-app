@@ -96,20 +96,11 @@ export function ChatContent(props: ChatContentProps) {
   };
 
   const participants = chat?.participants || [];
-
-  // TODO: find better way to handle this??
-  const { name, messages, type, creatorId, createdAt } = useMemo(() => {
-    if (chat) return chat;
-
-    // potential chat to start
-    return {
-      name: null,
-      type: ChatType.enum.GROUP,
-      messages: [],
-      creatorId: null,
-      createdAt: null,
-    };
-  }, [chat]);
+  const name = chat?.name ?? null;
+  const messages = chat?.messages ?? [];
+  const type = chat?.type ?? ChatType.enum.GROUP;
+  const creatorId = chat?.creatorId ?? null;
+  const createdAt = chat?.createdAt ?? null;
 
   const chatCreator = creatorId
     ? participants.find((p) => p.id === creatorId)
@@ -134,7 +125,7 @@ export function ChatContent(props: ChatContentProps) {
       if (!chat) return;
       launchModal(
         <FullscreenModal title="Group Info">
-          <GroupChatInfo chat={chat} />
+          <GroupChatInfo chatId={chat.id} />
         </FullscreenModal>
       );
     } else if (type === 'DIRECT') {

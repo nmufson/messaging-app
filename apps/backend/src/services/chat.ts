@@ -179,6 +179,18 @@ export const getChat = async (
           senderId: true,
         },
       },
+      actions: {
+        take: 100,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          chatId: true,
+          actionType: true,
+          actorId: true,
+          targetId: true,
+          createdAt: true,
+        },
+      },
       participants: {
         select: {
           id: true,

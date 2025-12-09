@@ -6,7 +6,7 @@ export function useToggle(initialStatus: boolean = false) {
 
   const toggleStatus = () => setStatus((prev) => !prev);
 
-  return { status, toggleStatus };
+  return { status, setStatus, toggleStatus };
 }
 
 export function useInput(initialValue: string = '') {

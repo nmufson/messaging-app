@@ -5,23 +5,19 @@ import {
   ChatListDTO,
   UpdateChatInput,
   ChatActionDTO,
+  ChatActionType,
+  CHAT_UPDATE_ACTIONS,
 } from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
 import { UserRole, z } from '@repo/common';
 import { eventEmitter } from '../lib/eventBus';
-import {
-  adminProcedure,
-  profileProcedure,
-  router,
-  userProcedure,
-} from '../trpc';
+import { adminProcedure, profileProcedure, router } from '../trpc';
 import * as R from 'remeda';
 import { mergeAsyncIterators } from '@repo/common';
 import { ChatDTO, ChatType } from '@repo/common';
 import { logger } from '../lib/pino';
 import { getChat, getPotentialChats } from '@/services/chat';
-
 import { sendMessage } from '@/services/message';
 
 export const chatRouter = router({
@@ -173,6 +169,7 @@ export const chatRouter = router({
             take: limit,
             orderBy: { updatedAt: 'desc' },
             include: {
+              // TOOD: only recent the more recent between message and action?
               messages: {
                 orderBy: { createdAt: 'desc' },
                 take: 1, // for displaying most recent msg in list
@@ -184,6 +181,18 @@ export const chatRouter = router({
                   createdAt: true,
                   updatedAt: true,
                   senderId: true,
+                },
+              },
+              actions: {
+                take: 1,
+                orderBy: { createdAt: 'desc' },
+                select: {
+                  id: true,
+                  chatId: true,
+                  actionType: true,
+                  actorId: true,
+                  targetId: true,
+                  createdAt: true,
                 },
               },
               participants: {
@@ -383,17 +392,22 @@ export const chatRouter = router({
     }),
   updateInfo: profileProcedure
     .input(UpdateChatInput)
-    .output(ChatActionDTO.array())
+    .output(ChatDTO)
     .mutation(async ({ input, ctx }) => {
       const { id, ...updatedFields } = input;
       const { user } = ctx;
       const profileId = user?.profile?.id;
 
+      logger.info(
+        { chatId: id, updatedFields, profileId },
+        'Updating chat info'
+      );
+
       if (!profileId) {
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
 
-      const chat = await ctx.prisma.chat.update({
+      const updatedChat = await ctx.prisma.chat.update({
         where: { id },
         data: updatedFields,
         select: {
@@ -444,13 +458,12 @@ export const chatRouter = router({
 
       const actionPromises = R.keys(updatedFields)
         .map((field) => {
-          if (!field) return;
+          if (field === undefined) return;
 
           return ctx.prisma.chatAction.create({
             data: {
               chatId: id,
-              // TODO add a config map for this
-              actionType: field === 'name' ? 'NAME_CHANGED' : 'PICTURE_CHANGED',
+              actionType: CHAT_UPDATE_ACTIONS[field],
               actorId: profileId,
             },
             select: {
@@ -465,9 +478,17 @@ export const chatRouter = router({
         })
         .filter((p) => p !== undefined);
 
-      const actions = await Promise.all(actionPromises);
+      const newActions = await Promise.all(actionPromises);
 
-      return actions;
+      logger.info(
+        { updatedChat, newActions },
+        'Chat info updated successfully'
+      );
+
+      return {
+        ...updatedChat,
+        actions: [...updatedChat.actions, ...newActions],
+      };
     }),
 
   // TODO: move these to new chatActions router?

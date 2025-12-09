@@ -23,6 +23,11 @@ export const ChatActionType = z.enum([
 ]);
 export type ChatActionType = z.infer<typeof ChatActionType>;
 
+export const CHAT_UPDATE_ACTIONS = {
+  name: 'NAME_CHANGED',
+  groupPictureUrl: 'PICTURE_CHANGED',
+} as const satisfies Record<keyof Omit<UpdateChatInput, 'id'>, ChatActionType>;
+
 export const ChatActionDTO = z.object({
   id: ObjectId,
   chatId: ObjectId,
