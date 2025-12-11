@@ -121,18 +121,13 @@ export function ChatContent(props: ChatContentProps) {
       : null;
 
   const handleInfoClick = () => {
-    if (type === 'GROUP') {
-      if (!chat) return;
+    if (type === 'GROUP' && chat) {
       launchModal(
         <FullscreenModal title="Group Info">
           <GroupChatInfo chatId={chat.id} />
         </FullscreenModal>
       );
-    } else if (type === 'DIRECT') {
-      if (!otherProfile) {
-        console.error('Profile not found');
-        return;
-      }
+    } else if (type === 'DIRECT' && otherProfile) {
       launchModal(
         <FullscreenModal title="Chat">
           <ProfileContent profileId={otherProfile.id} />

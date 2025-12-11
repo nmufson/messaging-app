@@ -43,8 +43,8 @@ export const ChatDTO = z.object({
   type: ChatType,
   createdAt: DateTimeSchema,
   updatedAt: DateTimeSchema.nullable(),
-  participants: z.array(
-    z.object({
+  participants: z
+    .object({
       id: ObjectId,
       firstName: z.string(),
       lastName: z.string(),
@@ -52,7 +52,15 @@ export const ChatDTO = z.object({
       isOnline: z.boolean().nullish(),
       lastOnline: DateTimeSchema.nullish(),
     })
-  ),
+    .array(),
+  senders: z
+    .object({
+      id: ObjectId,
+      firstName: z.string(),
+      lastName: z.string(),
+      avatarUrl: z.string().nullable(),
+    })
+    .array(),
   messages: MessageDTO.array(),
   actions: ChatActionDTO.array(),
   // Group-specific fields

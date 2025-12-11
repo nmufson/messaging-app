@@ -27,14 +27,14 @@ export function ProfilePreview(props: ProfilePreviewProps) {
 
   const presenceDisplay = (
     <div className="flex items-center justify-start gap-1">
-      <i className={`bi bi-dot text-4xl ${color}`}></i>
+      <i className={`bi bi-dot text-2xl ${color}`}></i>
       <span className={`text-sm ${color}`}>{message}</span>
     </div>
   );
 
   const content = (
     <div
-      className={`flex items-center p-3 border-b border-grey-200 w-full text-left cursor-pointer ${className ?? ''}`}
+      className={`group flex items-center p-3 border-b border-grey-200 w-full text-left cursor-pointer ${className ?? ''}`}
       onClick={onClick}
     >
       <img
@@ -42,8 +42,10 @@ export function ProfilePreview(props: ProfilePreviewProps) {
         alt="Profile Picture"
         className="w-10 h-10 rounded-full object-cover mr-4 border-2 border-brand-light"
       />
-      <p className="text-lg flex-1">{profileDisplayName}</p>
-      {showPresence && presenceDisplay}
+      <div className="flex-1">
+        <p className="text-lg">{profileDisplayName}</p>
+        {showPresence && presenceDisplay}
+      </div>
       {rightContent}
     </div>
   );

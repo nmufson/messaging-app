@@ -5,12 +5,11 @@ import { Fragment, ReactNode } from 'react';
 interface ModalProps {
   header?: ReactNode;
   children?: ReactNode;
-  buttons?: ReactNode[];
   className?: string;
 }
 
 export function Modal(props: ModalProps) {
-  const { header, children, buttons = [], className } = props;
+  const { header, children, className } = props;
   const { showModal, closeModal } = useModalContext();
 
   if (!showModal) return null;
@@ -38,14 +37,11 @@ export function Modal(props: ModalProps) {
           </div>
         )}
         {children}
-        {buttons.length > 0 && (
-          <div className="flex gap-2 mt-4 justify-end">
-            {buttons.map((node, i) => (
-              <Fragment key={i}>{node}</Fragment>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
+}
+
+export function ModalActions({ children }: { children: ReactNode }) {
+  return <div className="flex gap-2 mt-4 justify-end">{children}</div>;
 }

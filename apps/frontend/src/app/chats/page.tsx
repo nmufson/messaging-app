@@ -3,7 +3,6 @@ import { useChatList } from '@/hooks/chat';
 import { ChatPreview } from './ChatPreview';
 import { MessageSearchBar } from './SearchBar';
 import MainHeader from '@/components/mainHeader/mainHeader';
-import { useOnlinePresence } from '@/hooks/onlinePresence';
 
 export default function Chats() {
   const { chats, isLoading, error } = useChatList();

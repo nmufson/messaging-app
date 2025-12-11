@@ -1,6 +1,6 @@
 'use client';
 import { Button, CancelButton } from '@/components/button/button';
-import { Modal } from '@/components/modal/Modal';
+import { Modal, ModalActions } from '@/components/modal/Modal';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
 import { useFriendRequest } from '@/hooks/friendRequest';
@@ -71,21 +71,7 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
 
   const handleOpenCancelFriendRequestModal = () => {
     launchModal(
-      <Modal
-        header="Cancel Request?"
-        buttons={[
-          <CancelButton key="close" />,
-          <Button
-            key="cancel-request"
-            onClick={handleCancelFriendRequest}
-            className="bg-red-500 text-white"
-          >
-            Cancel Friend Request
-          </Button>,
-        ]}
-      >
-        Click to cancel friend request.
-      </Modal>
+      <CancelFriendRequestModal onCancelRequest={handleCancelFriendRequest} />
     );
   };
 
@@ -221,5 +207,27 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function CancelFriendRequestModal({
+  onCancelRequest,
+}: {
+  onCancelRequest: () => void;
+}) {
+  return (
+    <Modal header="Cancel Request?">
+      <p>Click to cancel friend request.</p>
+      <ModalActions>
+        <CancelButton key="close" />,
+        <Button
+          key="cancel-request"
+          onClick={onCancelRequest}
+          className="bg-red-500 text-white"
+        >
+          Cancel Friend Request
+        </Button>
+      </ModalActions>
+    </Modal>
   );
 }

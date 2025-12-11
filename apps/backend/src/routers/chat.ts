@@ -343,7 +343,7 @@ export const chatRouter = router({
             },
           },
           messages: {
-            take: 100,
+            take: 1,
             orderBy: { createdAt: 'asc' },
             select: {
               id: true,
@@ -357,6 +357,17 @@ export const chatRouter = router({
           },
         },
       });
+
+      const sender = await ctx.prisma.profile.findUnique({
+        where: { id: creator },
+      });
+
+      if (!sender) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Sender profile not found',
+        });
+      }
 
       const createdChatAction = await ctx.prisma.chatAction.create({
         data: {
@@ -388,7 +399,7 @@ export const chatRouter = router({
         });
       }
 
-      return { ...chat, actions: [createdChatAction] };
+      return { ...chat, actions: [createdChatAction], senders: [sender] };
     }),
   updateInfo: profileProcedure
     .input(UpdateChatInput)
@@ -479,6 +490,21 @@ export const chatRouter = router({
         .filter((p) => p !== undefined);
 
       const newActions = await Promise.all(actionPromises);
+      // TODO: extract this to helper
+      const senderIds = [
+        ...new Set(updatedChat.messages.map((m) => m.senderId)),
+      ];
+
+      // fetch sender info by messages to account for participants who left or were remvoed
+      const senders = await ctx.prisma.profile.findMany({
+        where: { id: { in: senderIds } },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          avatarUrl: true,
+        },
+      });
 
       logger.info(
         { updatedChat, newActions },
@@ -488,6 +514,7 @@ export const chatRouter = router({
       return {
         ...updatedChat,
         actions: [...updatedChat.actions, ...newActions],
+        senders,
       };
     }),
 

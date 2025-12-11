@@ -191,6 +191,7 @@ export const getChat = async (
           createdAt: true,
         },
       },
+      // TODO: perhaps don't need this
       participants: {
         select: {
           id: true,
@@ -204,5 +205,23 @@ export const getChat = async (
     },
   });
 
-  return chat ? ChatDTO.parse(chat) : null;
+  if (!chat) {
+    logger.info({ chatId, profileIds }, 'Chat not found');
+    return null;
+  }
+
+  const senderIds = [...new Set(chat.messages.map((m) => m.senderId))];
+
+  // fetch sender info by messages to account for participants who left or were remvoed
+  const senders = await prisma.profile.findMany({
+    where: { id: { in: senderIds } },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      avatarUrl: true,
+    },
+  });
+
+  return ChatDTO.parse({ ...chat, senders });
 };
