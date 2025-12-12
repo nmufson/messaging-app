@@ -1,6 +1,6 @@
 import { useToast } from '@/context/Toast/ToastContext';
 import { useTRPC } from '@/lib/trpc';
-import { ObjectId, UpdateChatInput } from '@repo/common';
+import { ChatInfoDTO, ObjectId, UpdateChatInput } from '@repo/common';
 import {
   skipToken,
   useMutation,
@@ -259,5 +259,50 @@ export function useChatInfo(params: ChatInfoParams) {
     })
   );
 
-  return { chat, isLoading, updateChat, isPending };
+  const handleSuccess = (updatedChat: ChatInfoDTO) => {
+    queryClient.setQueryData(chatInfoQueryKey, updatedChat);
+
+    queryClient.setQueryData(chatFindQueryKey, (oldData) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        ...updatedChat,
+      };
+    });
+  };
+
+  const { mutate: addMember, isPending: isAddingMember } = useMutation(
+    trpc.chat.addMember.mutationOptions({
+      onSuccess: (updatedChat) => {
+        handleSuccess(updatedChat);
+      },
+    })
+  );
+  const { mutate: removeMember, isPending: isRemovingMember } = useMutation(
+    trpc.chat.removeMember.mutationOptions({
+      onSuccess: (updatedChat) => {
+        handleSuccess(updatedChat);
+      },
+    })
+  );
+  const { mutate: leaveChat, isPending: isLeavingChat } = useMutation(
+    trpc.chat.leaveChat.mutationOptions({
+      onSuccess: (updatedChat) => {
+        handleSuccess(updatedChat);
+      },
+    })
+  );
+
+  return {
+    chat,
+    isLoading,
+    updateChat,
+    isPending,
+    addMember,
+    removeMember,
+    leaveChat,
+    isAddingMember,
+    isRemovingMember,
+    isLeavingChat,
+  };
 }

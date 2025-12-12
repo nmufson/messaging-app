@@ -98,6 +98,7 @@ export function ChatContent(props: ChatContentProps) {
   const participants = chat?.participants || [];
   const name = chat?.name ?? null;
   const messages = chat?.messages ?? [];
+  const senders = chat?.senders ?? [];
   const type = chat?.type ?? ChatType.enum.GROUP;
   const creatorId = chat?.creatorId ?? null;
   const createdAt = chat?.createdAt ?? null;
@@ -198,7 +199,7 @@ export function ChatContent(props: ChatContentProps) {
         {messages &&
           messages.length > 0 &&
           messages.map((message, i) => {
-            const sender = participants.find((p) => p.id === message.senderId);
+            const sender = senders.find((p) => p.id === message.senderId);
 
             if (!sender) {
               console.error('Sender not found in chat participants', {

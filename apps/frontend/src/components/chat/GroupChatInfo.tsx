@@ -1,29 +1,20 @@
 import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/context/Toast/ToastContext';
 import { useToggle } from '@/hooks/general';
-import { useTRPC } from '@/lib/trpc';
 import { getChatDisplayName, getProfileDisplayName } from '@/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ChatDTO, ObjectId, UpdateChatInput } from '@repo/common';
-import {
-  skipToken,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { ObjectId, UpdateChatInput } from '@repo/common';
 import { MouseEvent, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-
+import { useModalContext } from '@/context/ModalContext';
+import { useChatInfo } from '@/hooks/chat';
 import * as R from 'remeda';
+import { Button, CancelButton } from '../button/button';
 import { TextFieldGroup } from '../FieldGroup';
 import { GroupPhoto } from '../GroupPhoto';
-import { ProfilePreview } from '../profile/ProfilePreview';
 import { ImageUpload } from '../ImageUpload';
-import { Button, CancelButton } from '../button/button';
 import LoadingSpinner from '../LoadingSpinner';
-import { useModalContext } from '@/context/ModalContext';
 import { Modal, ModalActions } from '../modal/Modal';
-import { useChatInfo } from '@/hooks/chat';
+import { ProfilePreview } from '../profile/ProfilePreview';
 
 export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
   const {
@@ -34,7 +25,8 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
   const { launchModal } = useModalContext();
   const { profile } = useAuth();
 
-  const { chat, isLoading, updateChat, isPending } = useChatInfo({ chatId });
+  const { chat, isLoading, updateChat, isPending, addMember, removeMember } =
+    useChatInfo({ chatId });
 
   const defaultValues = useMemo(
     () => (chat ? UpdateChatInput.omit({ id: true }).parse(chat) : undefined),
@@ -94,6 +86,7 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
       console.error('Profile not found');
       return;
     }
+
     launchModal(
       <Modal header="Remove Member">
         <p>Remove {getProfileDisplayName(profile)} from the chat?</p>
@@ -101,7 +94,9 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
           <CancelButton key="close" />
           <Button
             key="cancel-request"
-            onClick={() => {}}
+            onClick={(e) => {
+              removeMember({ chatId, profileId });
+            }}
             className="bg-red-500 text-white"
           >
             Remove
@@ -191,6 +186,7 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
               }
             />
           ))}
+          {/* TODO: button for adding member */}
         </div>
       </div>
     </div>
