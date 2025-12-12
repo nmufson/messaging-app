@@ -8,6 +8,7 @@ import {
   ChatActionType,
   CHAT_UPDATE_ACTIONS,
   ChatInfoDTO,
+  ChatPreviewDTO,
 } from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
@@ -155,7 +156,7 @@ export const chatRouter = router({
         limit: z.number().default(100),
       })
     )
-    .output(ChatDTO.array())
+    .output(ChatPreviewDTO.array())
     .query(async ({ input, ctx }) => {
       const { limit } = input;
       const { user } = ctx;
@@ -181,7 +182,14 @@ export const chatRouter = router({
                   imageUrl: true,
                   createdAt: true,
                   updatedAt: true,
-                  senderId: true,
+                  sender: {
+                    select: {
+                      id: true,
+                      firstName: true,
+                      lastName: true,
+                      avatarUrl: true,
+                    },
+                  },
                 },
               },
               actions: {
@@ -216,8 +224,8 @@ export const chatRouter = router({
         });
       }
 
-      const validatedChats: ChatDTO[] = profile.chats.map((chat) =>
-        ChatDTO.parse(chat)
+      const validatedChats = profile.chats.map((chat) =>
+        ChatPreviewDTO.parse(chat)
       );
 
       return validatedChats;

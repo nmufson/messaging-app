@@ -1,6 +1,6 @@
 import z from 'zod';
 import { DateTimeSchema, ObjectId } from './primitives';
-import { MessageDTO } from './message';
+import { MessageDTO, MessageWithSenderDTO } from './message';
 
 export const ChatType = z.enum(['GROUP', 'DIRECT']);
 export type ChatType = z.infer<typeof ChatType>;
@@ -69,6 +69,11 @@ export const ChatDTO = z.object({
   creatorId: ObjectId,
 });
 export type ChatDTO = z.infer<typeof ChatDTO>;
+
+export const ChatPreviewDTO = ChatDTO.omit({ senders: true }).extend({
+  messages: MessageWithSenderDTO.array(),
+});
+export type ChatPreviewDTO = z.infer<typeof ChatPreviewDTO>;
 
 export const ChatInfoDTO = ChatDTO.omit({ messages: true, senders: true });
 export type ChatInfoDTO = z.infer<typeof ChatInfoDTO>;

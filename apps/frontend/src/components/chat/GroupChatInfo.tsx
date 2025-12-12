@@ -111,26 +111,38 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
     );
   };
 
+  const handleLaunchPhotoModal = () => {
+    launchModal(
+      <Modal>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <ImageUpload
+            name="groupPictureUrl"
+            control={control}
+            imageClassName="rounded-full object-cover"
+            imageSize={100}
+          />
+          <Button type="submit" disabled={isPending || !isDirty}>
+            <i className="bi bi-floppy" />
+          </Button>
+        </form>
+      </Modal>
+    );
+  };
+
   return (
     <div>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col items-center justify-center py-5"
       >
-        <ImageUpload
-          name="groupPictureUrl"
-          control={control}
-          imageClassName="rounded-full object-cover"
-          imageSize={100}
-          fallback={
-            <GroupPhoto
-              groupPictureUrl={groupPictureUrl}
-              participants={participants}
-              size={100}
-              className="cursor-pointer hover:opacity-80 transition-opacity"
-            />
-          }
-        />
+        <div onClick={handleLaunchPhotoModal}>
+          <GroupPhoto
+            groupPictureUrl={groupPictureUrl}
+            participants={participants}
+            size={100}
+            className="cursor-pointer hover:opacity-80 transition-opacity"
+          />
+        </div>
 
         <div className="flex justify-between items-center gap-2 px-4">
           <div></div>
