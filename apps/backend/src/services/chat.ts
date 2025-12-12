@@ -225,3 +225,62 @@ export const getChat = async (
 
   return ChatDTO.parse({ ...chat, senders });
 };
+
+const CHAT_INFO_SELECT = {
+  id: true,
+  type: true,
+  name: true,
+  groupPictureUrl: true,
+  createdAt: true,
+  updatedAt: true,
+  creatorId: true,
+  actions: {
+    take: 100,
+    orderBy: { createdAt: 'asc' } as const,
+    select: {
+      id: true,
+      chatId: true,
+      actionType: true,
+      actorId: true,
+      targetId: true,
+      createdAt: true,
+    },
+  },
+  participants: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      avatarUrl: true,
+      isOnline: true,
+      lastOnline: true,
+    },
+  },
+} as const;
+
+interface UpdateChatInfoParams {
+  chatId: ObjectId;
+  data: {
+    participants?: {
+      connect?: { id: ObjectId };
+      disconnect?: { id: ObjectId };
+    };
+    name?: string | null;
+    groupPictureUrl?: string | null;
+  };
+}
+
+export const updateChatInfo = async (
+  prisma: PrismaClient,
+  params: UpdateChatInfoParams
+) => {
+  const { chatId, data } = params;
+
+  const updatedChat = await prisma.chat.update({
+    where: { id: chatId },
+    data,
+    select: CHAT_INFO_SELECT,
+  });
+
+  return updatedChat;
+};

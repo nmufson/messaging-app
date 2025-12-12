@@ -70,6 +70,9 @@ export const ChatDTO = z.object({
 });
 export type ChatDTO = z.infer<typeof ChatDTO>;
 
+export const ChatInfoDTO = ChatDTO.omit({ messages: true, senders: true });
+export type ChatInfoDTO = z.infer<typeof ChatInfoDTO>;
+
 export const ChatDetailDTO = ChatDTO.extend({});
 
 export const ChatListDTO = z.object({

@@ -23,32 +23,23 @@ import { Button, CancelButton } from '../button/button';
 import LoadingSpinner from '../LoadingSpinner';
 import { useModalContext } from '@/context/ModalContext';
 import { Modal, ModalActions } from '../modal/Modal';
+import { useChatInfo } from '@/hooks/chat';
 
-export function GroupChatInfo({ chatId }: { chatId: ObjectId | null }) {
+export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
   const {
     status: editMode,
     toggleStatus: toggleEditMode,
     setStatus: setEditMode,
   } = useToggle();
   const { launchModal } = useModalContext();
-  const trpc = useTRPC();
   const { profile } = useAuth();
-  const { addToast } = useToast();
-  const queryClient = useQueryClient();
 
-  const { data: chat, isLoading } = useQuery(
-    trpc.chat.byId.queryOptions(chatId ? { chatId } : skipToken)
+  const { chat, isLoading, updateChat, isPending } = useChatInfo({ chatId });
+
+  const defaultValues = useMemo(
+    () => (chat ? UpdateChatInput.omit({ id: true }).parse(chat) : undefined),
+    [chat]
   );
-
-  const defaultValues = useMemo(() => {
-    if (!chat) {
-      return UpdateChatInput.omit({ id: true }).parse({
-        name: '',
-        groupPictureUrl: '',
-      });
-    }
-    return UpdateChatInput.omit({ id: true }).parse(chat);
-  }, [chat]);
 
   const {
     control,
@@ -68,45 +59,15 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId | null }) {
     }
   }, [chat, reset]);
 
-  const { mutateAsync: updateChat, isPending } = useMutation(
-    trpc.chat.updateInfo.mutationOptions({
-      onSuccess: (updatedChat) => {
-        const chatByIdQueryKey = trpc.chat.byId.queryKey({
-          chatId: chatId ?? undefined,
-        });
-        const findChatQueryKey = trpc.chat.findChat.queryKey({
-          chatId: chatId ?? undefined,
-        });
-
-        queryClient.setQueryData(chatByIdQueryKey, updatedChat);
-        queryClient.setQueryData(findChatQueryKey, updatedChat);
-
-        // Reset form with updated values
-        reset(UpdateChatInput.omit({ id: true }).parse(updatedChat));
-
-        addToast({
-          header: 'Success',
-          body: 'Chat updated successfully!',
-          variant: 'success',
-        });
-      },
-      onError: (error) => {
-        addToast({
-          header: 'Error',
-          body:
-            error.message || 'Failed to update chat, please try again later.',
-          variant: 'danger',
-        });
-      },
-    })
-  );
-
   const onSubmit = async (data: Omit<UpdateChatInput, 'id'>) => {
     if (!chatId) return;
     try {
       const dirtyFieldKeys = R.keys(dirtyFields);
       const updatedFields = R.pick(data, dirtyFieldKeys);
-      await updateChat({ id: chatId, ...updatedFields });
+      const updatedChat = await updateChat({ id: chatId, ...updatedFields });
+
+      // Reset form with updated values
+      reset(UpdateChatInput.omit({ id: true }).parse(updatedChat));
       setEditMode(false);
     } catch (error) {
       console.error(error, 'Failed to update chat.');

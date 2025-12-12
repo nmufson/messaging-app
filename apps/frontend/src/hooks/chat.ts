@@ -1,5 +1,6 @@
+import { useToast } from '@/context/Toast/ToastContext';
 import { useTRPC } from '@/lib/trpc';
-import { ObjectId } from '@repo/common';
+import { ObjectId, UpdateChatInput } from '@repo/common';
 import {
   skipToken,
   useMutation,
@@ -206,27 +207,57 @@ export function usePotentialChats(params: PotentialChatsParams) {
   };
 }
 
-interface FindChatParams {
-  chatId?: ObjectId;
-  profileIds?: ObjectId[];
+interface ChatInfoParams {
+  chatId: ObjectId;
 }
-export function useFindChat(params: FindChatParams) {
-  const { chatId, profileIds } = params;
-  const trpc = useTRPC();
 
-  const {
-    data: chat,
-    isLoading,
-    error,
-  } = useQuery(
-    trpc.chat.findChat.queryOptions(
-      chatId
-        ? { chatId }
-        : profileIds && profileIds.length > 0
-          ? { profileIds }
-          : skipToken
-    )
+export function useChatInfo(params: ChatInfoParams) {
+  const { chatId } = params;
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+
+  const chatInfoQueryKey = trpc.chat.getInfo.queryKey({
+    chatId,
+  });
+  const chatFindQueryKey = trpc.chat.findChat.queryKey({
+    chatId,
+  });
+
+  const { data: chat, isLoading } = useQuery(
+    trpc.chat.getInfo.queryOptions({ chatId })
   );
 
-  return { chat, isLoading, error };
+  const { mutateAsync: updateChat, isPending } = useMutation(
+    trpc.chat.updateInfo.mutationOptions({
+      onSuccess: (updatedChat) => {
+        // Update the info query cache and findChat query from ChatContent
+        queryClient.setQueryData(chatInfoQueryKey, updatedChat);
+
+        queryClient.setQueryData(chatFindQueryKey, (oldData) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            ...updatedChat,
+          };
+        });
+
+        addToast({
+          header: 'Success',
+          body: 'Chat updated successfully!',
+          variant: 'success',
+        });
+      },
+      onError: (error) => {
+        addToast({
+          header: 'Error',
+          body:
+            error.message || 'Failed to update chat, please try again later.',
+          variant: 'danger',
+        });
+      },
+    })
+  );
+
+  return { chat, isLoading, updateChat, isPending };
 }

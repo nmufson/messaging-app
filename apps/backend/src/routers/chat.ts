@@ -7,6 +7,7 @@ import {
   ChatActionDTO,
   ChatActionType,
   CHAT_UPDATE_ACTIONS,
+  ChatInfoDTO,
 } from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
@@ -17,7 +18,7 @@ import * as R from 'remeda';
 import { mergeAsyncIterators } from '@repo/common';
 import { ChatDTO, ChatType } from '@repo/common';
 import { logger } from '../lib/pino';
-import { getChat, getPotentialChats } from '@/services/chat';
+import { getChat, getPotentialChats, updateChatInfo } from '@/services/chat';
 import { sendMessage } from '@/services/message';
 
 export const chatRouter = router({
@@ -401,26 +402,18 @@ export const chatRouter = router({
 
       return { ...chat, actions: [createdChatAction], senders: [sender] };
     }),
-  updateInfo: profileProcedure
-    .input(UpdateChatInput)
-    .output(ChatDTO)
-    .mutation(async ({ input, ctx }) => {
-      const { id, ...updatedFields } = input;
-      const { user } = ctx;
-      const profileId = user?.profile?.id;
+  getInfo: profileProcedure
+    .input(
+      z.object({
+        chatId: ObjectId,
+      })
+    )
+    .output(ChatInfoDTO)
+    .query(async ({ input, ctx }) => {
+      const { chatId } = input;
 
-      logger.info(
-        { chatId: id, updatedFields, profileId },
-        'Updating chat info'
-      );
-
-      if (!profileId) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
-      }
-
-      const updatedChat = await ctx.prisma.chat.update({
-        where: { id },
-        data: updatedFields,
+      const chat = await ctx.prisma.chat.findUnique({
+        where: { id: chatId },
         select: {
           id: true,
           type: true,
@@ -429,22 +422,9 @@ export const chatRouter = router({
           createdAt: true,
           updatedAt: true,
           creatorId: true,
-          messages: {
-            take: 100,
-            orderBy: { createdAt: 'asc' },
-            select: {
-              id: true,
-              type: true,
-              content: true,
-              createdAt: true,
-              updatedAt: true,
-              imageUrl: true,
-              senderId: true,
-            },
-          },
           actions: {
             take: 100,
-            orderBy: { createdAt: 'asc' },
+            orderBy: { createdAt: 'desc' },
             select: {
               id: true,
               chatId: true,
@@ -466,6 +446,39 @@ export const chatRouter = router({
           },
         },
       });
+
+      if (!chat) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Chat not found',
+        });
+      }
+
+      return chat;
+    }),
+  updateInfo: profileProcedure
+    .input(UpdateChatInput)
+    .output(ChatInfoDTO)
+    .mutation(async ({ input, ctx }) => {
+      const { id, ...updatedFields } = input;
+      const { user } = ctx;
+      const profileId = user?.profile?.id;
+
+      logger.info(
+        { chatId: id, updatedFields, profileId },
+        'Updating chat info'
+      );
+
+      if (!profileId) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+
+      const updatedChat = await updateChatInfo(ctx.prisma, {
+        chatId: id,
+        data: updatedFields,
+      });
+
+      // TODO: flip the order of these so we can just grab the chat with actions after they're created?
 
       const actionPromises = R.keys(updatedFields)
         .map((field) => {
@@ -490,21 +503,6 @@ export const chatRouter = router({
         .filter((p) => p !== undefined);
 
       const newActions = await Promise.all(actionPromises);
-      // TODO: extract this to helper
-      const senderIds = [
-        ...new Set(updatedChat.messages.map((m) => m.senderId)),
-      ];
-
-      // fetch sender info by messages to account for participants who left or were remvoed
-      const senders = await ctx.prisma.profile.findMany({
-        where: { id: { in: senderIds } },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          avatarUrl: true,
-        },
-      });
 
       logger.info(
         { updatedChat, newActions },
@@ -514,19 +512,18 @@ export const chatRouter = router({
       return {
         ...updatedChat,
         actions: [...updatedChat.actions, ...newActions],
-        senders,
       };
     }),
 
   // TODO: move these to new chatActions router?
-  addMemberToChat: profileProcedure
+  addMember: profileProcedure
     .input(
       z.object({
         chatId: ObjectId,
         profileId: ObjectId,
       })
     )
-    .output(ChatActionDTO)
+    .output(ChatInfoDTO)
     .mutation(async ({ input, ctx }) => {
       const { chatId, profileId: profileIdToAdd } = input;
       const { user } = ctx;
@@ -548,28 +545,30 @@ export const chatRouter = router({
         },
       });
 
-      const updatedChat = await ctx.prisma.chat.update({
-        where: { id: chatId },
-        data: {
-          participants: {
-            connect: { id: profileIdToAdd },
-          },
+      const data = {
+        participants: {
+          connect: { id: profileIdToAdd },
         },
+      };
+
+      const updatedChat = await updateChatInfo(ctx.prisma, {
+        chatId,
+        data,
       });
 
       logger.info({ addMemberAction, updatedChat }, 'Added member to chat');
 
-      return addMemberAction;
+      return updatedChat;
     }),
 
-  removeProfileFromChat: profileProcedure
+  removeMember: profileProcedure
     .input(
       z.object({
         chatId: ObjectId,
         profileId: ObjectId,
       })
     )
-    .output(ChatActionDTO)
+    .output(ChatInfoDTO)
     .mutation(async ({ input, ctx }) => {
       const { chatId, profileId: profileIdToRemove } = input;
       const { user } = ctx;
@@ -591,13 +590,15 @@ export const chatRouter = router({
         },
       });
 
-      const updatedChat = await ctx.prisma.chat.update({
-        where: { id: chatId },
-        data: {
-          participants: {
-            disconnect: { id: profileIdToRemove },
-          },
+      const data = {
+        participants: {
+          disconnect: { id: profileIdToRemove },
         },
+      };
+
+      const updatedChat = await updateChatInfo(ctx.prisma, {
+        chatId,
+        data,
       });
 
       logger.info(
@@ -605,7 +606,7 @@ export const chatRouter = router({
         'Removed member from chat'
       );
 
-      return removeMemberAction;
+      return updatedChat;
     }),
   leaveChat: profileProcedure
     .input(
@@ -613,7 +614,7 @@ export const chatRouter = router({
         chatId: ObjectId,
       })
     )
-    .output(ChatActionDTO)
+    .output(ChatInfoDTO)
     .mutation(async ({ input, ctx }) => {
       const { chatId } = input;
       const { user } = ctx;
@@ -637,17 +638,19 @@ export const chatRouter = router({
         },
       });
 
-      const updatedChat = await ctx.prisma.chat.update({
-        where: { id: chatId },
-        data: {
-          participants: {
-            disconnect: { id: profileIdToLeave },
-          },
+      const data = {
+        participants: {
+          disconnect: { id: profileIdToLeave },
         },
+      };
+
+      const updatedChat = await updateChatInfo(ctx.prisma, {
+        chatId,
+        data,
       });
 
       logger.info({ leaveChatAction, updatedChat }, 'Member left chat');
 
-      return leaveChatAction;
+      return updatedChat;
     }),
 });
