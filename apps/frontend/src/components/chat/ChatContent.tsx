@@ -6,9 +6,23 @@ import { useModalContext } from '@/context/ModalContext';
 import { useChat } from '@/hooks/chat';
 import { formatDisplayDate, getChatDisplayName } from '@/utils';
 import { useNavigation } from '@/utils/Navigation';
-import { ChatType, ObjectId } from '@repo/common';
+import {
+  ChatActionDTO,
+  ChatActivityDTO,
+  ChatType,
+  MessageDTO,
+  ObjectId,
+  SenderDTO,
+} from '@repo/common';
 import Link from 'next/link';
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  FormEvent,
+  RefObject,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { OverlayTrigger, Spinner, Tooltip } from 'react-bootstrap';
 import * as R from 'remeda';
 import { GroupPhoto } from '../GroupPhoto';
@@ -193,6 +207,7 @@ export function ChatContent(props: ChatContentProps) {
         <i className="bi bi-info-circle text-2xl" onClick={handleInfoClick} />
       </div>
       <div className="messages-container flex-1 overflow-y-auto py-4">
+        {/* TODO: remove this in favor of an action */}
         {chatCreator && (
           <small>{`${chatCreator.firstName} ${chatCreator.lastName} created the chat ${createdAtDisplay}`}</small>
         )}
@@ -234,7 +249,7 @@ export function ChatContent(props: ChatContentProps) {
           })}
         <div ref={messagesEndRef} />
       </div>
-      {/* TODO: extract this to component? */}
+
       <form
         onSubmit={handleSubmitMessage}
         className="send-message-form flex gap-3 justify-between items-center p-2 flex-shrink-0 bg-white border-t"
@@ -260,3 +275,90 @@ export function ChatContent(props: ChatContentProps) {
     </div>
   );
 }
+
+interface MessagesProps {
+  activities: ChatActivityDTO[];
+  senders: SenderDTO[];
+  messageToViewRef: RefObject<HTMLDivElement | null>;
+  messagesEndRef: RefObject<HTMLDivElement | null>;
+  messageToView?: ObjectId | null;
+}
+
+function Messages(props: MessagesProps) {
+  const {
+    activities,
+    senders,
+    messageToViewRef,
+    messagesEndRef,
+    messageToView,
+  } = props;
+
+  if (!activities || !activities.length) {
+    return <div>No messages yet</div>;
+  }
+
+  return (
+    <div className="messages-container flex-1 overflow-y-auto py-4">
+      {/* TODO: remove this in favor of an action */}
+      {/* {chatCreator && (
+        <small>{`${chatCreator.firstName} ${chatCreator.lastName} created the chat ${createdAtDisplay}`}</small>
+      )} */}
+      {activities.map((activity, i) => {
+        if (activity.activityType === 'message') {
+          const sender = senders.find((p) => p.id === activity.senderId);
+
+          if (!sender) {
+            console.error('Sender not found in chat participants', {
+              message: activity,
+              senderId: activity.senderId,
+            });
+          }
+          const messageWithSender = {
+            ...activity,
+            sender: sender || {
+              id: '',
+              firstName: 'Unknown',
+              lastName: '',
+              avatarUrl: null,
+            },
+          };
+
+          // TODO: clean this up
+          const prevActivity = activities[i - 1];
+          const isPrevActivityMessage = prevActivity.activityType === 'message';
+          const nextActivity = activities[i + 1];
+
+          const isNextActivityMessage = nextActivity.activityType === 'message';
+
+          const shouldShowName =
+            !isPrevActivityMessage ||
+            prevActivity.senderId != activity.senderId;
+          const shouldShowAvatar =
+            !isNextActivityMessage ||
+            nextActivity.senderId != activity.senderId;
+          return (
+            <MessageBubble
+              key={activity.id}
+              message={messageWithSender}
+              showName={shouldShowName}
+              showAvatar={shouldShowAvatar}
+              ref={messageToView === activity.id ? messageToViewRef : null}
+            />
+          );
+        }
+
+        return <div></div>;
+      })}
+      <div ref={messagesEndRef} />
+    </div>
+  );
+}
+
+const getActivityText = (activity: ChatActionDTO) => {
+  const { actorId, targetId, actionType } = activity;
+
+  switch (actionType) {
+    case 'CHAT_CREATED': {
+    }
+  }
+};

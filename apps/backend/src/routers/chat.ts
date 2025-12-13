@@ -19,8 +19,14 @@ import * as R from 'remeda';
 import { mergeAsyncIterators } from '@repo/common';
 import { ChatDTO, ChatType } from '@repo/common';
 import { logger } from '../lib/pino';
-import { getChat, getPotentialChats, updateChatInfo } from '@/services/chat';
+import {
+  getChat,
+  getMergedActivities,
+  getPotentialChats,
+  updateChatInfo,
+} from '@/services/chat';
 import { sendMessage } from '@/services/message';
+import { get } from 'http';
 
 export const chatRouter = router({
   // TODO: add something for loading more messages in chat
@@ -67,17 +73,19 @@ export const chatRouter = router({
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
 
+      if (!chatId && (!profileIds || profileIds.length === 0)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Must provide chatId or profileIds',
+        });
+      }
+
       let chat;
       if (chatId) {
         chat = await getChat(prisma, { chatId });
       } else if (profileIds && profileIds.length > 0) {
         chat = await getChat(prisma, {
           profileIds: [...profileIds, userProfileId],
-        });
-      } else {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Must provide either chatId or profileIds',
         });
       }
 
@@ -398,6 +406,7 @@ export const chatRouter = router({
         eventEmitter.emit(`newChat:${userId}`, chat);
       });
 
+      let messages = [];
       if (firstMessage) {
         const newMessage = await sendMessage(ctx.prisma, {
           type: firstMessage.type,
@@ -406,9 +415,23 @@ export const chatRouter = router({
           sender: creator,
           chatId: chat.id,
         });
+        messages.push(newMessage);
       }
 
-      return { ...chat, actions: [createdChatAction], senders: [sender] };
+      const { mergedActivities, activityProfiles } = await getMergedActivities(
+        messages,
+        [createdChatAction]
+      );
+
+      const fullChat = {
+        ...chat,
+        messages,
+        actions: [createdChatAction],
+        activities: mergedActivities,
+        activityProfiles,
+      };
+
+      return fullChat;
     }),
   getInfo: profileProcedure
     .input(

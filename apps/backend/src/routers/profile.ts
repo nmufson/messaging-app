@@ -1,15 +1,17 @@
-import { ObjectId, ProfileDTO, UpdateProfileInput } from '@repo/common';
-import { router, userProcedure, profileProcedure } from '../trpc';
+import { logger } from '@/lib/pino';
 import {
-  ProfilePageDTO,
-  z,
   CreateProfileInput,
   ListProfileDTO,
+  ObjectId,
+  ProfileDTO,
+  ProfilePageDTO,
+  UpdateProfileInput,
+  z,
 } from '@repo/common';
-import * as R from 'remeda';
 import { TRPCError } from '@trpc/server';
-import { logger } from '@/lib/pino';
-import { use } from 'passport';
+import * as R from 'remeda';
+import { profileProcedure, router, userProcedure } from '../trpc';
+import { nameEmailSearch } from '@/services/profile';
 
 export const profileRouter = router({
   byId: profileProcedure
@@ -146,15 +148,20 @@ export const profileRouter = router({
     }),
 
   friends: profileProcedure
-    .input(z.object({ profileId: ObjectId }))
+    .input(
+      z.object({ profileId: ObjectId, searchInput: z.string().optional() })
+    )
     .output(ListProfileDTO.array())
     .query(async ({ input, ctx }) => {
-      const { profileId } = input;
+      const { profileId, searchInput } = input;
 
       const profile = await ctx.prisma.profile.findUnique({
-        where: { id: profileId },
+        where: {
+          id: profileId,
+        },
         select: {
           friends: {
+            where: searchInput ? nameEmailSearch(searchInput) : undefined,
             select: {
               id: true,
               firstName: true,
@@ -208,23 +215,7 @@ export const profileRouter = router({
                 id: { in: loggedInProfile.friends.map((f) => f.id) },
               },
             },
-            searchInput
-              ? {
-                  OR: [
-                    {
-                      user: {
-                        email: { contains: searchInput, mode: 'insensitive' },
-                      },
-                    },
-                    {
-                      firstName: { contains: searchInput, mode: 'insensitive' },
-                    },
-                    {
-                      lastName: { contains: searchInput, mode: 'insensitive' },
-                    },
-                  ],
-                }
-              : {},
+            searchInput ? nameEmailSearch(searchInput) : {},
           ],
         },
         orderBy: [

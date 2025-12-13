@@ -28,15 +28,44 @@ export const CHAT_UPDATE_ACTIONS = {
   groupPictureUrl: 'PICTURE_CHANGED',
 } as const satisfies Record<keyof Omit<UpdateChatInput, 'id'>, ChatActionType>;
 
-export const ChatActionDTO = z.object({
+export const IChatAction = z.object({
   id: ObjectId,
   chatId: ObjectId,
   actionType: ChatActionType,
   actorId: ObjectId,
   targetId: ObjectId.nullable(),
+  createdAt: z.date(),
+});
+export type IChatAction = z.infer<typeof IChatAction>;
+
+export const ChatActionDTO = IChatAction.extend({
   createdAt: DateTimeSchema,
 });
 export type ChatActionDTO = z.infer<typeof ChatActionDTO>;
+
+export const ActivityProfileDTO = z.object({
+  id: ObjectId,
+  firstName: z.string(),
+  lastName: z.string(),
+  avatarUrl: z.string().nullable(),
+});
+export type ActivityProfileDTO = z.infer<typeof ActivityProfileDTO>;
+
+export const MessageActivityDTO = MessageDTO.extend({
+  activityType: z.literal('message'),
+});
+export type MessageActivityDTO = z.infer<typeof MessageActivityDTO>;
+
+export const ActionActivityDTO = ChatActionDTO.extend({
+  activityType: z.literal('action'),
+});
+export type ActionActivityDTO = z.infer<typeof ActionActivityDTO>;
+
+export const ChatActivityDTO = z.discriminatedUnion('activityType', [
+  MessageActivityDTO,
+  ActionActivityDTO,
+]);
+export type ChatActivityDTO = z.infer<typeof ChatActivityDTO>;
 
 export const ChatDTO = z.object({
   id: ObjectId,
@@ -53,16 +82,10 @@ export const ChatDTO = z.object({
       lastOnline: DateTimeSchema.nullish(),
     })
     .array(),
-  senders: z
-    .object({
-      id: ObjectId,
-      firstName: z.string(),
-      lastName: z.string(),
-      avatarUrl: z.string().nullable(),
-    })
-    .array(),
+  activityProfiles: SenderDTO.array(),
   messages: MessageDTO.array(),
   actions: ChatActionDTO.array(),
+  activities: ChatActivityDTO.array(),
   // Group-specific fields
   name: z.string().nullable(),
   groupPictureUrl: z.string().nullable(),
@@ -75,7 +98,11 @@ export const ChatPreviewDTO = ChatDTO.omit({ senders: true }).extend({
 });
 export type ChatPreviewDTO = z.infer<typeof ChatPreviewDTO>;
 
-export const ChatInfoDTO = ChatDTO.omit({ messages: true, senders: true });
+export const ChatInfoDTO = ChatDTO.omit({
+  messages: true,
+  senders: true,
+  activities: true,
+});
 export type ChatInfoDTO = z.infer<typeof ChatInfoDTO>;
 
 export const ChatDetailDTO = ChatDTO.extend({});

@@ -1,5 +1,15 @@
-import { ChatDTO, ChatType, ListProfileDTO, ChatListDTO } from '@repo/common';
-import { Chat, Profile } from '@repo/db';
+import {
+  ChatDTO,
+  ChatType,
+  ListProfileDTO,
+  ChatListDTO,
+  MessageDTO,
+  ChatActionDTO,
+  ActionActivityDTO,
+  IChatAction,
+  IMessage,
+} from '@repo/common';
+import { Chat, prisma, Profile } from '@repo/db';
 import { PrismaClient } from '@repo/db';
 import { ObjectId } from '@repo/common';
 import { logger } from '@/lib/pino';
@@ -223,7 +233,62 @@ export const getChat = async (
     },
   });
 
-  return ChatDTO.parse({ ...chat, senders });
+  const { mergedActivities, activityProfiles } = await getMergedActivities(
+    chat.messages,
+    chat.actions
+  );
+
+  return ChatDTO.parse({
+    ...chat,
+    activityProfiles,
+    activities: mergedActivities,
+  });
+};
+
+export const getMergedActivities = async (
+  messages: IMessage[],
+  actions: IChatAction[]
+) => {
+  const messageActivities = messages.map((msg) => ({
+    ...msg,
+    activityType: 'message' as const,
+  }));
+
+  const actionActivities = actions.map((action) => ({
+    ...action,
+    activityType: 'action' as const,
+  }));
+
+  const mergedActivities = [...messageActivities, ...actionActivities].sort(
+    (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+  );
+
+  const activityProfileIds = [
+    ...mergedActivities.map((a) => {
+      if (a.activityType === 'message') {
+        return a.senderId;
+      } else {
+        return a.targetId ? [a.actorId, a.targetId] : [a.actorId];
+      }
+    }),
+  ].flat();
+
+  const uniqueProfileIds = [...new Set(activityProfileIds)];
+
+  const profiles = await prisma.profile.findMany({
+    where: { id: { in: uniqueProfileIds } },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      avatarUrl: true,
+    },
+  });
+
+  return {
+    mergedActivities,
+    activityProfiles: profiles,
+  };
 };
 
 const CHAT_INFO_SELECT = {
@@ -275,6 +340,8 @@ export const updateChatInfo = async (
   params: UpdateChatInfoParams
 ) => {
   const { chatId, data } = params;
+
+  logger.info({ chatId, data }, 'Updating chat info');
 
   const updatedChat = await prisma.chat.update({
     where: { id: chatId },

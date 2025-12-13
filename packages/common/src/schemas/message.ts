@@ -17,14 +17,20 @@ export const SendMessageInput = z.object({
 });
 export type SendMessageInput = z.infer<typeof SendMessageInput>;
 
-export const MessageDTO = z.object({
+export const IMessage = z.object({
   id: ObjectId,
   type: MessageType,
   content: z.string().nullable(),
   imageUrl: z.string().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date().nullable(),
+  senderId: ObjectId,
+});
+export type IMessage = z.infer<typeof IMessage>;
+
+export const MessageDTO = IMessage.extend({
   createdAt: DateTimeSchema,
   updatedAt: DateTimeSchema.nullable(),
-  senderId: ObjectId,
 });
 export type MessageDTO = z.infer<typeof MessageDTO>;
 

@@ -1,8 +1,8 @@
 import { useAuth } from '@/context/AuthContext';
-import { useToggle } from '@/hooks/general';
+import { useSelectedValue, useToggle } from '@/hooks/general';
 import { getChatDisplayName, getProfileDisplayName } from '@/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ObjectId, UpdateChatInput } from '@repo/common';
+import { ListProfileDTO, ObjectId, UpdateChatInput } from '@repo/common';
 import { MouseEvent, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useModalContext } from '@/context/ModalContext';
@@ -15,6 +15,8 @@ import { ImageUpload } from '../ImageUpload';
 import LoadingSpinner from '../LoadingSpinner';
 import { Modal, ModalActions } from '../modal/Modal';
 import { ProfilePreview } from '../profile/ProfilePreview';
+import { Contacts } from '../Contacts';
+import { FullscreenModal } from '../modal/FullscreenModal';
 
 export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
   const {
@@ -22,7 +24,7 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
     toggleStatus: toggleEditMode,
     setStatus: setEditMode,
   } = useToggle();
-  const { launchModal } = useModalContext();
+  const { launchModal, closeModal } = useModalContext();
   const { profile } = useAuth();
 
   const { chat, isLoading, updateChat, isPending, addMember, removeMember } =
@@ -96,6 +98,7 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
             key="cancel-request"
             onClick={(e) => {
               removeMember({ chatId, profileId });
+              closeModal();
             }}
             className="bg-red-500 text-white"
           >
@@ -120,6 +123,42 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
             <i className="bi bi-floppy" />
           </Button>
         </form>
+      </Modal>
+    );
+  };
+
+  const handleLaunchContactsModal = () => {
+    launchModal(
+      <FullscreenModal title="Add Member">
+        <Contacts
+          onSelectProfile={(profile) => {
+            handleLaunchAddMemberConfirmModal(profile);
+          }}
+        />
+      </FullscreenModal>
+    );
+  };
+
+  const handleLaunchAddMemberConfirmModal = (profile: ListProfileDTO) => {
+    console.log(profile, 'runnings');
+    const displayName = getProfileDisplayName(profile);
+    closeModal(); // Close the contacts modal first
+    launchModal(
+      <Modal header={`Add ${displayName} to chat?`}>
+        <ModalActions>
+          {/* TODO: abstract this further? */}
+          <CancelButton key="close" />
+          <Button
+            key="add-member"
+            onClick={() => {
+              addMember({ chatId, profileId: profile.id });
+              closeModal();
+            }}
+            className="bg-green-500 text-white"
+          >
+            Add
+          </Button>
+        </ModalActions>
       </Modal>
     );
   };
@@ -186,6 +225,7 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
               }
             />
           ))}
+          <Button onClick={handleLaunchContactsModal}>Add Member</Button>
           {/* TODO: button for adding member */}
         </div>
       </div>
