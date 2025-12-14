@@ -140,9 +140,8 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
   };
 
   const handleLaunchAddMemberConfirmModal = (profile: ListProfileDTO) => {
-    console.log(profile, 'runnings');
     const displayName = getProfileDisplayName(profile);
-    closeModal(); // Close the contacts modal first
+    closeModal(); // Close contacts modal
     launchModal(
       <Modal header={`Add ${displayName} to chat?`}>
         <ModalActions>

@@ -1,11 +1,19 @@
 import z from 'zod';
 import { DateTimeSchema, ObjectId } from './primitives';
 import { MessageDTO, MessageWithSenderDTO } from './message';
-import { BaseProfileDTO } from './profile';
+import {
+  ChatActionDTO,
+  ChatActionType,
+  ChatActionWithActorDTO,
+} from './action';
+
+export const CHAT_UPDATE_ACTIONS = {
+  name: 'NAME_CHANGED',
+  groupPictureUrl: 'PICTURE_CHANGED',
+} as const satisfies Record<keyof Omit<UpdateChatInput, 'id'>, ChatActionType>;
 
 export const ChatType = z.enum(['GROUP', 'DIRECT']);
 export type ChatType = z.infer<typeof ChatType>;
-// ? may need to separate ChatDetailDTO and ChatListItemDTO
 
 export const UpdateChatInput = z.object({
   id: ObjectId,
@@ -13,47 +21,6 @@ export const UpdateChatInput = z.object({
   groupPictureUrl: z.string().nullish(),
 });
 export type UpdateChatInput = z.infer<typeof UpdateChatInput>;
-
-export const ChatActionType = z.enum([
-  'CHAT_CREATED',
-  'MEMBER_ADDED',
-  'MEMBER_REMOVED',
-  'MEMBER_LEFT',
-  'NAME_CHANGED',
-  'PICTURE_CHANGED',
-]);
-export type ChatActionType = z.infer<typeof ChatActionType>;
-
-export const CHAT_UPDATE_ACTIONS = {
-  name: 'NAME_CHANGED',
-  groupPictureUrl: 'PICTURE_CHANGED',
-} as const satisfies Record<keyof Omit<UpdateChatInput, 'id'>, ChatActionType>;
-
-export const IChatAction = z.object({
-  id: ObjectId,
-  chatId: ObjectId,
-  actionType: ChatActionType,
-  actorId: ObjectId,
-  targetId: ObjectId.nullable(),
-  createdAt: z.date(),
-  content: z.string().nullish(),
-});
-export type IChatAction = z.infer<typeof IChatAction>;
-
-export const ChatActionDTO = IChatAction.extend({
-  createdAt: DateTimeSchema,
-});
-export type ChatActionDTO = z.infer<typeof ChatActionDTO>;
-
-export const ChatActionWithActorDTO = ChatActionDTO.omit({
-  actorId: true,
-  targetId: true,
-}).extend({
-  actor: BaseProfileDTO,
-  target: BaseProfileDTO.nullish(),
-});
-
-export type ChatActionWithActorDTO = z.infer<typeof ChatActionWithActorDTO>;
 
 export const ActivityProfileDTO = z.object({
   id: ObjectId,
@@ -138,7 +105,9 @@ export const ChatListDTO = z.object({
 });
 export type ChatListDTO = z.infer<typeof ChatListDTO>;
 
-// export const ChatDetailDTO = ChatDTO.extend({
-//   messages: Message.array(),
-// });
-// export type ChatDetailDTO = z.infer<typeof ChatDetailDTO>;
+export const ActionOutputDTO = z.object({
+  updatedChat: ChatInfoDTO,
+  newActionActivity: ActionActivityDTO,
+  activityProfiles: ActivityProfileDTO.array(),
+});
+export type ActionOutputDTO = z.infer<typeof ActionOutputDTO>;

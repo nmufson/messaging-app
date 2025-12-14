@@ -2,6 +2,7 @@ export * from './utils/mergeAsyncIterators';
 
 export * from './schemas/primitives';
 export * from './schemas/message';
+export * from './schemas/action';
 export * from './schemas/chat';
 export * from './schemas/profile';
 export * from './schemas/friendRequest';

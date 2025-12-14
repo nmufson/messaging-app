@@ -1,18 +1,14 @@
+import { logger } from '@/lib/pino';
 import {
   ChatDTO,
-  ChatType,
-  ListProfileDTO,
   ChatListDTO,
-  MessageDTO,
-  ChatActionDTO,
-  ActionActivityDTO,
+  ChatType,
   IChatAction,
   IMessage,
+  ListProfileDTO,
+  ObjectId,
 } from '@repo/common';
-import { Chat, prisma, Profile } from '@repo/db';
-import { PrismaClient } from '@repo/db';
-import { ObjectId } from '@repo/common';
-import { logger } from '@/lib/pino';
+import { ChatActionType, prisma, PrismaClient } from '@repo/db';
 
 // TODO make endpoint for finding direct chat and use this there
 
@@ -351,4 +347,54 @@ export const updateChatInfo = async (
   });
 
   return updatedChat;
+};
+
+interface ActionData {
+  chatId: ObjectId;
+  actionType: ChatActionType;
+  actorId: ObjectId;
+  targetId?: ObjectId;
+  content?: string | null;
+}
+
+export const createAction = async (prisma: PrismaClient, data: ActionData) => {
+  const newAction = await prisma.chatAction.create({
+    data,
+    select: {
+      id: true,
+      chatId: true,
+      actionType: true,
+      actorId: true,
+      targetId: true,
+      createdAt: true,
+      actor: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          avatarUrl: true,
+        },
+      },
+      target: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          avatarUrl: true,
+        },
+      },
+    },
+  });
+
+  const { actor, target, ...restOfAction } = newAction;
+
+  const newActionActivity = {
+    ...restOfAction,
+    activityType: 'action' as const,
+  };
+
+  return {
+    newActionActivity,
+    activityProfiles: target ? [actor, target] : [actor],
+  };
 };

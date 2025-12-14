@@ -129,7 +129,6 @@ export function ChatContent(props: ChatContentProps) {
     participants,
     name,
     messages,
-    actions,
     activities,
     activityProfiles,
     type,

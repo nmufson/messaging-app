@@ -1,6 +1,11 @@
 import { useToast } from '@/context/Toast/ToastContext';
 import { useTRPC } from '@/lib/trpc';
-import { ChatInfoDTO, ObjectId, UpdateChatInput } from '@repo/common';
+import {
+  ActionOutputDTO,
+  ChatInfoDTO,
+  ObjectId,
+  UpdateChatInput,
+} from '@repo/common';
 import {
   skipToken,
   useMutation,
@@ -230,15 +235,24 @@ export function useChatInfo(params: ChatInfoParams) {
 
   const { mutateAsync: updateChat, isPending } = useMutation(
     trpc.chat.updateInfo.mutationOptions({
-      onSuccess: (updatedChat) => {
+      onSuccess: (data) => {
+        const { updatedChat, newActionActivity, activityProfiles } = data;
+        const activityProfile = activityProfiles[0];
         // Update the info query cache and findChat query from ChatContent
         queryClient.setQueryData(chatInfoQueryKey, updatedChat);
 
         queryClient.setQueryData(chatFindQueryKey, (oldData) => {
           if (!oldData) return oldData;
+          const existingProfile = oldData.activityProfiles.find(
+            (p) => p.id === activityProfile.id
+          );
           return {
             ...oldData,
             ...updatedChat,
+            activities: [...oldData.activities, newActionActivity],
+            activityProfiles: existingProfile
+              ? oldData.activityProfiles
+              : [...oldData.activityProfiles, activityProfile],
           };
         });
 
@@ -259,7 +273,9 @@ export function useChatInfo(params: ChatInfoParams) {
     })
   );
 
-  const handleSuccess = (updatedChat: ChatInfoDTO) => {
+  const handleSuccess = (data: ActionOutputDTO) => {
+    const { updatedChat, newActionActivity, activityProfiles } = data;
+
     queryClient.setQueryData(chatInfoQueryKey, updatedChat);
 
     queryClient.setQueryData(chatFindQueryKey, (oldData) => {
@@ -267,6 +283,13 @@ export function useChatInfo(params: ChatInfoParams) {
       return {
         ...oldData,
         ...updatedChat,
+        activities: [...oldData.activities, newActionActivity],
+        activityProfiles: [
+          ...oldData.activityProfiles,
+          ...activityProfiles.filter(
+            (ap) => !oldData.activityProfiles.find((p) => p.id === ap.id)
+          ),
+        ],
       };
     });
   };
