@@ -199,6 +199,7 @@ export const getChat = async (
           actorId: true,
           targetId: true,
           createdAt: true,
+          content: true,
         },
       },
       // TODO: perhaps don't need this

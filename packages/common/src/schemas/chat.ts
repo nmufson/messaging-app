@@ -1,6 +1,7 @@
 import z from 'zod';
 import { DateTimeSchema, ObjectId } from './primitives';
 import { MessageDTO, MessageWithSenderDTO } from './message';
+import { BaseProfileDTO } from './profile';
 
 export const ChatType = z.enum(['GROUP', 'DIRECT']);
 export type ChatType = z.infer<typeof ChatType>;
@@ -35,6 +36,7 @@ export const IChatAction = z.object({
   actorId: ObjectId,
   targetId: ObjectId.nullable(),
   createdAt: z.date(),
+  content: z.string().nullish(),
 });
 export type IChatAction = z.infer<typeof IChatAction>;
 
@@ -42,6 +44,16 @@ export const ChatActionDTO = IChatAction.extend({
   createdAt: DateTimeSchema,
 });
 export type ChatActionDTO = z.infer<typeof ChatActionDTO>;
+
+export const ChatActionWithActorDTO = ChatActionDTO.omit({
+  actorId: true,
+  targetId: true,
+}).extend({
+  actor: BaseProfileDTO,
+  target: BaseProfileDTO.nullish(),
+});
+
+export type ChatActionWithActorDTO = z.infer<typeof ChatActionWithActorDTO>;
 
 export const ActivityProfileDTO = z.object({
   id: ObjectId,
@@ -82,26 +94,29 @@ export const ChatDTO = z.object({
       lastOnline: DateTimeSchema.nullish(),
     })
     .array(),
-  activityProfiles: SenderDTO.array(),
+  activityProfiles: ActivityProfileDTO.array(),
   messages: MessageDTO.array(),
   actions: ChatActionDTO.array(),
   activities: ChatActivityDTO.array(),
-  // Group-specific fields
   name: z.string().nullable(),
   groupPictureUrl: z.string().nullable(),
   creatorId: ObjectId,
 });
 export type ChatDTO = z.infer<typeof ChatDTO>;
 
-export const ChatPreviewDTO = ChatDTO.omit({ senders: true }).extend({
+export const ChatPreviewDTO = ChatDTO.omit({
+  activities: true,
+  activityProfiles: true,
+}).extend({
   messages: MessageWithSenderDTO.array(),
+  actions: ChatActionWithActorDTO.array(),
 });
 export type ChatPreviewDTO = z.infer<typeof ChatPreviewDTO>;
 
 export const ChatInfoDTO = ChatDTO.omit({
   messages: true,
-  senders: true,
   activities: true,
+  activityProfiles: true,
 });
 export type ChatInfoDTO = z.infer<typeof ChatInfoDTO>;
 

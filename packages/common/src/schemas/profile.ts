@@ -103,11 +103,15 @@ export const ProfilePageDTO = z.object({
 });
 export type ProfilePageDTO = z.infer<typeof ProfilePageDTO>;
 
-export const ListProfileDTO = z.object({
+export const BaseProfileDTO = z.object({
   id: ObjectId,
   firstName: z.string(),
   lastName: z.string(),
   avatarUrl: z.string().nullable(),
+});
+export type BaseProfileDTO = z.infer<typeof BaseProfileDTO>;
+
+export const ListProfileDTO = BaseProfileDTO.extend({
   isOnline: z.boolean().nullish(),
   lastOnline: DateTimeSchema.nullish(),
 });

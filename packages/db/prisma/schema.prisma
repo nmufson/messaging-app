@@ -133,6 +133,7 @@ model ChatAction {
   actor       Profile         @relation("ActingProfile", fields: [actorId], references: [id])
   targetId    String?         
   target      Profile?        @relation("TargetProfile", fields: [targetId], references: [id])
+  content     String?
   createdAt   DateTime        @default(now())
 }
 

@@ -4,28 +4,34 @@ import * as R from 'remeda';
 
 export function formatDisplayDate(
   dt: DateTime,
-  options?: { withPreposition?: boolean }
+  options?: { withPreposition?: boolean; includeTime?: boolean }
 ): string {
-  const { withPreposition = false } = options || {};
+  const { withPreposition = false, includeTime = false } = options || {};
   const now = DateTime.now();
   const diffInDays = now.startOf('day').diff(dt.startOf('day'), 'days').days;
+  const timeStr = includeTime ? `, ${dt.toFormat('h:mm a')}` : '';
 
   if (dt.hasSame(now, 'day')) {
     return dt.toFormat('h:mm a');
   } else if (diffInDays === 1) {
-    return 'Yesterday';
+    return `Yesterday${timeStr}`;
   } else if (diffInDays < 7) {
-    return withPreposition ? `on ${dt.toFormat('cccc')}` : dt.toFormat('cccc');
+    const dayStr = withPreposition
+      ? `on ${dt.toFormat('cccc')}`
+      : dt.toFormat('cccc');
+    return `${dayStr}${timeStr}`;
   } else if (dt.year !== now.year) {
     // a previous calendar year
-    return withPreposition
+    const dateStr = withPreposition
       ? `on ${dt.toFormat('MMMM d, yyyy')}`
       : dt.toFormat('MMMM d, yyyy');
+    return `${dateStr}${timeStr}`;
   } else {
     // Older than a week, but same year
-    return withPreposition
+    const dateStr = withPreposition
       ? `on ${dt.toFormat('MMMM d')}`
       : dt.toFormat('MMMM d');
+    return `${dateStr}${timeStr}`;
   }
 }
 export function slugify(str: string) {

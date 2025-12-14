@@ -1,18 +1,24 @@
+import { ActionBubble } from '@/app/chat/[slug]/ActionBubble';
 import { MessageBubble } from '@/app/chat/[slug]/MessageBubble';
 import { SelectedProfile } from '@/app/chats/WriteToChatModal';
 import { ProfileContent } from '@/app/profile/profileContent';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
 import { useChat } from '@/hooks/chat';
-import { formatDisplayDate, getChatDisplayName } from '@/utils';
+import {
+  formatDisplayDate,
+  getChatDisplayName,
+  getProfileDisplayName,
+} from '@/utils';
 import { useNavigation } from '@/utils/Navigation';
 import {
+  ActivityProfileDTO,
   ChatActionDTO,
+  ChatActionWithActorDTO,
   ChatActivityDTO,
   ChatType,
   MessageDTO,
   ObjectId,
-  SenderDTO,
 } from '@repo/common';
 import Link from 'next/link';
 import {
@@ -31,6 +37,13 @@ import { ProfileAvatar } from '../ProfileAvatar';
 import { GroupChatInfo } from './GroupChatInfo';
 import { useOnlinePresence } from '@/hooks/onlinePresence';
 import { useInput } from '@/hooks/general';
+
+const PROFILE_FALLBACK = {
+  id: '',
+  firstName: 'Unknown',
+  lastName: '',
+  avatarUrl: null,
+};
 
 interface ChatContentProps {
   chatId: ObjectId | null;
@@ -109,16 +122,23 @@ export function ChatContent(props: ChatContentProps) {
     console.log('Message sent successfully!');
   };
 
-  const participants = chat?.participants || [];
-  const name = chat?.name ?? null;
-  const messages = chat?.messages ?? [];
-  const senders = chat?.senders ?? [];
-  const type = chat?.type ?? ChatType.enum.GROUP;
-  const creatorId = chat?.creatorId ?? null;
-  const createdAt = chat?.createdAt ?? null;
+  if (isLoading) return <Spinner />;
+  if (!chat) return <div>Chat not found.</div>;
+
+  const {
+    participants,
+    name,
+    messages,
+    actions,
+    activities,
+    activityProfiles,
+    type,
+    creatorId,
+    createdAt,
+  } = chat;
 
   const chatCreator = creatorId
-    ? participants.find((p) => p.id === creatorId)
+    ? activityProfiles.find((p) => p.id === creatorId)
     : null;
   const createdAtDisplay = createdAt
     ? formatDisplayDate(createdAt, { withPreposition: true })
@@ -150,8 +170,6 @@ export function ChatContent(props: ChatContentProps) {
       );
     }
   };
-
-  if (isLoading) return <Spinner />;
 
   return (
     <div className="flex flex-col h-screen">
@@ -206,49 +224,13 @@ export function ChatContent(props: ChatContentProps) {
         {/* have this button go to user profile if its direct chat, if group go to group info */}
         <i className="bi bi-info-circle text-2xl" onClick={handleInfoClick} />
       </div>
-      <div className="messages-container flex-1 overflow-y-auto py-4">
-        {/* TODO: remove this in favor of an action */}
-        {chatCreator && (
-          <small>{`${chatCreator.firstName} ${chatCreator.lastName} created the chat ${createdAtDisplay}`}</small>
-        )}
-        {messages &&
-          messages.length > 0 &&
-          messages.map((message, i) => {
-            const sender = senders.find((p) => p.id === message.senderId);
-
-            if (!sender) {
-              console.error('Sender not found in chat participants', {
-                chat,
-                message,
-                senderId: message.senderId,
-              });
-            }
-            const messageWithSender = {
-              ...message,
-              sender: sender || {
-                id: '',
-                firstName: 'Unknown',
-                lastName: '',
-                avatarUrl: null,
-              },
-            };
-
-            const shouldShowName =
-              messages[i - 1]?.senderId != message.senderId;
-            const shouldShowAvatar =
-              messages[i + 1]?.senderId != message.senderId;
-            return (
-              <MessageBubble
-                key={message.id}
-                message={messageWithSender}
-                showName={shouldShowName}
-                showAvatar={shouldShowAvatar}
-                ref={messageToView === message.id ? messageToViewRef : null}
-              />
-            );
-          })}
-        <div ref={messagesEndRef} />
-      </div>
+      <Activities
+        activities={activities}
+        profiles={activityProfiles}
+        messageToViewRef={messageToViewRef}
+        messagesEndRef={messagesEndRef}
+        messageToView={messageToView}
+      />
 
       <form
         onSubmit={handleSubmitMessage}
@@ -278,16 +260,16 @@ export function ChatContent(props: ChatContentProps) {
 
 interface MessagesProps {
   activities: ChatActivityDTO[];
-  senders: SenderDTO[];
+  profiles: ActivityProfileDTO[];
   messageToViewRef: RefObject<HTMLDivElement | null>;
   messagesEndRef: RefObject<HTMLDivElement | null>;
   messageToView?: ObjectId | null;
 }
 
-function Messages(props: MessagesProps) {
+function Activities(props: MessagesProps) {
   const {
     activities,
-    senders,
+    profiles,
     messageToViewRef,
     messagesEndRef,
     messageToView,
@@ -299,28 +281,19 @@ function Messages(props: MessagesProps) {
 
   return (
     <div className="messages-container flex-1 overflow-y-auto py-4">
-      {/* TODO: remove this in favor of an action */}
-      {/* {chatCreator && (
-        <small>{`${chatCreator.firstName} ${chatCreator.lastName} created the chat ${createdAtDisplay}`}</small>
-      )} */}
       {activities.map((activity, i) => {
         if (activity.activityType === 'message') {
-          const sender = senders.find((p) => p.id === activity.senderId);
+          const sender = profiles.find((p) => p.id === activity.senderId);
 
           if (!sender) {
-            console.error('Sender not found in chat participants', {
+            console.error('Sender not found in activity profiles', {
               message: activity,
               senderId: activity.senderId,
             });
           }
           const messageWithSender = {
             ...activity,
-            sender: sender || {
-              id: '',
-              firstName: 'Unknown',
-              lastName: '',
-              avatarUrl: null,
-            },
+            sender: sender ?? PROFILE_FALLBACK,
           };
 
           // TODO: clean this up
@@ -347,18 +320,27 @@ function Messages(props: MessagesProps) {
           );
         }
 
-        return <div></div>;
+        const actioningProfile = profiles.find(
+          (p) => p.id === activity.actorId
+        );
+        const targetProfile = profiles.find((p) => p.id === activity.targetId);
+
+        if (!actioningProfile) {
+          console.error('Actioner not found in activity profiles', {
+            action: activity,
+            actorId: activity.actorId,
+          });
+        }
+
+        const actionWithActor = {
+          ...activity,
+          actor: actioningProfile ?? PROFILE_FALLBACK,
+          target: targetProfile ?? null,
+        };
+
+        return <ActionBubble key={activity.id} action={actionWithActor} />;
       })}
       <div ref={messagesEndRef} />
     </div>
   );
 }
-
-const getActivityText = (activity: ChatActionDTO) => {
-  const { actorId, targetId, actionType } = activity;
-
-  switch (actionType) {
-    case 'CHAT_CREATED': {
-    }
-  }
-};

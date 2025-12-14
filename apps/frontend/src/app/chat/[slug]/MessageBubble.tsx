@@ -25,7 +25,7 @@ export function MessageBubble(props: MessageBubbleProps) {
   } = props;
   const { sender, content, imageUrl, createdAt } = message;
 
-  const displayTime = formatDisplayDate(createdAt);
+  const displayTime = formatDisplayDate(createdAt, { includeTime: true });
   const displayName = getProfileDisplayName({ ...sender });
   const isCurrentUser = profile?.id === sender.id;
 

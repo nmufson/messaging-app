@@ -27,6 +27,7 @@ import {
 } from '@/services/chat';
 import { sendMessage } from '@/services/message';
 import { get } from 'http';
+import { use } from 'passport';
 
 export const chatRouter = router({
   // TODO: add something for loading more messages in chat
@@ -168,51 +169,28 @@ export const chatRouter = router({
     .query(async ({ input, ctx }) => {
       const { limit } = input;
       const { user } = ctx;
+      const profileId = user.profile.id;
 
-      if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
-
-      // TODO: query the chats directly instead of via profile?
-      const profile = await ctx.prisma.profile.findUnique({
-        where: { userId: user.id },
+      const chats = await ctx.prisma.chat.findMany({
+        where: {
+          participants: {
+            some: { id: profileId },
+          },
+        },
+        take: limit,
+        orderBy: { updatedAt: 'desc' },
         include: {
-          chats: {
-            take: limit,
-            orderBy: { updatedAt: 'desc' },
-            include: {
-              // TOOD: only recent the more recent between message and action?
-              messages: {
-                orderBy: { createdAt: 'desc' },
-                take: 1, // for displaying most recent msg in list
-                select: {
-                  id: true,
-                  type: true,
-                  content: true,
-                  imageUrl: true,
-                  createdAt: true,
-                  updatedAt: true,
-                  sender: {
-                    select: {
-                      id: true,
-                      firstName: true,
-                      lastName: true,
-                      avatarUrl: true,
-                    },
-                  },
-                },
-              },
-              actions: {
-                take: 1,
-                orderBy: { createdAt: 'desc' },
-                select: {
-                  id: true,
-                  chatId: true,
-                  actionType: true,
-                  actorId: true,
-                  targetId: true,
-                  createdAt: true,
-                },
-              },
-              participants: {
+          messages: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: {
+              id: true,
+              type: true,
+              content: true,
+              imageUrl: true,
+              createdAt: true,
+              updatedAt: true,
+              sender: {
                 select: {
                   id: true,
                   firstName: true,
@@ -222,19 +200,47 @@ export const chatRouter = router({
               },
             },
           },
+          actions: {
+            take: 1,
+            orderBy: { createdAt: 'desc' },
+            select: {
+              id: true,
+              chatId: true,
+              actionType: true,
+              targetId: true,
+              createdAt: true,
+              content: true,
+              actor: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+          participants: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+            },
+          },
         },
       });
 
-      if (!profile) {
+      if (!chats) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Profile not found',
+          message: 'Chats not found',
         });
       }
 
-      const validatedChats = profile.chats.map((chat) =>
-        ChatPreviewDTO.parse(chat)
-      );
+      const validatedChats = chats.map((chat) => {
+        return ChatPreviewDTO.parse(chat);
+      });
 
       return validatedChats;
     }),
@@ -515,11 +521,16 @@ export const chatRouter = router({
         .map((field) => {
           if (field === undefined) return;
 
+          const actionType = CHAT_UPDATE_ACTIONS[field];
+
           return ctx.prisma.chatAction.create({
             data: {
               chatId: id,
-              actionType: CHAT_UPDATE_ACTIONS[field],
+              actionType,
               actorId: profileId,
+              ...(actionType === 'NAME_CHANGED' && {
+                content: updatedFields.name,
+              }),
             },
             select: {
               id: true,
@@ -657,7 +668,6 @@ export const chatRouter = router({
           chatId: chatId,
           actionType: 'MEMBER_LEFT',
           actorId: profileIdToLeave,
-          targetId: profileIdToLeave,
         },
         select: {
           id: true,
