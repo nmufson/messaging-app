@@ -117,7 +117,7 @@ interface ProfileListProps {
 }
 function ProfileList(props: ProfileListProps) {
   const { profiles, showPresence = false, onSelectProfile } = props;
-  console.log(onSelectProfile);
+
   return profiles.map((profile) => (
     <ProfilePreview
       key={profile.id}
@@ -127,7 +127,6 @@ function ProfileList(props: ProfileListProps) {
       onClick={
         onSelectProfile
           ? () => {
-              console.log('Profile clicked:', profile);
               onSelectProfile(profile);
             }
           : undefined

@@ -1,14 +1,18 @@
 import { logger } from '@/lib/pino';
 import {
+  ActionActivityDTO,
+  ActivityProfileDTO,
   ChatDTO,
   ChatListDTO,
   ChatType,
+  DateRange,
   IChatAction,
   IMessage,
   ListProfileDTO,
   ObjectId,
 } from '@repo/common';
 import { ChatActionType, prisma, PrismaClient } from '@repo/db';
+import { DateTime } from 'luxon';
 
 // TODO make endpoint for finding direct chat and use this there
 
@@ -138,9 +142,15 @@ interface GetChatParams {
 
 export const getChat = async (
   prisma: PrismaClient,
-  params: GetChatParams
+  params: GetChatParams,
+  options?: { dateRange?: DateRange }
 ): Promise<ChatDTO | null> => {
   const { chatId, profileIds } = params;
+  const { dateRange } = options || {};
+  const { startDate, endDate } = dateRange || {
+    startDate: DateTime.now().minus({ days: 7 }),
+    endDate: DateTime.now(),
+  };
 
   logger.info({ chatId, profileIds }, 'Getting chat with params');
 
@@ -173,7 +183,13 @@ export const getChat = async (
       updatedAt: true,
       creatorId: true,
       messages: {
-        take: 100,
+        where: {
+          createdAt: {
+            gte: startDate.toJSDate(),
+            lte: endDate.toJSDate(),
+          },
+        },
+
         orderBy: { createdAt: 'asc' },
         select: {
           id: true,
@@ -186,7 +202,6 @@ export const getChat = async (
         },
       },
       actions: {
-        take: 100,
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
@@ -216,19 +231,6 @@ export const getChat = async (
     logger.info({ chatId, profileIds }, 'Chat not found');
     return null;
   }
-
-  const senderIds = [...new Set(chat.messages.map((m) => m.senderId))];
-
-  // fetch sender info by messages to account for participants who left or were remvoed
-  const senders = await prisma.profile.findMany({
-    where: { id: { in: senderIds } },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      avatarUrl: true,
-    },
-  });
 
   const { mergedActivities, activityProfiles } = await getMergedActivities(
     chat.messages,
@@ -367,6 +369,7 @@ export const createAction = async (prisma: PrismaClient, data: ActionData) => {
       actorId: true,
       targetId: true,
       createdAt: true,
+      content: true,
       actor: {
         select: {
           id: true,

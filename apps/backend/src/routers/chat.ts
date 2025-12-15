@@ -14,6 +14,7 @@ import {
   ChatListDTO,
   ChatPreviewDTO,
   ChatType,
+  DateRange,
   ListProfileDTO,
   mergeAsyncIterators,
   MessageType,
@@ -60,11 +61,16 @@ export const chatRouter = router({
       z.object({
         chatId: ObjectId.optional(),
         profileIds: ObjectId.array().optional(),
+        options: z
+          .object({
+            dateRange: DateRange.optional(),
+          })
+          .optional(),
       })
     )
     .output(ChatDTO)
     .query(async ({ ctx, input }) => {
-      const { chatId, profileIds } = input;
+      const { chatId, profileIds, options } = input;
       const { prisma, user } = ctx;
 
       const userProfileId = user?.profile?.id;
@@ -82,7 +88,7 @@ export const chatRouter = router({
 
       let chat;
       if (chatId) {
-        chat = await getChat(prisma, { chatId });
+        chat = await getChat(prisma, { chatId }, options);
       } else if (profileIds && profileIds.length > 0) {
         chat = await getChat(prisma, {
           profileIds: [...profileIds, userProfileId],
@@ -176,6 +182,7 @@ export const chatRouter = router({
             some: { id: profileId },
           },
         },
+        // TODO: can use unit pagination w cursor here
         take: limit,
         orderBy: { updatedAt: 'desc' },
         include: {
@@ -404,6 +411,7 @@ export const chatRouter = router({
           actorId: true,
           targetId: true,
           createdAt: true,
+          content: true,
         },
       });
 
@@ -458,18 +466,6 @@ export const chatRouter = router({
           createdAt: true,
           updatedAt: true,
           creatorId: true,
-          actions: {
-            take: 100,
-            orderBy: { createdAt: 'desc' },
-            select: {
-              id: true,
-              chatId: true,
-              actionType: true,
-              actorId: true,
-              targetId: true,
-              createdAt: true,
-            },
-          },
           participants: {
             select: {
               id: true,

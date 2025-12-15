@@ -19,3 +19,9 @@ export type DurationUnit = z.infer<typeof DurationUnit>;
 
 export const DurationObject = z.partialRecord(DurationUnit, z.number().min(0));
 export type DurationObject = z.infer<typeof DurationObject>;
+
+export const DateRange = z.object({
+  startDate: DateTimeSchema,
+  endDate: DateTimeSchema,
+});
+export type DateRange = z.infer<typeof DateRange>;

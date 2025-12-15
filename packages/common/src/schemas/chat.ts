@@ -62,8 +62,6 @@ export const ChatDTO = z.object({
     })
     .array(),
   activityProfiles: ActivityProfileDTO.array(),
-  messages: MessageDTO.array(),
-  actions: ChatActionDTO.array(),
   activities: ChatActivityDTO.array(),
   name: z.string().nullable(),
   groupPictureUrl: z.string().nullable(),
@@ -81,7 +79,6 @@ export const ChatPreviewDTO = ChatDTO.omit({
 export type ChatPreviewDTO = z.infer<typeof ChatPreviewDTO>;
 
 export const ChatInfoDTO = ChatDTO.omit({
-  messages: true,
   activities: true,
   activityProfiles: true,
 });

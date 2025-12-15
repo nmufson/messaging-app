@@ -19,7 +19,7 @@ export const IChatAction = z.object({
   actorId: ObjectId,
   targetId: ObjectId.nullable(),
   createdAt: z.date(),
-  content: z.string().nullish(),
+  content: z.string().nullable(),
 });
 export type IChatAction = z.infer<typeof IChatAction>;
 

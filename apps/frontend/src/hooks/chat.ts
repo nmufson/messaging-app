@@ -1,11 +1,6 @@
 import { useToast } from '@/context/Toast/ToastContext';
 import { useTRPC } from '@/lib/trpc';
-import {
-  ActionOutputDTO,
-  ChatInfoDTO,
-  ObjectId,
-  UpdateChatInput,
-} from '@repo/common';
+import { ActionOutputDTO, DateRange, ObjectId } from '@repo/common';
 import {
   skipToken,
   useMutation,
@@ -41,21 +36,24 @@ interface SendMessageParams {
   onSuccess?: (chatId: ObjectId) => void;
 }
 
-export function useChat(params: UseChatParams) {
+export function useChat(
+  params: UseChatParams,
+  options?: { dateRange?: DateRange }
+) {
   const { chatId, profileIds, senderProfileId: profileId } = params;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const queryInput = useMemo(() => {
     if (chatId) {
-      return { chatId };
+      return { chatId, options };
     }
     if (profileIds && profileIds.length > 0) {
-      return { profileIds };
+      return { profileIds, options };
     }
     return null;
-  }, [chatId, profileIds]);
-
+  }, [chatId, profileIds, options]);
+  console.log(queryInput);
   const chatQueryKey = trpc.chat.findChat.queryKey(queryInput ?? {});
 
   const queryOptions = trpc.chat.findChat.queryOptions(queryInput ?? skipToken);
@@ -68,6 +66,7 @@ export function useChat(params: UseChatParams) {
     error: sendToChatError,
   } = useMutation(
     trpc.message.sendToChat.mutationOptions({
+      // TODO: have this endpoint return messageActivity
       onSuccess: (newMessage) => {
         queryClient.setQueryData(chatQueryKey, (oldData) => {
           if (!oldData) return oldData;
@@ -98,6 +97,7 @@ export function useChat(params: UseChatParams) {
       {
         onData(newMessage) {
           const messageData = newMessage.data ? newMessage.data : newMessage;
+          // TODO: have this endpoint return messageActivity
           queryClient.setQueryData(chatQueryKey, (oldData) => {
             if (!oldData) return oldData;
             return {
@@ -246,6 +246,7 @@ export function useChatInfo(params: ChatInfoParams) {
           const existingProfile = oldData.activityProfiles.find(
             (p) => p.id === activityProfile.id
           );
+          console.log(newActionActivity, 'new action activity');
           return {
             ...oldData,
             ...updatedChat,

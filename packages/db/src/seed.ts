@@ -14,6 +14,7 @@ async function main() {
 
   await prisma.friendRequest.deleteMany();
   await prisma.message.deleteMany();
+  await prisma.chatAction.deleteMany();
   await prisma.chat.deleteMany();
   await prisma.profile.deleteMany();
   await prisma.user.deleteMany();
@@ -80,6 +81,7 @@ async function main() {
         creatorId: chat.creatorId,
         type: chat.type,
         groupPictureUrl: chat.groupPictureUrl,
+        createdAt: chat.createdAt,
         participants: {
           connect: chat.participantIds.map((id) => ({ id })),
         },
@@ -108,6 +110,7 @@ async function main() {
         imageUrl: msg.imageUrl || null,
         senderId: msg.senderId,
         chatId: msg.chatId,
+        createdAt: msg.createdAt,
       },
     });
 

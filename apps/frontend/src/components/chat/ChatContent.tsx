@@ -5,19 +5,16 @@ import { ProfileContent } from '@/app/profile/profileContent';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
 import { useChat } from '@/hooks/chat';
-import {
-  formatDisplayDate,
-  getChatDisplayName,
-  getProfileDisplayName,
-} from '@/utils';
+import { useInput } from '@/hooks/general';
+import { useOnlinePresence } from '@/hooks/onlinePresence';
+import { getChatDisplayName } from '@/utils';
 import { useNavigation } from '@/utils/Navigation';
 import {
   ActivityProfileDTO,
-  ChatActionDTO,
-  ChatActionWithActorDTO,
   ChatActivityDTO,
-  ChatType,
-  MessageDTO,
+  DateRange,
+  DateTimeSchema,
+  DurationObject,
   ObjectId,
 } from '@repo/common';
 import Link from 'next/link';
@@ -28,6 +25,10 @@ import {
   useMemo,
   useRef,
   useState,
+  UIEvent,
+  useCallback,
+  Dispatch,
+  SetStateAction,
 } from 'react';
 import { OverlayTrigger, Spinner, Tooltip } from 'react-bootstrap';
 import * as R from 'remeda';
@@ -35,8 +36,8 @@ import { GroupPhoto } from '../GroupPhoto';
 import { FullscreenModal } from '../modal/FullscreenModal';
 import { ProfileAvatar } from '../ProfileAvatar';
 import { GroupChatInfo } from './GroupChatInfo';
-import { useOnlinePresence } from '@/hooks/onlinePresence';
-import { useInput } from '@/hooks/general';
+import { DateTime } from 'luxon';
+import * as _ from 'lodash';
 
 const PROFILE_FALLBACK = {
   id: '',
@@ -53,6 +54,7 @@ interface ChatContentProps {
 }
 
 export function ChatContent(props: ChatContentProps) {
+  const [lookBack, setLookBack] = useState<DurationObject>({ days: 7 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageToViewRef = useRef<HTMLDivElement>(null);
   const { navigateToChat } = useNavigation();
@@ -80,13 +82,27 @@ export function ChatContent(props: ChatContentProps) {
     () => activeParticipants?.filter((p) => p.isOnline) || [],
     [activeParticipants]
   );
-
   const profileIds = profiles?.map((profile) => profile.id);
-  const { chat, isLoading, sendMessage } = useChat({
-    chatId,
-    profileIds,
-    senderProfileId: loggedInProfileId,
-  });
+
+  const params = useMemo(() => {
+    return {
+      chatId,
+      profileIds,
+      senderProfileId: loggedInProfileId,
+    };
+  }, [chatId, loggedInProfileId, profileIds]);
+
+  const chatOptions = useMemo(() => {
+    const now = DateTime.now();
+    return {
+      dateRange: {
+        startDate: now.minus(lookBack),
+        endDate: now,
+      },
+    };
+  }, [lookBack]);
+
+  const { chat, isLoading, sendMessage } = useChat(params, chatOptions);
 
   useEffect(() => {
     if (messageToView && messageToViewRef.current) {
@@ -125,23 +141,7 @@ export function ChatContent(props: ChatContentProps) {
   if (isLoading) return <Spinner />;
   if (!chat) return <div>Chat not found.</div>;
 
-  const {
-    participants,
-    name,
-    messages,
-    activities,
-    activityProfiles,
-    type,
-    creatorId,
-    createdAt,
-  } = chat;
-
-  const chatCreator = creatorId
-    ? activityProfiles.find((p) => p.id === creatorId)
-    : null;
-  const createdAtDisplay = createdAt
-    ? formatDisplayDate(createdAt, { withPreposition: true })
-    : null;
+  const { participants, name, activities, activityProfiles, type } = chat;
 
   const displayName = getChatDisplayName({
     name,
@@ -155,7 +155,7 @@ export function ChatContent(props: ChatContentProps) {
       : null;
 
   const handleInfoClick = () => {
-    if (type === 'GROUP' && chat) {
+    if (type === 'GROUP') {
       launchModal(
         <FullscreenModal title="Group Info">
           <GroupChatInfo chatId={chat.id} />
@@ -176,6 +176,7 @@ export function ChatContent(props: ChatContentProps) {
         <Link href="/chats" className="no-underline text-inherit">
           <i className="bi bi-caret-left-fill text-3xl" />
         </Link>
+        {/* TODO: make this component */}
         <div className="flex flex-col items-center">
           {type === 'GROUP' ? (
             <GroupPhoto
@@ -229,6 +230,7 @@ export function ChatContent(props: ChatContentProps) {
         messageToViewRef={messageToViewRef}
         messagesEndRef={messagesEndRef}
         messageToView={messageToView}
+        setLookBack={setLookBack}
       />
 
       <form
@@ -257,29 +259,46 @@ export function ChatContent(props: ChatContentProps) {
   );
 }
 
-interface MessagesProps {
+interface ActivitiesProps {
   activities: ChatActivityDTO[];
   profiles: ActivityProfileDTO[];
   messageToViewRef: RefObject<HTMLDivElement | null>;
   messagesEndRef: RefObject<HTMLDivElement | null>;
   messageToView?: ObjectId | null;
+  setLookBack: Dispatch<SetStateAction<DurationObject>>;
 }
 
-function Activities(props: MessagesProps) {
+function Activities(props: ActivitiesProps) {
   const {
     activities,
     profiles,
     messageToViewRef,
     messagesEndRef,
     messageToView,
+    setLookBack,
   } = props;
+
+  const handleScroll = useMemo(
+    () =>
+      _.debounce((scrollTop: number) => {
+        if (scrollTop < 100) {
+          setLookBack((prev) => {
+            return { days: (prev.days ?? 0) + 7 };
+          });
+        }
+      }, 300),
+    [setLookBack]
+  );
 
   if (!activities || !activities.length) {
     return <div>No messages yet</div>;
   }
 
   return (
-    <div className="messages-container flex-1 overflow-y-auto py-4">
+    <div
+      onScroll={(e) => handleScroll(e.currentTarget.scrollTop)}
+      className="messages-container flex-1 overflow-y-auto py-4"
+    >
       {activities.map((activity, i) => {
         if (activity.activityType === 'message') {
           const sender = profiles.find((p) => p.id === activity.senderId);
@@ -295,19 +314,28 @@ function Activities(props: MessagesProps) {
             sender: sender ?? PROFILE_FALLBACK,
           };
 
-          // TODO: clean this up
-          const prevActivity = activities[i - 1];
-          const isPrevActivityMessage = prevActivity.activityType === 'message';
-          const nextActivity = activities[i + 1];
+          const { shouldShowName, shouldShowAvatar } = (() => {
+            let shouldShowName = true;
+            let shouldShowAvatar = true;
 
-          const isNextActivityMessage = nextActivity.activityType === 'message';
+            const prevActivity = activities[i - 1];
+            const isPrevActivityMessage =
+              prevActivity && prevActivity?.activityType === 'message';
 
-          const shouldShowName =
-            !isPrevActivityMessage ||
-            prevActivity.senderId != activity.senderId;
-          const shouldShowAvatar =
-            !isNextActivityMessage ||
-            nextActivity.senderId != activity.senderId;
+            const nextActivity = activities[i + 1];
+            const isNextActivityMessage =
+              nextActivity && nextActivity?.activityType === 'message';
+
+            shouldShowName =
+              !isPrevActivityMessage ||
+              prevActivity.senderId != activity.senderId;
+            shouldShowAvatar =
+              !isNextActivityMessage ||
+              nextActivity.senderId != activity.senderId;
+
+            return { shouldShowName, shouldShowAvatar };
+          })();
+
           return (
             <MessageBubble
               key={activity.id}
