@@ -6,6 +6,8 @@ import {
   ChatListDTO,
   ChatType,
   DateRange,
+  DateTimeSchema,
+  getDefaultDateRange,
   IChatAction,
   IMessage,
   ListProfileDTO,
@@ -13,6 +15,7 @@ import {
 } from '@repo/common';
 import { ChatActionType, prisma, PrismaClient } from '@repo/db';
 import { DateTime } from 'luxon';
+import { start } from 'repl';
 
 // TODO make endpoint for finding direct chat and use this there
 
@@ -135,6 +138,9 @@ export const getPotentialChats = async (
   return { profiles, groupChats };
 };
 
+const MIN_ACTIVITIES = 10;
+const MAX_ATTEMPTS = 3;
+
 interface GetChatParams {
   chatId?: ObjectId;
   profileIds?: ObjectId[];
@@ -144,13 +150,17 @@ export const getChat = async (
   prisma: PrismaClient,
   params: GetChatParams,
   options?: { dateRange?: DateRange }
-): Promise<ChatDTO | null> => {
+): Promise<{ chat: ChatDTO; dateRange: DateRange } | null> => {
   const { chatId, profileIds } = params;
   const { dateRange } = options || {};
-  const { startDate, endDate } = dateRange || {
-    startDate: DateTime.now().minus({ days: 7 }),
-    endDate: DateTime.now(),
-  };
+
+  let startDate = dateRange?.startDate;
+  let endDate = dateRange?.endDate;
+  if (!startDate || !endDate) {
+    const defaultRange = getDefaultDateRange();
+    startDate = defaultRange.startDate;
+    endDate = defaultRange.endDate;
+  }
 
   logger.info({ chatId, profileIds }, 'Getting chat with params');
 
@@ -172,60 +182,84 @@ export const getChat = async (
     return null;
   }
 
-  const chat = await prisma.chat.findFirst({
-    where: whereFilters,
-    select: {
-      id: true,
-      type: true,
-      name: true,
-      groupPictureUrl: true,
-      createdAt: true,
-      updatedAt: true,
-      creatorId: true,
-      messages: {
-        where: {
-          createdAt: {
-            gte: startDate.toJSDate(),
-            lte: endDate.toJSDate(),
+  let attempts = 0;
+  let chat;
+
+  while (attempts <= MAX_ATTEMPTS) {
+    chat = await prisma.chat.findFirst({
+      where: whereFilters,
+      select: {
+        id: true,
+        type: true,
+        name: true,
+        groupPictureUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        creatorId: true,
+        messages: {
+          where: {
+            createdAt: {
+              gte: startDate.toJSDate(),
+              lte: endDate.toJSDate(),
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+          select: {
+            id: true,
+            type: true,
+            content: true,
+            createdAt: true,
+            updatedAt: true,
+            imageUrl: true,
+            senderId: true,
           },
         },
+        actions: {
+          where: {
+            createdAt: {
+              gte: startDate.toJSDate(),
+              lte: endDate.toJSDate(),
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            chatId: true,
+            actionType: true,
+            actorId: true,
+            targetId: true,
+            createdAt: true,
+            content: true,
+          },
+        },
+        // TODO: perhaps don't need this
+        participants: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+            isOnline: true,
+            lastOnline: true,
+          },
+        },
+      },
+    });
 
-        orderBy: { createdAt: 'asc' },
-        select: {
-          id: true,
-          type: true,
-          content: true,
-          createdAt: true,
-          updatedAt: true,
-          imageUrl: true,
-          senderId: true,
-        },
-      },
-      actions: {
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          chatId: true,
-          actionType: true,
-          actorId: true,
-          targetId: true,
-          createdAt: true,
-          content: true,
-        },
-      },
-      // TODO: perhaps don't need this
-      participants: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          avatarUrl: true,
-          isOnline: true,
-          lastOnline: true,
-        },
-      },
-    },
-  });
+    if (!chat) break;
+
+    const activityCount = chat.messages.length + chat.actions.length;
+    logger.info(
+      { startDate, endDate, activityCount },
+      'Chat activity count in range'
+    );
+    if (activityCount >= MIN_ACTIVITIES) break;
+
+    // Extend range backwards
+    const currentDuration = endDate.diff(startDate, 'days').days;
+    startDate = startDate.minus({ days: Math.max(currentDuration, 7) });
+    attempts++;
+  }
 
   if (!chat) {
     logger.info({ chatId, profileIds }, 'Chat not found');
@@ -237,11 +271,17 @@ export const getChat = async (
     chat.actions
   );
 
-  return ChatDTO.parse({
-    ...chat,
-    activityProfiles,
-    activities: mergedActivities,
-  });
+  return {
+    chat: ChatDTO.parse({
+      ...chat,
+      activityProfiles,
+      activities: mergedActivities,
+    }),
+    dateRange: {
+      startDate: startDate,
+      endDate: endDate,
+    },
+  };
 };
 
 export const getMergedActivities = async (
@@ -399,5 +439,62 @@ export const createAction = async (prisma: PrismaClient, data: ActionData) => {
   return {
     newActionActivity,
     activityProfiles: target ? [actor, target] : [actor],
+  };
+};
+
+export const getChatActivities = async (
+  prisma: PrismaClient,
+  params: { chatId: ObjectId; cursor?: DateTimeSchema }
+) => {
+  const { chatId, cursor } = params;
+  const endDate = cursor ? cursor : DateTime.now();
+  const startDate = endDate.minus({ days: 7 });
+
+  const messages = await prisma.message.findMany({
+    where: {
+      chatId,
+      createdAt: {
+        gte: startDate.toJSDate(),
+        lt: endDate.toJSDate(),
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  const actions = await prisma.chatAction.findMany({
+    where: {
+      chatId,
+      createdAt: {
+        gte: startDate.toJSDate(),
+        lt: endDate.toJSDate(),
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  const { mergedActivities, activityProfiles } = await getMergedActivities(
+    messages,
+    actions
+  );
+
+  // If we found activities, the next cursor is the start date of this chunk
+  // If we found nothing, we might want to stop or keep looking back?
+  // For infinite scroll, usually returning null stops it.
+  // But with date ranges, we might have empty weeks.
+  // Let's return the startDate as the next cursor so the frontend can keep asking.
+  // Ideally, we'd check if there are ANY older messages at all to know when to stop.
+
+  const hasOlderActivities =
+    (await prisma.message.findFirst({
+      where: { chatId, createdAt: { lt: startDate.toJSDate() } },
+    })) ||
+    (await prisma.chatAction.findFirst({
+      where: { chatId, createdAt: { lt: startDate.toJSDate() } },
+    }));
+
+  return {
+    activities: mergedActivities,
+    activityProfiles,
+    nextCursor: hasOlderActivities ? startDate.toJSDate() : null,
   };
 };

@@ -1,5 +1,5 @@
 import z from 'zod';
-import { DateTimeSchema, ObjectId } from './primitives';
+import { DateRange, DateTimeSchema, ObjectId } from './primitives';
 import { MessageDTO, MessageWithSenderDTO } from './message';
 import {
   ChatActionDTO,
@@ -66,6 +66,7 @@ export const ChatDTO = z.object({
   name: z.string().nullable(),
   groupPictureUrl: z.string().nullable(),
   creatorId: ObjectId,
+  dateRange: DateRange.optional(),
 });
 export type ChatDTO = z.infer<typeof ChatDTO>;
 

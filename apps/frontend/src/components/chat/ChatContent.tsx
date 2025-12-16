@@ -9,35 +9,16 @@ import { useInput } from '@/hooks/general';
 import { useOnlinePresence } from '@/hooks/onlinePresence';
 import { getChatDisplayName } from '@/utils';
 import { useNavigation } from '@/utils/Navigation';
-import {
-  ActivityProfileDTO,
-  ChatActivityDTO,
-  DateRange,
-  DateTimeSchema,
-  DurationObject,
-  ObjectId,
-} from '@repo/common';
+import { ActivityProfileDTO, ChatActivityDTO, ObjectId } from '@repo/common';
+import * as _ from 'lodash';
 import Link from 'next/link';
-import {
-  FormEvent,
-  RefObject,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  UIEvent,
-  useCallback,
-  Dispatch,
-  SetStateAction,
-} from 'react';
+import { FormEvent, RefObject, useEffect, useMemo, useRef } from 'react';
 import { OverlayTrigger, Spinner, Tooltip } from 'react-bootstrap';
 import * as R from 'remeda';
 import { GroupPhoto } from '../GroupPhoto';
 import { FullscreenModal } from '../modal/FullscreenModal';
 import { ProfileAvatar } from '../ProfileAvatar';
 import { GroupChatInfo } from './GroupChatInfo';
-import { DateTime } from 'luxon';
-import * as _ from 'lodash';
 
 const PROFILE_FALLBACK = {
   id: '',
@@ -54,7 +35,6 @@ interface ChatContentProps {
 }
 
 export function ChatContent(props: ChatContentProps) {
-  const [lookBack, setLookBack] = useState<DurationObject>({ days: 7 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageToViewRef = useRef<HTMLDivElement>(null);
   const { navigateToChat } = useNavigation();
@@ -92,27 +72,48 @@ export function ChatContent(props: ChatContentProps) {
     };
   }, [chatId, loggedInProfileId, profileIds]);
 
-  const chatOptions = useMemo(() => {
-    const now = DateTime.now();
-    return {
-      dateRange: {
-        startDate: now.minus(lookBack),
-        endDate: now,
-      },
-    };
-  }, [lookBack]);
+  const {
+    chat,
+    isLoading,
+    sendMessage,
+    infiniteActivities,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useChat(params);
 
-  const { chat, isLoading, sendMessage } = useChat(params, chatOptions);
+  const allActivities = useMemo(() => {
+    const historyActivities =
+      infiniteActivities?.pages
+        .slice()
+        .reverse()
+        .flatMap((page) => page.activities) ?? [];
+    return [...historyActivities, ...(chat?.activities ?? [])];
+  }, [infiniteActivities, chat]);
+
+  const allProfiles = useMemo(() => {
+    const historyProfiles =
+      infiniteActivities?.pages.flatMap((page) => page.activityProfiles) ?? [];
+    return R.uniqueBy(
+      [...historyProfiles, ...(chat?.activityProfiles ?? [])],
+      (p) => p.id
+    );
+  }, [infiniteActivities, chat]);
 
   useEffect(() => {
     if (messageToView && messageToViewRef.current) {
       messageToViewRef.current.scrollIntoView({ behavior: 'instant' });
       return;
     }
-    if (!isLoading && messagesEndRef.current) {
+    // Only scroll to bottom on initial load
+    if (
+      !isLoading &&
+      messagesEndRef.current &&
+      !infiniteActivities?.pages.length
+    ) {
       messagesEndRef.current.scrollIntoView({ behavior: 'instant' });
     }
-  }, [messagesEndRef, isLoading, messageToView]);
+  }, [messagesEndRef, isLoading, messageToView, infiniteActivities]);
 
   const handleSubmitMessage = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -141,7 +142,7 @@ export function ChatContent(props: ChatContentProps) {
   if (isLoading) return <Spinner />;
   if (!chat) return <div>Chat not found.</div>;
 
-  const { participants, name, activities, activityProfiles, type } = chat;
+  const { participants, name, type } = chat;
 
   const displayName = getChatDisplayName({
     name,
@@ -225,12 +226,14 @@ export function ChatContent(props: ChatContentProps) {
         <i className="bi bi-info-circle text-2xl" onClick={handleInfoClick} />
       </div>
       <Activities
-        activities={activities}
-        profiles={activityProfiles}
+        activities={allActivities}
+        profiles={allProfiles}
         messageToViewRef={messageToViewRef}
         messagesEndRef={messagesEndRef}
         messageToView={messageToView}
-        setLookBack={setLookBack}
+        fetchNextPage={fetchNextPage}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
       />
 
       <form
@@ -265,7 +268,9 @@ interface ActivitiesProps {
   messageToViewRef: RefObject<HTMLDivElement | null>;
   messagesEndRef: RefObject<HTMLDivElement | null>;
   messageToView?: ObjectId | null;
-  setLookBack: Dispatch<SetStateAction<DurationObject>>;
+  fetchNextPage: () => void;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
 }
 
 function Activities(props: ActivitiesProps) {
@@ -275,19 +280,19 @@ function Activities(props: ActivitiesProps) {
     messageToViewRef,
     messagesEndRef,
     messageToView,
-    setLookBack,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   } = props;
 
   const handleScroll = useMemo(
     () =>
       _.debounce((scrollTop: number) => {
-        if (scrollTop < 100) {
-          setLookBack((prev) => {
-            return { days: (prev.days ?? 0) + 7 };
-          });
+        if (scrollTop < 100 && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
         }
       }, 300),
-    [setLookBack]
+    [fetchNextPage, hasNextPage, isFetchingNextPage]
   );
 
   if (!activities || !activities.length) {

@@ -3,6 +3,7 @@ import { useTRPC } from '@/lib/trpc';
 import { ActionOutputDTO, DateRange, ObjectId } from '@repo/common';
 import {
   skipToken,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -36,29 +37,48 @@ interface SendMessageParams {
   onSuccess?: (chatId: ObjectId) => void;
 }
 
-export function useChat(
-  params: UseChatParams,
-  options?: { dateRange?: DateRange }
-) {
+export function useChat(params: UseChatParams) {
   const { chatId, profileIds, senderProfileId: profileId } = params;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const queryInput = useMemo(() => {
     if (chatId) {
-      return { chatId, options };
+      return { chatId };
     }
     if (profileIds && profileIds.length > 0) {
-      return { profileIds, options };
+      return { profileIds };
     }
     return null;
-  }, [chatId, profileIds, options]);
-  console.log(queryInput);
+  }, [chatId, profileIds]);
+
   const chatQueryKey = trpc.chat.findChat.queryKey(queryInput ?? {});
 
   const queryOptions = trpc.chat.findChat.queryOptions(queryInput ?? skipToken);
 
   const { data: chat, isLoading, error } = useQuery(queryOptions);
+
+  const initialDateRange = chat?.dateRange;
+
+  const {
+    data: infiniteActivities,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery(
+    trpc.chat.getActivities.infiniteQueryOptions(
+      chat && initialDateRange
+        ? {
+            chatId: chat.id,
+            cursor: initialDateRange.startDate,
+          }
+        : skipToken,
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        enabled: !!chat && !!initialDateRange,
+      }
+    )
+  );
 
   const {
     mutate: sendMessageToChat,
@@ -72,7 +92,10 @@ export function useChat(
           if (!oldData) return oldData;
           return {
             ...oldData,
-            messages: [...oldData.messages, newMessage],
+            activities: [
+              ...oldData.activities,
+              { ...newMessage, activityType: 'message' as const },
+            ],
           };
         });
       },
@@ -102,7 +125,10 @@ export function useChat(
             if (!oldData) return oldData;
             return {
               ...oldData,
-              messages: [...oldData.messages, messageData],
+              activities: [
+                ...oldData.activities,
+                { ...messageData, activityType: 'message' as const },
+              ],
             };
           });
         },
@@ -153,6 +179,7 @@ export function useChat(
 
   return {
     chat,
+    infiniteActivities,
     isLoading,
     error,
     sendMessageToChat,
@@ -160,21 +187,10 @@ export function useChat(
     isPending,
     sendToChatError,
     sendMessage,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   };
-}
-
-interface useDirectMessageParams {
-  senderId: ObjectId;
-  receiverId: ObjectId;
-}
-
-// TODO: remove this??
-export function useDirectMessage({
-  senderId,
-  receiverId,
-}: useDirectMessageParams) {
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
 }
 
 interface PotentialChatsParams {

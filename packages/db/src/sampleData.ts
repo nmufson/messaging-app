@@ -17,6 +17,12 @@ function getRandomDateWithinTwoMonths(): Date {
   return new Date(BASE_DATE.getTime() - randomOffset);
 }
 
+function getRandomDateBetween(startDate: Date, endDate: Date): Date {
+  const timeSpan = endDate.getTime() - startDate.getTime();
+  const randomOffset = Math.random() * timeSpan;
+  return new Date(startDate.getTime() + randomOffset);
+}
+
 const userIds = {
   alice: randomUUID(),
   bob: randomUUID(),
@@ -70,6 +76,15 @@ const chatIds = {
   bigGroup2: randomUUID(),
   directChat1: randomUUID(),
   directChat2: randomUUID(),
+};
+
+const chatCreationDates = {
+  [chatIds.ketchupStains]: getRandomDateWithinTwoMonths(),
+  [chatIds.coolestKats]: getRandomDateWithinTwoMonths(),
+  [chatIds.groupChat1]: getRandomDateWithinTwoMonths(),
+  [chatIds.bigGroup2]: getRandomDateWithinTwoMonths(),
+  [chatIds.directChat1]: getRandomDateWithinTwoMonths(),
+  [chatIds.directChat2]: getRandomDateWithinTwoMonths(),
 };
 export const usersData = [
   {
@@ -353,7 +368,7 @@ export const friendRequestsData = [
   },
 ];
 
-export const chatsData = [
+const rawChatsData = [
   {
     id: chatIds.ketchupStains,
     name: 'Ketchup Stains',
@@ -362,7 +377,6 @@ export const chatsData = [
     participantIds: [profileIds.alice, profileIds.bob, profileIds.nick],
     groupPictureUrl:
       'https://t3.ftcdn.net/jpg/04/79/93/20/360_F_479932092_BmeQGwL1ljKI368UJVlIwczA8MtjbBnj.jpg',
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: chatIds.coolestKats,
@@ -372,7 +386,6 @@ export const chatsData = [
     participantIds: [profileIds.charlie, profileIds.diana, profileIds.nick],
     groupPictureUrl:
       'https://media.istockphoto.com/id/1322842973/photo/diverse-business-people-putting-their-hands-together-in-cirle.jpg?s=612x612&w=0&k=20&c=9BAYCv8tAsgYPQdTsFxLzLJsmt6tGYE5Etwd63OccxQ=',
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: chatIds.groupChat1,
@@ -386,7 +399,6 @@ export const chatsData = [
       profileIds.bob,
       profileIds.nick,
     ],
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: chatIds.bigGroup2,
@@ -399,25 +411,27 @@ export const chatsData = [
       profileIds.nick,
       profileIds.bob,
     ],
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: chatIds.directChat1,
     creatorId: profileIds.nick,
     type: ChatType.DIRECT,
     participantIds: [profileIds.alice, profileIds.nick],
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: chatIds.directChat2,
     creatorId: profileIds.alice,
     type: ChatType.DIRECT,
     participantIds: [profileIds.charlie, profileIds.nick],
-    createdAt: getRandomDateWithinTwoMonths(),
   },
 ];
 
-export const messagesData = [
+export const chatsData = rawChatsData.map((chat) => ({
+  ...chat,
+  createdAt: chatCreationDates[chat.id],
+}));
+
+const rawMessagesData = [
   // Ketchup Stains chat
   {
     id: randomUUID(),
@@ -425,7 +439,6 @@ export const messagesData = [
     content: 'Hey Bob!',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -434,7 +447,6 @@ export const messagesData = [
       'https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -443,7 +455,6 @@ export const messagesData = [
       'https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg',
     senderId: profileIds.bob,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -452,7 +463,6 @@ export const messagesData = [
       'https://plus.unsplash.com/premium_photo-1673967831980-1d377baaded2?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2F0c3xlbnwwfHwwfHx8MA%3D%3D',
     senderId: profileIds.nick,
     chatId: chatIds.coolestKats,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -461,7 +471,6 @@ export const messagesData = [
       'https://plus.unsplash.com/premium_photo-1673967831980-1d377baaded2?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2F0c3xlbnwwfHwwfHx8MA%3D%3D',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
 
   {
@@ -470,7 +479,6 @@ export const messagesData = [
     content: 'How are you doing today?',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -478,7 +486,6 @@ export const messagesData = [
     content: 'Did you see the game last night?',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -486,7 +493,6 @@ export const messagesData = [
     content: 'Hey Alice! How are you?',
     senderId: profileIds.bob,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -494,7 +500,6 @@ export const messagesData = [
     content: 'Doing well, just had lunch.',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -502,7 +507,6 @@ export const messagesData = [
     content: 'Nice! What did you eat?',
     senderId: profileIds.bob,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -510,7 +514,6 @@ export const messagesData = [
     content: 'Sandwich with way too much ketchup.',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -518,7 +521,6 @@ export const messagesData = [
     content: 'And a side of fries!',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -526,7 +528,6 @@ export const messagesData = [
     content: 'Classic Alice move 😂',
     senderId: profileIds.bob,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -534,7 +535,6 @@ export const messagesData = [
     content: 'You know me!',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -542,7 +542,6 @@ export const messagesData = [
     content: "Let's hang out later?",
     senderId: profileIds.bob,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -550,7 +549,6 @@ export const messagesData = [
     content: 'Sure! 5pm at the park?',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -558,7 +556,6 @@ export const messagesData = [
     content: 'See you there!',
     senderId: profileIds.bob,
     chatId: chatIds.ketchupStains,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
 
   // Coolest Kats chat
@@ -568,7 +565,6 @@ export const messagesData = [
     content: 'Hey Diana, did you finish the project?',
     senderId: profileIds.charlie,
     chatId: chatIds.coolestKats,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -576,7 +572,6 @@ export const messagesData = [
     content: 'I was working on it all night.',
     senderId: profileIds.charlie,
     chatId: chatIds.coolestKats,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -584,7 +579,6 @@ export const messagesData = [
     content: 'Almost! Just need to add the final touches.',
     senderId: profileIds.diana,
     chatId: chatIds.coolestKats,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -592,7 +586,6 @@ export const messagesData = [
     content: 'Let me know if you need help.',
     senderId: profileIds.charlie,
     chatId: chatIds.coolestKats,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -600,7 +593,6 @@ export const messagesData = [
     content: "Thanks, Charlie! You're the best.",
     senderId: profileIds.diana,
     chatId: chatIds.coolestKats,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
 
   // Group Chat 1
@@ -610,7 +602,6 @@ export const messagesData = [
     content: 'Hey everyone!',
     senderId: profileIds.charlie,
     chatId: chatIds.groupChat1,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -618,7 +609,6 @@ export const messagesData = [
     content: 'Hi Charlie!',
     senderId: profileIds.bob,
     chatId: chatIds.groupChat1,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -626,7 +616,6 @@ export const messagesData = [
     content: 'Whats up?',
     senderId: profileIds.alice,
     chatId: chatIds.groupChat1,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -634,7 +623,6 @@ export const messagesData = [
     content: 'Ready for the game tonight?',
     senderId: profileIds.diana,
     chatId: chatIds.groupChat1,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -642,7 +630,6 @@ export const messagesData = [
     content: 'Absolutely! Go team!',
     senderId: profileIds.charlie,
     chatId: chatIds.groupChat1,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -650,7 +637,6 @@ export const messagesData = [
     content: "Let's win this!",
     senderId: profileIds.charlie,
     chatId: chatIds.groupChat1,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -658,7 +644,6 @@ export const messagesData = [
     content: 'We got this!',
     senderId: profileIds.charlie,
     chatId: chatIds.groupChat1,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -666,7 +651,6 @@ export const messagesData = [
     content: "Let's win this!",
     senderId: profileIds.bob,
     chatId: chatIds.groupChat1,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
 
   // Big Group 2
@@ -676,7 +660,6 @@ export const messagesData = [
     content: 'Morning all!',
     senderId: profileIds.diana,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -684,7 +667,6 @@ export const messagesData = [
     content: 'Good morning!',
     senderId: profileIds.alice,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -692,7 +674,6 @@ export const messagesData = [
     content: 'Anyone up for coffee?',
     senderId: profileIds.charlie,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -700,7 +681,6 @@ export const messagesData = [
     content: 'Always!',
     senderId: profileIds.diana,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -708,7 +688,6 @@ export const messagesData = [
     content: 'Count me in ☕',
     senderId: profileIds.alice,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
 
   // ...more messages for realism...
@@ -718,7 +697,6 @@ export const messagesData = [
     content: 'Hello Diana!',
     senderId: profileIds.charlie,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -726,7 +704,6 @@ export const messagesData = [
     content: 'How was your weekend?',
     senderId: profileIds.diana,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -734,7 +711,6 @@ export const messagesData = [
     content: 'Pretty good! Went hiking.',
     senderId: profileIds.alice,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -742,7 +718,6 @@ export const messagesData = [
     content: 'Nice! Where to?',
     senderId: profileIds.charlie,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -750,7 +725,6 @@ export const messagesData = [
     content: 'Bear Mountain.',
     senderId: profileIds.alice,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -758,7 +732,6 @@ export const messagesData = [
     content: "That's awesome!",
     senderId: profileIds.diana,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -766,7 +739,6 @@ export const messagesData = [
     content: 'We should all go next time.',
     senderId: profileIds.charlie,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -774,7 +746,6 @@ export const messagesData = [
     content: "I'm in!",
     senderId: profileIds.alice,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -782,7 +753,6 @@ export const messagesData = [
     content: 'Me too!',
     senderId: profileIds.diana,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -790,7 +760,6 @@ export const messagesData = [
     content: "What's everyone doing for lunch?",
     senderId: profileIds.charlie,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -798,7 +767,6 @@ export const messagesData = [
     content: 'Ordering pizza.',
     senderId: profileIds.alice,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -806,7 +774,6 @@ export const messagesData = [
     content: 'Save me a slice!',
     senderId: profileIds.diana,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -814,7 +781,6 @@ export const messagesData = [
     content: 'Of course!',
     senderId: profileIds.alice,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -822,7 +788,6 @@ export const messagesData = [
     content: 'Anyone want to play chess later?',
     senderId: profileIds.charlie,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -830,7 +795,6 @@ export const messagesData = [
     content: "I'm game!",
     senderId: profileIds.diana,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -838,7 +802,6 @@ export const messagesData = [
     content: "Let's do it!",
     senderId: profileIds.alice,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: randomUUID(),
@@ -846,7 +809,6 @@ export const messagesData = [
     content: 'See you all soon!',
     senderId: profileIds.charlie,
     chatId: chatIds.bigGroup2,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
 
   {
@@ -1221,6 +1183,11 @@ export const messagesData = [
   },
 ];
 
+export const messagesData = rawMessagesData.map((msg) => ({
+  ...msg,
+  createdAt: getRandomDateBetween(chatCreationDates[msg.chatId], BASE_DATE),
+}));
+
 const chatActionIds = {
   ketchupStainsCreated: randomUUID(),
   coolestKatsCreated: randomUUID(),
@@ -1228,14 +1195,13 @@ const chatActionIds = {
   bigGroup2Created: randomUUID(),
 };
 
-export const chatActionsData = [
+const rawChatActionsData = [
   {
     id: chatActionIds.ketchupStainsCreated,
     chatId: chatIds.ketchupStains,
     actionType: ChatActionType.CHAT_CREATED,
     actorId: profileIds.alice,
     targetId: null,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: chatActionIds.coolestKatsCreated,
@@ -1243,7 +1209,6 @@ export const chatActionsData = [
     actionType: ChatActionType.CHAT_CREATED,
     actorId: profileIds.charlie,
     targetId: null,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: chatActionIds.groupChat1Created,
@@ -1251,7 +1216,6 @@ export const chatActionsData = [
     actionType: ChatActionType.CHAT_CREATED,
     actorId: profileIds.charlie,
     targetId: null,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
   {
     id: chatActionIds.bigGroup2Created,
@@ -1259,6 +1223,13 @@ export const chatActionsData = [
     actionType: ChatActionType.CHAT_CREATED,
     actorId: profileIds.charlie,
     targetId: null,
-    createdAt: getRandomDateWithinTwoMonths(),
   },
 ];
+
+export const chatActionsData = rawChatActionsData.map((action) => ({
+  ...action,
+  createdAt:
+    action.actionType === ChatActionType.CHAT_CREATED
+      ? chatCreationDates[action.chatId]
+      : getRandomDateBetween(chatCreationDates[action.chatId], BASE_DATE),
+}));

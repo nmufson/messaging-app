@@ -97,6 +97,7 @@ async function main() {
         actionType: action.actionType,
         actorId: action.actorId,
         targetId: action.targetId,
+        createdAt: action.createdAt,
       },
     });
   }

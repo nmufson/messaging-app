@@ -1,6 +1,7 @@
 import {
   createAction,
   getChat,
+  getChatActivities,
   getMergedActivities,
   getPotentialChats,
   updateChatInfo,
@@ -8,13 +9,17 @@ import {
 import { sendMessage } from '@/services/message';
 import {
   ActionOutputDTO,
+  ActivityProfileDTO,
   CHAT_UPDATE_ACTIONS,
+  ChatActivityDTO,
   ChatDTO,
   ChatInfoDTO,
   ChatListDTO,
   ChatPreviewDTO,
   ChatType,
   DateRange,
+  DateTimeSchema,
+  getDefaultDateRange,
   ListProfileDTO,
   mergeAsyncIterators,
   MessageType,
@@ -28,6 +33,7 @@ import { on } from 'events';
 import { eventEmitter } from '../lib/eventBus';
 import { logger } from '../lib/pino';
 import { adminProcedure, profileProcedure, router } from '../trpc';
+import { getDefaultAutoSelectFamily } from 'net';
 
 export const chatRouter = router({
   // TODO: add something for loading more messages in chat
@@ -87,12 +93,17 @@ export const chatRouter = router({
       }
 
       let chat;
+      let dateRange;
       if (chatId) {
-        chat = await getChat(prisma, { chatId }, options);
+        const result = await getChat(prisma, { chatId }, options);
+        chat = result?.chat;
+        dateRange = result?.dateRange;
       } else if (profileIds && profileIds.length > 0) {
-        chat = await getChat(prisma, {
+        const result = await getChat(prisma, {
           profileIds: [...profileIds, userProfileId],
         });
+        chat = result?.chat;
+        dateRange = result?.dateRange;
       }
 
       if (!chat) {
@@ -101,7 +112,26 @@ export const chatRouter = router({
           message: 'Chat not found',
         });
       }
-      return chat;
+      return { ...chat, dateRange: dateRange ?? getDefaultDateRange() };
+    }),
+
+  getActivities: profileProcedure
+    .input(
+      z.object({
+        chatId: ObjectId,
+        cursor: DateTimeSchema.optional(),
+      })
+    )
+    .output(
+      z.object({
+        activities: ChatActivityDTO.array(),
+        activityProfiles: ActivityProfileDTO.array(),
+        nextCursor: z.date().nullable(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { chatId, cursor } = input;
+      return getChatActivities(ctx.prisma, { chatId, cursor });
     }),
   onNewMessageInChat: profileProcedure
     .input(
