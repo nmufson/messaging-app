@@ -1,3 +1,4 @@
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/Toast/ToastContext';
 import { useTRPC } from '@/lib/trpc';
 import { ActionOutputDTO, DateRange, ObjectId } from '@repo/common';
@@ -9,6 +10,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useSubscription } from '@trpc/tanstack-react-query';
+import { first } from 'lodash';
 import { useMemo } from 'react';
 
 export function useChatList() {
@@ -23,12 +25,6 @@ export function useChatList() {
   return { chats, isLoading, error };
 }
 
-interface UseChatParams {
-  chatId: ObjectId | null;
-  profileIds?: ObjectId[];
-  senderProfileId?: ObjectId;
-}
-
 interface SendMessageParams {
   senderId: ObjectId;
   type: 'TEXT' | 'IMAGE';
@@ -37,8 +33,15 @@ interface SendMessageParams {
   onSuccess?: (chatId: ObjectId) => void;
 }
 
+interface UseChatParams {
+  chatId: ObjectId | null;
+  profileIds?: ObjectId[];
+  senderProfileId?: ObjectId;
+}
+
 export function useChat(params: UseChatParams) {
-  const { chatId, profileIds, senderProfileId: profileId } = params;
+  const { profileIds, senderProfileId: profileId } = params;
+  let { chatId } = params;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -58,24 +61,29 @@ export function useChat(params: UseChatParams) {
 
   const { data: chat, isLoading, error } = useQuery(queryOptions);
 
-  const initialDateRange = chat?.dateRange;
+  if (!chatId && chat?.id) {
+    chatId = chat.id;
+  }
+
+  const activitiesQueryKey = trpc.chat.getActivities.infiniteQueryKey(
+    chatId ? { chatId } : {}
+  );
 
   const {
-    data: infiniteActivities,
+    data: activityData,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery(
     trpc.chat.getActivities.infiniteQueryOptions(
-      chat && initialDateRange
+      chatId
         ? {
-            chatId: chat.id,
-            cursor: initialDateRange.startDate,
+            chatId,
           }
         : skipToken,
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
-        enabled: !!chat && !!initialDateRange,
+        // enabled: !!chat,
       }
     )
   );
@@ -87,16 +95,22 @@ export function useChat(params: UseChatParams) {
   } = useMutation(
     trpc.message.sendToChat.mutationOptions({
       // TODO: have this endpoint return messageActivity
-      onSuccess: (newMessage) => {
-        queryClient.setQueryData(chatQueryKey, (oldData) => {
+      onSuccess: (messageData) => {
+        queryClient.setQueryData(activitiesQueryKey, (oldData) => {
           if (!oldData) return oldData;
-          return {
-            ...oldData,
-            activities: [
-              ...oldData.activities,
-              { ...newMessage, activityType: 'message' as const },
-            ],
+          const newPages = [...oldData.pages];
+          const firstPage = newPages[0];
+          if (!firstPage) return oldData;
+
+          const { messageActivity, activityProfile } = messageData;
+
+          newPages[0] = {
+            ...firstPage,
+            activities: [...firstPage.activities, messageActivity],
+            activityProfiles: [...firstPage.activityProfiles, activityProfile],
           };
+
+          return { ...oldData, pages: newPages };
         });
       },
     })
@@ -120,15 +134,24 @@ export function useChat(params: UseChatParams) {
       {
         onData(newMessage) {
           const messageData = newMessage.data ? newMessage.data : newMessage;
-          // TODO: have this endpoint return messageActivity
-          queryClient.setQueryData(chatQueryKey, (oldData) => {
+          if (!chat) return;
+          queryClient.setQueryData(activitiesQueryKey, (oldData) => {
             if (!oldData) return oldData;
-            return {
-              ...oldData,
+            const newPages = [...oldData.pages];
+            const firstPage = newPages[0];
+            if (!firstPage) return oldData;
+
+            newPages[0] = {
+              ...firstPage,
               activities: [
-                ...oldData.activities,
+                ...firstPage.activities,
                 { ...messageData, activityType: 'message' as const },
               ],
+            };
+
+            return {
+              ...oldData,
+              pages: newPages,
             };
           });
         },
@@ -179,7 +202,7 @@ export function useChat(params: UseChatParams) {
 
   return {
     chat,
-    infiniteActivities,
+    activityData,
     isLoading,
     error,
     sendMessageToChat,
@@ -241,7 +264,7 @@ export function useChatInfo(params: ChatInfoParams) {
   const chatInfoQueryKey = trpc.chat.getInfo.queryKey({
     chatId,
   });
-  const chatFindQueryKey = trpc.chat.findChat.queryKey({
+  const activitiesQueryKey = trpc.chat.getActivities.infiniteQueryKey({
     chatId,
   });
 
@@ -257,20 +280,25 @@ export function useChatInfo(params: ChatInfoParams) {
         // Update the info query cache and findChat query from ChatContent
         queryClient.setQueryData(chatInfoQueryKey, updatedChat);
 
-        queryClient.setQueryData(chatFindQueryKey, (oldData) => {
+        queryClient.setQueryData(activitiesQueryKey, (oldData) => {
           if (!oldData) return oldData;
-          const existingProfile = oldData.activityProfiles.find(
+          const newPages = [...oldData.pages];
+          const firstPage = newPages[0];
+          if (!firstPage) return oldData;
+
+          const existingProfile = firstPage.activityProfiles.find(
             (p) => p.id === activityProfile.id
           );
           console.log(newActionActivity, 'new action activity');
-          return {
-            ...oldData,
-            ...updatedChat,
-            activities: [...oldData.activities, newActionActivity],
+
+          newPages[0] = {
+            ...firstPage,
+            activities: [...firstPage.activities, newActionActivity],
             activityProfiles: existingProfile
-              ? oldData.activityProfiles
-              : [...oldData.activityProfiles, activityProfile],
+              ? firstPage.activityProfiles
+              : [...firstPage.activityProfiles, activityProfile],
           };
+          return { ...oldData, pages: newPages };
         });
 
         addToast({
@@ -295,19 +323,24 @@ export function useChatInfo(params: ChatInfoParams) {
 
     queryClient.setQueryData(chatInfoQueryKey, updatedChat);
 
-    queryClient.setQueryData(chatFindQueryKey, (oldData) => {
+    queryClient.setQueryData(activitiesQueryKey, (oldData) => {
       if (!oldData) return oldData;
-      return {
-        ...oldData,
-        ...updatedChat,
-        activities: [...oldData.activities, newActionActivity],
+
+      const newPages = [...oldData.pages];
+      const firstPage = newPages[0];
+      if (!firstPage) return oldData;
+
+      newPages[0] = {
+        ...firstPage,
+        activities: [...firstPage.activities, newActionActivity],
         activityProfiles: [
-          ...oldData.activityProfiles,
+          ...firstPage.activityProfiles,
           ...activityProfiles.filter(
-            (ap) => !oldData.activityProfiles.find((p) => p.id === ap.id)
+            (ap) => !firstPage.activityProfiles.find((p) => p.id === ap.id)
           ),
         ],
       };
+      return { ...oldData, pages: newPages };
     });
   };
 

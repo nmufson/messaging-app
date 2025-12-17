@@ -41,13 +41,11 @@ export const chatRouter = router({
     .input(
       z.object({
         chatId: ObjectId,
-        limit: z.number().default(100),
-        cursor: ObjectId.optional(),
       })
     )
-    .output(ChatDTO)
+    .output(ChatInfoDTO)
     .query(async ({ ctx, input }) => {
-      const { chatId, limit, cursor } = input;
+      const { chatId } = input;
 
       const chat = await getChat(ctx.prisma, { chatId });
 
@@ -58,8 +56,7 @@ export const chatRouter = router({
         });
       }
 
-      const validatedChat = ChatDTO.parse(chat);
-      return validatedChat;
+      return chat;
     }),
 
   findChat: profileProcedure
@@ -67,16 +64,11 @@ export const chatRouter = router({
       z.object({
         chatId: ObjectId.optional(),
         profileIds: ObjectId.array().optional(),
-        options: z
-          .object({
-            dateRange: DateRange.optional(),
-          })
-          .optional(),
       })
     )
-    .output(ChatDTO)
+    .output(ChatInfoDTO)
     .query(async ({ ctx, input }) => {
-      const { chatId, profileIds, options } = input;
+      const { chatId, profileIds } = input;
       const { prisma, user } = ctx;
 
       const userProfileId = user?.profile?.id;
@@ -93,17 +85,12 @@ export const chatRouter = router({
       }
 
       let chat;
-      let dateRange;
       if (chatId) {
-        const result = await getChat(prisma, { chatId }, options);
-        chat = result?.chat;
-        dateRange = result?.dateRange;
+        chat = await getChat(prisma, { chatId });
       } else if (profileIds && profileIds.length > 0) {
-        const result = await getChat(prisma, {
+        chat = await getChat(prisma, {
           profileIds: [...profileIds, userProfileId],
         });
-        chat = result?.chat;
-        dateRange = result?.dateRange;
       }
 
       if (!chat) {
@@ -112,9 +99,8 @@ export const chatRouter = router({
           message: 'Chat not found',
         });
       }
-      return { ...chat, dateRange: dateRange ?? getDefaultDateRange() };
+      return chat;
     }),
-
   getActivities: profileProcedure
     .input(
       z.object({
@@ -139,7 +125,6 @@ export const chatRouter = router({
         profileId: ObjectId,
       })
     )
-    // .output(MessageDTO)
     .subscription(async function* ({ input, ctx, signal }) {
       const { profileId } = input;
       const { user } = ctx;

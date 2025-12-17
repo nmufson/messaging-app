@@ -7,6 +7,8 @@ import {
   ObjectId,
   SendMessageInput,
   z,
+  MessageActivityDTO,
+  ActivityProfileDTO,
 } from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
@@ -63,7 +65,12 @@ export const messageRouter = router({
     }),
   sendToChat: profileProcedure
     .input(SendMessageInput)
-    .output(MessageDTO)
+    .output(
+      z.object({
+        messageActivity: MessageActivityDTO,
+        activityProfile: ActivityProfileDTO,
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       const { sender, chatId, content, imageUrl, type } = input;
 
@@ -76,7 +83,9 @@ export const messageRouter = router({
         });
       }
 
-      if (!chat.participants.some((p) => p.id === sender)) {
+      const senderProfile = chat.participants.find((p) => p.id === sender);
+
+      if (!senderProfile) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'User is not a participant in this chat',
@@ -84,11 +93,15 @@ export const messageRouter = router({
       }
 
       const newMessage = await sendMessage(ctx.prisma, input);
+      const messageActivity = {
+        ...newMessage,
+        activityType: 'message' as const,
+      };
 
       logger.info({ newMessage }, 'emitting message');
       eventEmitter.emit(`addMessageToChat:${chatId}`, newMessage);
 
-      return newMessage;
+      return { messageActivity, activityProfile: senderProfile };
     }),
   getTextMessages: profileProcedure
     .input(

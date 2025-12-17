@@ -76,44 +76,42 @@ export function ChatContent(props: ChatContentProps) {
     chat,
     isLoading,
     sendMessage,
-    infiniteActivities,
+    activityData,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
   } = useChat(params);
 
   const allActivities = useMemo(() => {
-    const historyActivities =
-      infiniteActivities?.pages
+    return (
+      activityData?.pages
         .slice()
         .reverse()
-        .flatMap((page) => page.activities) ?? [];
-    return [...historyActivities, ...(chat?.activities ?? [])];
-  }, [infiniteActivities, chat]);
+        .flatMap((page) => page.activities) ?? []
+    );
+  }, [activityData]);
 
   const allProfiles = useMemo(() => {
     const historyProfiles =
-      infiniteActivities?.pages.flatMap((page) => page.activityProfiles) ?? [];
-    return R.uniqueBy(
-      [...historyProfiles, ...(chat?.activityProfiles ?? [])],
-      (p) => p.id
-    );
-  }, [infiniteActivities, chat]);
+      activityData?.pages.flatMap((page) => page.activityProfiles) ?? [];
+    return R.uniqueBy(historyProfiles, (p) => p.id);
+  }, [activityData]);
 
   useEffect(() => {
     if (messageToView && messageToViewRef.current) {
       messageToViewRef.current.scrollIntoView({ behavior: 'instant' });
       return;
     }
+
     // Only scroll to bottom on initial load
     if (
       !isLoading &&
       messagesEndRef.current &&
-      !infiniteActivities?.pages.length
+      activityData?.pages.length === 1
     ) {
       messagesEndRef.current.scrollIntoView({ behavior: 'instant' });
     }
-  }, [messagesEndRef, isLoading, messageToView, infiniteActivities]);
+  }, [messagesEndRef, isLoading, messageToView, activityData?.pages.length]);
 
   const handleSubmitMessage = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
