@@ -9,7 +9,7 @@ import {
 import { sendMessage } from '@/services/message';
 import {
   ActionOutputDTO,
-  ActivityProfileDTO,
+  ActivityProfile,
   CHAT_UPDATE_ACTIONS,
   ChatActivityDTO,
   ChatDTO,
@@ -111,7 +111,7 @@ export const chatRouter = router({
     .output(
       z.object({
         activities: ChatActivityDTO.array(),
-        activityProfiles: ActivityProfileDTO.array(),
+        activityProfiles: ActivityProfile.array(),
         nextCursor: z.date().nullable(),
       })
     )
@@ -134,10 +134,8 @@ export const chatRouter = router({
       const profile = await ctx.prisma.profile.findUnique({
         where: { id: profileId },
         include: {
-          chats: {
-            select: {
-              id: true,
-            },
+          chatMemberships: {
+            select: { chatId: true },
           },
         },
       });
@@ -146,8 +144,8 @@ export const chatRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND' });
       }
 
-      const iterables = profile.chats.map(({ id }) =>
-        on(eventEmitter, `addMessageToChat:${id}`, { signal })
+      const iterables = profile.chatMemberships.map(({ chatId }) =>
+        on(eventEmitter, `addMessageToChat:${chatId}`, { signal })
       );
 
       for await (const [message] of mergeAsyncIterators(iterables)) {
@@ -194,7 +192,7 @@ export const chatRouter = router({
       const chats = await ctx.prisma.chat.findMany({
         where: {
           participants: {
-            some: { id: profileId },
+            some: { profileId },
           },
         },
         // TODO: can use unit pagination w cursor here
@@ -243,10 +241,16 @@ export const chatRouter = router({
           },
           participants: {
             select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              avatarUrl: true,
+              lastViewedAt: true,
+              unreadActivities: true,
+              profile: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  avatarUrl: true,
+                },
+              },
             },
           },
         },
@@ -259,11 +263,7 @@ export const chatRouter = router({
         });
       }
 
-      const validatedChats = chats.map((chat) => {
-        return ChatPreviewDTO.parse(chat);
-      });
-
-      return validatedChats;
+      return chats;
     }),
   // TODO: move this to an admin router??
   getAll: adminProcedure
@@ -294,10 +294,16 @@ export const chatRouter = router({
           },
           participants: {
             select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              avatarUrl: true,
+              lastViewedAt: true,
+              unreadActivities: true,
+              profile: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  avatarUrl: true,
+                },
+              },
             },
           },
         },
@@ -369,37 +375,51 @@ export const chatRouter = router({
         });
       }
 
-      const chat = await ctx.prisma.chat.create({
-        data: {
-          creatorId: creator,
-          type,
-          participants: {
-            connect: participants.map((id) => ({ id })),
-          },
-        },
-        include: {
-          participants: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              avatarUrl: true,
+      const newChat = await ctx.prisma.$transaction(async (trx) => {
+        const createdChat = await trx.chat.create({
+          data: { creatorId: creator, type },
+        });
+
+        await trx.chatParticipant.createMany({
+          data: participants.map((profileId) => ({
+            chatId: createdChat.id,
+            profileId,
+            role: 'MEMBER',
+          })),
+        });
+
+        return trx.chat.findUniqueOrThrow({
+          where: { id: createdChat.id },
+          include: {
+            participants: {
+              select: {
+                lastViewedAt: true,
+                unreadActivities: true,
+                profile: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
+            messages: {
+              take: 1,
+              orderBy: { createdAt: 'asc' },
+              select: {
+                id: true,
+                type: true,
+                content: true,
+                createdAt: true,
+                updatedAt: true,
+                imageUrl: true,
+                senderId: true,
+              },
             },
           },
-          messages: {
-            take: 1,
-            orderBy: { createdAt: 'asc' },
-            select: {
-              id: true,
-              type: true,
-              content: true,
-              createdAt: true,
-              updatedAt: true,
-              imageUrl: true,
-              senderId: true,
-            },
-          },
-        },
+        });
       });
 
       const sender = await ctx.prisma.profile.findUnique({
@@ -415,7 +435,7 @@ export const chatRouter = router({
 
       const createdChatAction = await ctx.prisma.chatAction.create({
         data: {
-          chatId: chat.id,
+          chatId: newChat.id,
           actionType: 'CHAT_CREATED',
           actorId: creator,
         },
@@ -431,7 +451,7 @@ export const chatRouter = router({
       });
 
       participants.forEach((userId) => {
-        eventEmitter.emit(`newChat:${userId}`, chat);
+        eventEmitter.emit(`newChat:${userId}`, newChat);
       });
 
       let messages = [];
@@ -441,7 +461,7 @@ export const chatRouter = router({
           content: firstMessage.content,
           imageUrl: firstMessage.imageUrl,
           sender: creator,
-          chatId: chat.id,
+          chatId: newChat.id,
         });
         messages.push(newMessage);
       }
@@ -452,9 +472,7 @@ export const chatRouter = router({
       );
 
       const fullChat = {
-        ...chat,
-        messages,
-        actions: [createdChatAction],
+        ...newChat,
         activities: mergedActivities,
         activityProfiles,
       };
@@ -483,12 +501,16 @@ export const chatRouter = router({
           creatorId: true,
           participants: {
             select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              avatarUrl: true,
-              isOnline: true,
-              lastOnline: true,
+              lastViewedAt: true,
+              unreadActivities: true,
+              profile: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  avatarUrl: true,
+                },
+              },
             },
           },
         },

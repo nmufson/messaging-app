@@ -45,7 +45,7 @@ model Profile {
   sentFriendRequests          FriendRequest[]   @relation("SentRequests")
   receivedFriendRequests      FriendRequest[]   @relation("ReceivedRequests")
   messages                    Message[]         @relation("SentMessages")
-  chats                       Chat[]            @relation("ChatParticipants")
+  chatMemberships             ChatParticipant[]              
   createdChats                Chat[]            @relation("ChatCreator")
   performedActions            ChatAction[]      @relation("ActingProfile")
   targetedActions             ChatAction[]      @relation("TargetProfile")
@@ -89,16 +89,36 @@ model Chat {
   name                String?
   groupPictureUrl     String?
   messages            Message[]
-  participants        Profile[]     @relation("ChatParticipants")
+  participants        ChatParticipant[]
   actions             ChatAction[]
 
   createdAt           DateTime      @default(now())
   updatedAt           DateTime?
 }
 
+enum ChatRole {
+  MEMBER
+}
+
+model ChatParticipant {
+  id               String   @id @default(uuid())
+  chatId           String
+  chat             Chat     @relation(fields: [chatId], references: [id])
+  profileId        String
+  profile          Profile  @relation(fields: [profileId], references: [id])
+
+  role             ChatRole @default(MEMBER)
+  joinedAt         DateTime @default(now())
+  lastViewedAt     DateTime?
+  unreadActivities Int      @default(0)
+
+  @@unique([chatId, profileId])
+}
+
 enum MessageType {
   TEXT
   IMAGE
+  REACTION
 }
 
 model Message {
@@ -108,6 +128,9 @@ model Message {
   imageUrl          String?
   senderId          String
   sender            Profile         @relation("SentMessages", fields: [senderId], references: [id])
+  replyToId         String?
+  replyToMessage    Message?        @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies           Message[]       @relation("MessageReplies")
   chatId            String
   chat              Chat            @relation(fields: [chatId], references: [id])
 

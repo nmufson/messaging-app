@@ -10,6 +10,7 @@ import {
   ObjectId,
 } from '@repo/common';
 import { ChatActionType, prisma, PrismaClient } from '@repo/db';
+import { profile } from 'console';
 import { DateTime } from 'luxon';
 
 interface GetPotentialChatsParams {
@@ -83,20 +84,22 @@ export const getPotentialChats = async (
             {
               participants: {
                 some: {
-                  OR: searchNames.flatMap((name) => [
-                    {
-                      firstName: {
-                        contains: name,
-                        mode: 'insensitive' as const,
+                  profile: {
+                    OR: searchNames.flatMap((name) => [
+                      {
+                        firstName: {
+                          contains: name,
+                          mode: 'insensitive' as const,
+                        },
                       },
-                    },
-                    {
-                      lastName: {
-                        contains: name,
-                        mode: 'insensitive' as const,
+                      {
+                        lastName: {
+                          contains: name,
+                          mode: 'insensitive' as const,
+                        },
                       },
-                    },
-                  ]),
+                    ]),
+                  },
                 },
               },
             },
@@ -110,17 +113,25 @@ export const getPotentialChats = async (
       where: {
         type: ChatType.enum.GROUP,
         participants: {
-          some: { id: profileId },
+          some: { profileId },
         },
         ...groupChatSearchCondition,
       },
-      include: {
+      select: {
+        id: true,
+        type: true,
+        name: true,
+        groupPictureUrl: true,
         participants: {
           select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            avatarUrl: true,
+            profile: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+              },
+            },
           },
         },
       },
@@ -174,12 +185,16 @@ export const getChat = async (
       creatorId: true,
       participants: {
         select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          avatarUrl: true,
-          isOnline: true,
-          lastOnline: true,
+          profile: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+              isOnline: true,
+              lastOnline: true,
+            },
+          },
         },
       },
     },
@@ -261,12 +276,16 @@ const CHAT_INFO_SELECT = {
   },
   participants: {
     select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      avatarUrl: true,
-      isOnline: true,
-      lastOnline: true,
+      lastViewedAt: true,
+      unreadActivities: true,
+      profile: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          avatarUrl: true,
+        },
+      },
     },
   },
 } as const;
@@ -351,13 +370,14 @@ export const createAction = async (prisma: PrismaClient, data: ActionData) => {
   };
 };
 
-const MIN_ACTIVITIES = 20;
-
 export const getChatActivities = async (
   prisma: PrismaClient,
-  params: { chatId: ObjectId; cursor?: DateTimeSchema }
+  params: { chatId: ObjectId; cursor?: DateTimeSchema },
+  options?: { minActivities?: number }
 ) => {
   const { chatId, cursor } = params;
+  const { minActivities = 20 } = options || {};
+
   const endDate = cursor ? cursor : DateTime.now();
   let startDate = endDate.minus({ days: 7 });
 
@@ -365,7 +385,7 @@ export const getChatActivities = async (
   let actions: IChatAction[] = [];
   let activityCount = 0;
 
-  while (activityCount < MIN_ACTIVITIES) {
+  while (activityCount < minActivities) {
     messages = await prisma.message.findMany({
       where: {
         chatId,
@@ -390,7 +410,7 @@ export const getChatActivities = async (
 
     activityCount = messages.length + actions.length;
 
-    if (activityCount >= MIN_ACTIVITIES) {
+    if (activityCount >= minActivities) {
       break;
     }
 

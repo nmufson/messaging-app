@@ -1,12 +1,17 @@
 import { z } from 'zod';
 import { DateTimeSchema, ObjectId } from './primitives';
-import { createDecipheriv } from 'crypto';
-import { create } from 'domain';
-import { ChatDTO, ChatType } from './chat';
-import { id } from 'zod/v4/locales';
 
-export const MessageType = z.enum(['TEXT', 'IMAGE']);
+export const MessageType = z.enum(['TEXT', 'IMAGE', 'REACTION']);
 export type MessageType = z.infer<typeof MessageType>;
+
+export const ReactionEmoji = z.enum([
+  '\\u{1F602}', // laughing
+  '\\u{1F44D}', // thumbs up
+  '\\u{1F44E}', // thumbs down
+  '\\u{2764}\\u{FE0F}', // heart
+  '\\u{2757}', // exclamation
+]);
+export type ReactionEmoji = z.infer<typeof ReactionEmoji>;
 
 export const SendMessageInput = z.object({
   type: MessageType,
@@ -25,6 +30,7 @@ export const IMessage = z.object({
   createdAt: z.date(),
   updatedAt: z.date().nullable(),
   senderId: ObjectId,
+  replyToId: ObjectId.nullish(), // other message that this message is replying to
 });
 export type IMessage = z.infer<typeof IMessage>;
 

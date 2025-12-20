@@ -1,25 +1,24 @@
 import { getChat } from '@/services/chat';
 import {
-  PhotoMessageSearchResultDTO,
-  MessageDTO,
-  TextMessageSearchResultDTO,
-  MessageWithSenderDTO,
-  ObjectId,
-  SendMessageInput,
-  z,
+  ActivityProfile,
   MessageActivityDTO,
-  ActivityProfileDTO,
+  ObjectId,
+  PhotoMessageSearchResultDTO,
+  SendMessageInput,
+  TextMessageSearchResultDTO,
+  tagActivity,
+  z,
 } from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
 import { logger } from 'src/lib/pino';
 import { eventEmitter } from '../lib/eventBus';
 import {
-  getMatchingTextMessages,
   getMatchingPhotoMessages,
+  getMatchingTextMessages,
   sendMessage,
 } from '../services/message';
-import { router, profileProcedure } from '../trpc';
+import { profileProcedure, router } from '../trpc';
 
 export const messageRouter = router({
   onNewMessage: profileProcedure
@@ -68,7 +67,7 @@ export const messageRouter = router({
     .output(
       z.object({
         messageActivity: MessageActivityDTO,
-        activityProfile: ActivityProfileDTO,
+        activityProfile: ActivityProfile,
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -93,10 +92,7 @@ export const messageRouter = router({
       }
 
       const newMessage = await sendMessage(ctx.prisma, input);
-      const messageActivity = {
-        ...newMessage,
-        activityType: 'message' as const,
-      };
+      const messageActivity = tagActivity(newMessage, 'message');
 
       logger.info({ newMessage }, 'emitting message');
       eventEmitter.emit(`addMessageToChat:${chatId}`, newMessage);

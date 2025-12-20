@@ -9,7 +9,7 @@ import { useInput } from '@/hooks/general';
 import { useOnlinePresence } from '@/hooks/onlinePresence';
 import { getChatDisplayName } from '@/utils';
 import { useNavigation } from '@/utils/Navigation';
-import { ActivityProfileDTO, ChatActivityDTO, ObjectId } from '@repo/common';
+import { ActivityProfile, ChatActivityDTO, ObjectId } from '@repo/common';
 import * as _ from 'lodash';
 import Link from 'next/link';
 import { FormEvent, RefObject, useEffect, useMemo, useRef } from 'react';
@@ -262,7 +262,7 @@ export function ChatContent(props: ChatContentProps) {
 
 interface ActivitiesProps {
   activities: ChatActivityDTO[];
-  profiles: ActivityProfileDTO[];
+  profiles: ActivityProfile[];
   messageToViewRef: RefObject<HTMLDivElement | null>;
   messagesEndRef: RefObject<HTMLDivElement | null>;
   messageToView?: ObjectId | null;

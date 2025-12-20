@@ -1,11 +1,13 @@
 import z from 'zod';
 import { DateRange, DateTimeSchema, ObjectId } from './primitives';
-import { MessageDTO, MessageWithSenderDTO } from './message';
+import { IMessage, MessageDTO, MessageWithSenderDTO } from './message';
 import {
   ChatActionDTO,
   ChatActionType,
   ChatActionWithActorDTO,
+  IChatAction,
 } from './action';
+import { profile } from 'console';
 
 export const CHAT_UPDATE_ACTIONS = {
   name: 'NAME_CHANGED',
@@ -22,13 +24,30 @@ export const UpdateChatInput = z.object({
 });
 export type UpdateChatInput = z.infer<typeof UpdateChatInput>;
 
-export const ActivityProfileDTO = z.object({
+export const ActivityType = z.enum(['message', 'action']);
+export type ActivityType = z.infer<typeof ActivityType>;
+
+export const ActivityProfile = z.object({
   id: ObjectId,
   firstName: z.string(),
   lastName: z.string(),
   avatarUrl: z.string().nullable(),
 });
-export type ActivityProfileDTO = z.infer<typeof ActivityProfileDTO>;
+export type ActivityProfile = z.infer<typeof ActivityProfile>;
+
+export const IMessageActivity = IMessage.extend({
+  activityType: z.literal('message'),
+});
+export type IMessageActivity = z.infer<typeof IMessageActivity>;
+export const IChatActionActivity = IChatAction.extend({
+  activityType: z.literal('action'),
+});
+export type IChatActionActivity = z.infer<typeof IChatActionActivity>;
+export const IChatActivity = z.discriminatedUnion('activityType', [
+  IMessageActivity,
+  IChatActionActivity,
+]);
+export type IChatActivity = z.infer<typeof IChatActivity>;
 
 export const MessageActivityDTO = MessageDTO.extend({
   activityType: z.literal('message'),
@@ -53,15 +72,19 @@ export const ChatDTO = z.object({
   updatedAt: DateTimeSchema.nullable(),
   participants: z
     .object({
-      id: ObjectId,
-      firstName: z.string(),
-      lastName: z.string(),
-      avatarUrl: z.string().nullable(),
-      isOnline: z.boolean().nullish(),
-      lastOnline: DateTimeSchema.nullish(),
+      lastViewedAt: DateTimeSchema.nullish(),
+      unreadActivities: z.number().int().nonnegative(),
+      profile: z.object({
+        id: ObjectId,
+        firstName: z.string(),
+        lastName: z.string(),
+        avatarUrl: z.string().nullable(),
+        isOnline: z.boolean().nullish(),
+        lastOnline: DateTimeSchema.nullish(),
+      }),
     })
     .array(),
-  activityProfiles: ActivityProfileDTO.array(),
+  activityProfiles: ActivityProfile.array(),
   activities: ChatActivityDTO.array(),
   name: z.string().nullable(),
   groupPictureUrl: z.string().nullable(),
@@ -92,20 +115,22 @@ export const ChatListDTO = z.object({
   type: ChatType,
   name: z.string().nullable(),
   groupPictureUrl: z.string().nullable(),
-  participants: z.array(
-    z.object({
-      id: ObjectId,
-      firstName: z.string(),
-      lastName: z.string(),
-      avatarUrl: z.string().nullable(),
+  participants: z
+    .object({
+      profile: z.object({
+        id: ObjectId,
+        firstName: z.string(),
+        lastName: z.string(),
+        avatarUrl: z.string().nullable(),
+      }),
     })
-  ),
+    .array(),
 });
 export type ChatListDTO = z.infer<typeof ChatListDTO>;
 
 export const ActionOutputDTO = z.object({
   updatedChat: ChatInfoDTO,
   newActionActivity: ActionActivityDTO,
-  activityProfiles: ActivityProfileDTO.array(),
+  activityProfiles: ActivityProfile.array(),
 });
 export type ActionOutputDTO = z.infer<typeof ActionOutputDTO>;

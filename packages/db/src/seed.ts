@@ -15,6 +15,7 @@ async function main() {
   await prisma.friendRequest.deleteMany();
   await prisma.message.deleteMany();
   await prisma.chatAction.deleteMany();
+  await prisma.chatParticipant.deleteMany();
   await prisma.chat.deleteMany();
   await prisma.profile.deleteMany();
   await prisma.user.deleteMany();
@@ -28,7 +29,7 @@ async function main() {
     };
     await prisma.user.create({ data: updatedUser });
   }
-  console.log(profilesData);
+
   // Create profiles
   for (const profile of profilesData) {
     await prisma.profile.create({
@@ -74,7 +75,7 @@ async function main() {
 
   // Create chats
   for (const chat of chatsData) {
-    await prisma.chat.create({
+    const createdChat = await prisma.chat.create({
       data: {
         id: chat.id,
         name: chat.name ?? null,
@@ -82,11 +83,18 @@ async function main() {
         type: chat.type,
         groupPictureUrl: chat.groupPictureUrl,
         createdAt: chat.createdAt,
-        participants: {
-          connect: chat.participantIds.map((id) => ({ id })),
-        },
       },
     });
+
+    if (chat.participantIds && chat.participantIds.length > 0) {
+      await prisma.chatParticipant.createMany({
+        data: chat.participantIds.map((profileId) => ({
+          chatId: createdChat.id,
+          profileId,
+          role: 'MEMBER',
+        })),
+      });
+    }
   }
 
   for (const action of chatActionsData) {
