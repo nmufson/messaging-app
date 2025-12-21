@@ -1,23 +1,23 @@
+import { PROFILE_FALLBACK } from '@/constants';
 import * as R from 'remeda';
 
-interface ProfileAvatarProps {
+interface ProfileInfo {
   firstName: string;
   lastName: string;
-  avatarUrl?: string | null;
+  avatarUrl: string | null;
+}
+
+interface ProfileAvatarProps {
+  profile?: ProfileInfo | null;
   className?: string;
   size?: number;
   rounded?: boolean;
 }
 
 export function ProfileAvatar(props: ProfileAvatarProps) {
-  const {
-    firstName,
-    lastName,
-    avatarUrl,
-    className = '',
-    size = 40,
-    rounded = true,
-  } = props;
+  const { profile, className = '', size = 40, rounded = true } = props;
+  const { firstName, lastName, avatarUrl } = profile ?? PROFILE_FALLBACK;
+
   const initials = R.toUpperCase(`${firstName[0]}${lastName[0]}`);
   return avatarUrl ? (
     <img

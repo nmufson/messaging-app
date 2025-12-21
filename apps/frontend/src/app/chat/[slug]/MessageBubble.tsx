@@ -40,7 +40,7 @@ export function MessageBubble(props: MessageBubbleProps) {
     >
       <div className="flex items-end gap-1 w-full">
         <div className="flex justify-center shrink-0 w-[40px]">
-          {shouldShowAvatar && <ProfileAvatar {...sender} size={35} />}
+          {shouldShowAvatar && <getProfileAvatar {...sender} size={35} />}
         </div>
         <div
           className={`flex flex-col flex-1 ${isCurrentUser ? 'items-end' : 'items-start'}`}

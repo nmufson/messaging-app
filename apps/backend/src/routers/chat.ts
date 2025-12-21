@@ -9,17 +9,13 @@ import {
 import { sendMessage } from '@/services/message';
 import {
   ActionOutputDTO,
-  ActivityProfile,
   CHAT_UPDATE_ACTIONS,
   ChatActivityDTO,
   ChatDTO,
   ChatInfoDTO,
   ChatListDTO,
-  ChatPreviewDTO,
   ChatType,
-  DateRange,
   DateTimeSchema,
-  getDefaultDateRange,
   ListProfileDTO,
   mergeAsyncIterators,
   MessageType,
@@ -33,7 +29,6 @@ import { on } from 'events';
 import { eventEmitter } from '../lib/eventBus';
 import { logger } from '../lib/pino';
 import { adminProcedure, profileProcedure, router } from '../trpc';
-import { getDefaultAutoSelectFamily } from 'net';
 
 export const chatRouter = router({
   // TODO: add something for loading more messages in chat
@@ -111,7 +106,6 @@ export const chatRouter = router({
     .output(
       z.object({
         activities: ChatActivityDTO.array(),
-        activityProfiles: ActivityProfile.array(),
         nextCursor: z.date().nullable(),
       })
     )
@@ -183,7 +177,7 @@ export const chatRouter = router({
         limit: z.number().default(100),
       })
     )
-    .output(ChatPreviewDTO.array())
+    .output(ChatDTO.array())
     .query(async ({ input, ctx }) => {
       const { limit } = input;
       const { user } = ctx;
@@ -209,14 +203,7 @@ export const chatRouter = router({
               imageUrl: true,
               createdAt: true,
               updatedAt: true,
-              sender: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  avatarUrl: true,
-                },
-              },
+              senderId: true,
             },
           },
           actions: {
@@ -229,17 +216,13 @@ export const chatRouter = router({
               targetId: true,
               createdAt: true,
               content: true,
-              actor: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  avatarUrl: true,
-                },
-              },
+              actorId: true,
             },
           },
           participants: {
+            where: {
+              status: 'MEMBER',
+            },
             select: {
               lastViewedAt: true,
               unreadActivities: true,
@@ -263,7 +246,20 @@ export const chatRouter = router({
         });
       }
 
-      return chats;
+      const chatsWithActivities = await Promise.all(
+        chats.map(async (chat) => {
+          const activities = await getMergedActivities(
+            chat.messages,
+            chat.actions
+          );
+          return {
+            ...chat,
+            activities,
+          };
+        })
+      );
+
+      return chatsWithActivities;
     }),
   // TODO: move this to an admin router??
   getAll: adminProcedure
@@ -293,6 +289,9 @@ export const chatRouter = router({
             },
           },
           participants: {
+            where: {
+              status: 'MEMBER',
+            },
             select: {
               lastViewedAt: true,
               unreadActivities: true,
@@ -466,15 +465,13 @@ export const chatRouter = router({
         messages.push(newMessage);
       }
 
-      const { mergedActivities, activityProfiles } = await getMergedActivities(
-        messages,
-        [createdChatAction]
-      );
+      const mergedActivities = await getMergedActivities(messages, [
+        createdChatAction,
+      ]);
 
       const fullChat = {
         ...newChat,
         activities: mergedActivities,
-        activityProfiles,
       };
 
       return fullChat;

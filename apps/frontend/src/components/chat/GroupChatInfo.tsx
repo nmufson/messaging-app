@@ -1,5 +1,5 @@
 import { useAuth } from '@/context/AuthContext';
-import { useSelectedValue, useToggle } from '@/hooks/general';
+import { useToggle } from '@/hooks/general';
 import { getChatDisplayName, getProfileDisplayName } from '@/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ListProfileDTO, ObjectId, UpdateChatInput } from '@repo/common';
@@ -17,6 +17,7 @@ import { Modal, ModalActions } from '../modal/Modal';
 import { ProfilePreview } from '../profile/ProfilePreview';
 import { Contacts } from '../Contacts';
 import { FullscreenModal } from '../modal/FullscreenModal';
+import { getParticipantProfiles } from '@/utils/general';
 
 export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
   const {
@@ -74,16 +75,19 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
   if (!chat) return null;
 
   const { name, participants, groupPictureUrl } = chat;
+  const participantProfiles = getParticipantProfiles(participants);
 
   const displayName = getChatDisplayName({
     name,
-    participants,
+    participantProfiles,
     profileId: profile?.id,
   });
 
   const handleLaunchRemoveMemberModal = (profileId: ObjectId) => {
     console.log('launching');
-    const profile = participants.find((p) => p.id === profileId);
+    const profile = participants.find(
+      (p) => p.profile.id === profileId
+    )?.profile;
     if (!profile) {
       console.error('Profile not found');
       return;
@@ -171,7 +175,7 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
         <div onClick={handleLaunchPhotoModal}>
           <GroupPhoto
             groupPictureUrl={groupPictureUrl}
-            participants={participants}
+            participantProfiles={participantProfiles}
             size={100}
             className="cursor-pointer hover:opacity-80 transition-opacity"
           />
@@ -207,14 +211,14 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
         <div>
           {participants.map((p) => (
             <ProfilePreview
-              key={p.id}
-              profile={p}
+              key={p.profile.id}
+              profile={p.profile}
               showPresence={true}
               rightContent={
                 <Button
                   onClick={(e) => {
                     e.preventDefault();
-                    handleLaunchRemoveMemberModal(p.id);
+                    handleLaunchRemoveMemberModal(p.profile.id);
                   }}
                   className="opacity-100 cursor-pointer md:opacity-0 md:group-hover:opacity-100 md:transition-opacity text-red-500 hover:text-red-700 p-2"
                   aria-label="Remove member"

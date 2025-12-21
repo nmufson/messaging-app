@@ -108,7 +108,7 @@ function PhotoMessagePreview({
     >
       <img src={imageUrl} className="w-full h-full object-cover" />
       <div className="absolute top-2 right-2">
-        <ProfileAvatar {...sender} />
+        <ProfileAvatar profile={sender} />
       </div>
     </div>
   );
@@ -123,7 +123,7 @@ function TextMessagePreview({
   const { navigateToMessage } = useNavigation();
 
   const { sender, createdAt, chat } = message;
-  const { name: chatName, participants } = chat;
+  const { name: chatName, participants: participantProfiles } = chat;
   const { firstName, lastName } = sender;
 
   const senderDisplayName = `${firstName} ${lastName}`;
@@ -131,7 +131,7 @@ function TextMessagePreview({
 
   const chatDisplayName = getChatDisplayName({
     name: chatName || null,
-    participants: participants || [],
+    participantProfiles,
     profileId: profile?.id,
     truncate: 50,
   });
@@ -142,7 +142,7 @@ function TextMessagePreview({
 
   return (
     <div className="mb-2">
-      {participants.length > 2 && (
+      {participantProfiles.length > 2 && (
         <strong className="text-sm">{chatDisplayName}</strong>
       )}
       <div className="flex justify-between">
@@ -169,25 +169,27 @@ type ChatResultItemProps =
   | { type: 'groupChat'; groupChat: ChatListDTO };
 
 function ProfileOrChatItem(props: ChatResultItemProps) {
-  const { type } = props;
-  const displayName =
-    type === 'profile'
-      ? `${props.profile.firstName} ${props.profile.lastName}`
-      : getChatDisplayName({ ...props.groupChat, truncate: 30 });
+  const isGroupChat = props.type === 'groupChat';
+  const participantProfiles = isGroupChat
+    ? props.groupChat.participants.map((p) => p.profile)
+    : [];
+  const chatName = isGroupChat ? props.groupChat.name : null;
+
+  const displayName = isGroupChat
+    ? getChatDisplayName({ name: chatName, participantProfiles, truncate: 30 })
+    : `${props.profile.firstName} ${props.profile.lastName}`;
 
   return (
     <div className="flex flex-col items-center text-center w-[50px] whitespace-normal">
-      {type === 'profile' ? (
-        <ProfileAvatar
-          firstName={props.profile.firstName}
-          lastName={props.profile.lastName}
-          avatarUrl={props.profile.avatarUrl}
-        />
-      ) : (
+      {isGroupChat ? (
         <GroupPhoto
           groupPictureUrl={props.groupChat.groupPictureUrl}
-          participants={props.groupChat.participants}
+          participantProfiles={props.groupChat.participants.map(
+            (p) => p.profile
+          )}
         />
+      ) : (
+        <ProfileAvatar profile={props.profile} />
       )}
       <span>{displayName}</span>
     </div>

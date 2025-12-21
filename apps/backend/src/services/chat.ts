@@ -5,9 +5,12 @@ import {
   ChatType,
   DateTimeSchema,
   IChatAction,
+  IChatActivity,
   IMessage,
   ListProfileDTO,
   ObjectId,
+  ReactionEmoji,
+  tagActivity,
 } from '@repo/common';
 import { ChatActionType, prisma, PrismaClient } from '@repo/db';
 import { profile } from 'console';
@@ -211,47 +214,18 @@ export const getChat = async (
 export const getMergedActivities = async (
   messages: IMessage[],
   actions: IChatAction[]
-) => {
-  const messageActivities = messages.map((msg) => ({
-    ...msg,
-    activityType: 'message' as const,
-  }));
+): Promise<IChatActivity[]> => {
+  const messageActivities = messages.map((msg) => tagActivity(msg, 'message'));
 
-  const actionActivities = actions.map((action) => ({
-    ...action,
-    activityType: 'action' as const,
-  }));
+  const actionActivities = actions.map((action) =>
+    tagActivity(action, 'action')
+  );
 
   const mergedActivities = [...messageActivities, ...actionActivities].sort(
     (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
   );
 
-  const activityProfileIds = [
-    ...mergedActivities.map((a) => {
-      if (a.activityType === 'message') {
-        return a.senderId;
-      } else {
-        return a.targetId ? [a.actorId, a.targetId] : [a.actorId];
-      }
-    }),
-  ].flat();
-
-  const uniqueProfileIds = [...new Set(activityProfileIds)];
-
-  const profiles = await prisma.profile.findMany({
-    where: { id: { in: uniqueProfileIds } },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      avatarUrl: true,
-    },
-  });
-
-  return {
-    mergedActivities,
-    activityProfiles: profiles,
-  };
+  return mergedActivities;
 };
 
 const CHAT_INFO_SELECT = {
@@ -275,6 +249,9 @@ const CHAT_INFO_SELECT = {
     },
   },
   participants: {
+    where: {
+      status: 'MEMBER',
+    },
     select: {
       lastViewedAt: true,
       unreadActivities: true,
@@ -359,10 +336,7 @@ export const createAction = async (prisma: PrismaClient, data: ActionData) => {
 
   const { actor, target, ...restOfAction } = newAction;
 
-  const newActionActivity = {
-    ...restOfAction,
-    activityType: 'action' as const,
-  };
+  const newActionActivity = tagActivity(newAction, 'action');
 
   return {
     newActionActivity,
@@ -392,6 +366,20 @@ export const getChatActivities = async (
         createdAt: {
           gte: startDate.toJSDate(),
           lt: endDate.toJSDate(),
+        },
+        type: { not: 'REACTION' },
+      },
+      include: {
+        replies: {
+          where: { type: 'REACTION' },
+          select: {
+            id: true,
+            type: true,
+            content: true,
+            createdAt: true,
+            updatedAt: true,
+            senderId: true,
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -432,10 +420,7 @@ export const getChatActivities = async (
     startDate = startDate.minus({ days: currentDuration });
   }
 
-  const { mergedActivities, activityProfiles } = await getMergedActivities(
-    messages,
-    actions
-  );
+  const mergedActivities = await getMergedActivities(messages, actions);
 
   const hasOlderActivities =
     (await prisma.message.findFirst({
@@ -447,7 +432,6 @@ export const getChatActivities = async (
 
   return {
     activities: mergedActivities,
-    activityProfiles,
     nextCursor: hasOlderActivities ? startDate.toJSDate() : null,
   };
 };

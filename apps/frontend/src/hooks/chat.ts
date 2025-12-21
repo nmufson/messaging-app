@@ -1,7 +1,12 @@
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/Toast/ToastContext';
 import { useTRPC } from '@/lib/trpc';
-import { ActionOutputDTO, DateRange, ObjectId } from '@repo/common';
+import {
+  ActionOutputDTO,
+  DateRange,
+  ObjectId,
+  tagActivity,
+} from '@repo/common';
 import {
   skipToken,
   useInfiniteQuery,
@@ -94,20 +99,16 @@ export function useChat(params: UseChatParams) {
     error: sendToChatError,
   } = useMutation(
     trpc.message.sendToChat.mutationOptions({
-      // TODO: have this endpoint return messageActivity
-      onSuccess: (messageData) => {
+      onSuccess: (messageActivity) => {
         queryClient.setQueryData(activitiesQueryKey, (oldData) => {
           if (!oldData) return oldData;
           const newPages = [...oldData.pages];
           const firstPage = newPages[0];
           if (!firstPage) return oldData;
 
-          const { messageActivity, activityProfile } = messageData;
-
           newPages[0] = {
             ...firstPage,
             activities: [...firstPage.activities, messageActivity],
-            activityProfiles: [...firstPage.activityProfiles, activityProfile],
           };
 
           return { ...oldData, pages: newPages };
@@ -145,7 +146,7 @@ export function useChat(params: UseChatParams) {
               ...firstPage,
               activities: [
                 ...firstPage.activities,
-                { ...messageData, activityType: 'message' as const },
+                ...tagActivity(messageData, 'message'),
               ],
             };
 
@@ -275,8 +276,8 @@ export function useChatInfo(params: ChatInfoParams) {
   const { mutateAsync: updateChat, isPending } = useMutation(
     trpc.chat.updateInfo.mutationOptions({
       onSuccess: (data) => {
-        const { updatedChat, newActionActivity, activityProfiles } = data;
-        const activityProfile = activityProfiles[0];
+        const { updatedChat, newActionActivity } = data;
+
         // Update the info query cache and findChat query from ChatContent
         queryClient.setQueryData(chatInfoQueryKey, updatedChat);
 
@@ -286,17 +287,11 @@ export function useChatInfo(params: ChatInfoParams) {
           const firstPage = newPages[0];
           if (!firstPage) return oldData;
 
-          const existingProfile = firstPage.activityProfiles.find(
-            (p) => p.id === activityProfile.id
-          );
           console.log(newActionActivity, 'new action activity');
 
           newPages[0] = {
             ...firstPage,
             activities: [...firstPage.activities, newActionActivity],
-            activityProfiles: existingProfile
-              ? firstPage.activityProfiles
-              : [...firstPage.activityProfiles, activityProfile],
           };
           return { ...oldData, pages: newPages };
         });
@@ -319,7 +314,7 @@ export function useChatInfo(params: ChatInfoParams) {
   );
 
   const handleSuccess = (data: ActionOutputDTO) => {
-    const { updatedChat, newActionActivity, activityProfiles } = data;
+    const { updatedChat, newActionActivity } = data;
 
     queryClient.setQueryData(chatInfoQueryKey, updatedChat);
 
@@ -333,12 +328,6 @@ export function useChatInfo(params: ChatInfoParams) {
       newPages[0] = {
         ...firstPage,
         activities: [...firstPage.activities, newActionActivity],
-        activityProfiles: [
-          ...firstPage.activityProfiles,
-          ...activityProfiles.filter(
-            (ap) => !firstPage.activityProfiles.find((p) => p.id === ap.id)
-          ),
-        ],
       };
       return { ...oldData, pages: newPages };
     });

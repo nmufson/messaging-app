@@ -9,7 +9,7 @@ import { useInput } from '@/hooks/general';
 import { useOnlinePresence } from '@/hooks/onlinePresence';
 import { getChatDisplayName } from '@/utils';
 import { useNavigation } from '@/utils/Navigation';
-import { ActivityProfile, ChatActivityDTO, ObjectId } from '@repo/common';
+import { ChatActivityDTO, ChatParticipantDTO, ObjectId } from '@repo/common';
 import * as _ from 'lodash';
 import Link from 'next/link';
 import { FormEvent, RefObject, useEffect, useMemo, useRef } from 'react';
@@ -19,13 +19,8 @@ import { GroupPhoto } from '../GroupPhoto';
 import { FullscreenModal } from '../modal/FullscreenModal';
 import { ProfileAvatar } from '../ProfileAvatar';
 import { GroupChatInfo } from './GroupChatInfo';
-
-const PROFILE_FALLBACK = {
-  id: '',
-  firstName: 'Unknown',
-  lastName: '',
-  avatarUrl: null,
-};
+import { getParticipantProfiles } from '@/utils/general';
+import { PROFILE_FALLBACK } from '@/constants';
 
 interface ChatContentProps {
   chatId: ObjectId | null;
@@ -91,12 +86,6 @@ export function ChatContent(props: ChatContentProps) {
     );
   }, [activityData]);
 
-  const allProfiles = useMemo(() => {
-    const historyProfiles =
-      activityData?.pages.flatMap((page) => page.activityProfiles) ?? [];
-    return R.uniqueBy(historyProfiles, (p) => p.id);
-  }, [activityData]);
-
   useEffect(() => {
     if (messageToView && messageToViewRef.current) {
       messageToViewRef.current.scrollIntoView({ behavior: 'instant' });
@@ -141,16 +130,19 @@ export function ChatContent(props: ChatContentProps) {
   if (!chat) return <div>Chat not found.</div>;
 
   const { participants, name, type } = chat;
+  const participantProfiles = getParticipantProfiles(participants);
+
+  // const participantProfiles = participants.map((p) => p.profile);
 
   const displayName = getChatDisplayName({
     name,
-    participants: participants || profiles,
+    participantProfiles: participantProfiles || profiles,
     profileId: loggedInProfileId,
   });
 
-  const otherProfile =
+  const otherParticipantProfile =
     type === 'DIRECT'
-      ? participants.find((p) => p.id !== loggedInProfileId)
+      ? participantProfiles.find((p) => p.id !== loggedInProfileId)
       : null;
 
   const handleInfoClick = () => {
@@ -160,10 +152,10 @@ export function ChatContent(props: ChatContentProps) {
           <GroupChatInfo chatId={chat.id} />
         </FullscreenModal>
       );
-    } else if (type === 'DIRECT' && otherProfile) {
+    } else if (type === 'DIRECT' && otherParticipantProfile) {
       launchModal(
         <FullscreenModal title="Chat">
-          <ProfileContent profileId={otherProfile.id} />
+          <ProfileContent profileId={otherParticipantProfile.id} />
         </FullscreenModal>
       );
     }
@@ -180,15 +172,11 @@ export function ChatContent(props: ChatContentProps) {
           {type === 'GROUP' ? (
             <GroupPhoto
               groupPictureUrl={chat?.groupPictureUrl || null}
-              participants={participants}
+              participantProfiles={participantProfiles}
             />
           ) : (
-            otherProfile && (
-              <ProfileAvatar
-                firstName={otherProfile.firstName}
-                lastName={otherProfile.lastName}
-                avatarUrl={otherProfile.avatarUrl}
-              />
+            otherParticipantProfile && (
+              <ProfileAvatar profile={otherParticipantProfile} />
             )
           )}
           <h1 className="text-xl font-semibold">{displayName}</h1>
@@ -225,7 +213,7 @@ export function ChatContent(props: ChatContentProps) {
       </div>
       <Activities
         activities={allActivities}
-        profiles={allProfiles}
+        participants={participants}
         messageToViewRef={messageToViewRef}
         messagesEndRef={messagesEndRef}
         messageToView={messageToView}
@@ -262,7 +250,7 @@ export function ChatContent(props: ChatContentProps) {
 
 interface ActivitiesProps {
   activities: ChatActivityDTO[];
-  profiles: ActivityProfile[];
+  participants: ChatParticipantDTO[];
   messageToViewRef: RefObject<HTMLDivElement | null>;
   messagesEndRef: RefObject<HTMLDivElement | null>;
   messageToView?: ObjectId | null;
@@ -274,7 +262,7 @@ interface ActivitiesProps {
 function Activities(props: ActivitiesProps) {
   const {
     activities,
-    profiles,
+    participants,
     messageToViewRef,
     messagesEndRef,
     messageToView,
@@ -304,17 +292,19 @@ function Activities(props: ActivitiesProps) {
     >
       {activities.map((activity, i) => {
         if (activity.activityType === 'message') {
-          const sender = profiles.find((p) => p.id === activity.senderId);
+          const sender = participants.find(
+            (p) => p.profile.id === activity.senderId
+          );
 
           if (!sender) {
-            console.error('Sender not found in activity profiles', {
+            console.error('Sender not found in chat participants', {
               message: activity,
               senderId: activity.senderId,
             });
           }
           const messageWithSender = {
             ...activity,
-            sender: sender ?? PROFILE_FALLBACK,
+            sender: sender?.profile ?? PROFILE_FALLBACK,
           };
 
           const { shouldShowName, shouldShowAvatar } = (() => {
@@ -350,13 +340,15 @@ function Activities(props: ActivitiesProps) {
           );
         }
 
-        const actioningProfile = profiles.find(
-          (p) => p.id === activity.actorId
+        const actioner = participants.find(
+          (p) => p.profile.id === activity.actorId
         );
-        const targetProfile = profiles.find((p) => p.id === activity.targetId);
+        const target = participants.find(
+          (p) => p.profile.id === activity.targetId
+        );
 
-        if (!actioningProfile) {
-          console.error('Actioner not found in activity profiles', {
+        if (!actioner) {
+          console.error('Actioner not found in chat participants', {
             action: activity,
             actorId: activity.actorId,
           });
@@ -364,8 +356,8 @@ function Activities(props: ActivitiesProps) {
 
         const actionWithActor = {
           ...activity,
-          actor: actioningProfile ?? PROFILE_FALLBACK,
-          target: targetProfile ?? null,
+          actor: actioner?.profile ?? PROFILE_FALLBACK,
+          target: target?.profile ?? null,
         };
 
         return <ActionBubble key={activity.id} action={actionWithActor} />;

@@ -1,4 +1,4 @@
-import { ObjectId } from '@repo/common';
+import { BaseProfile } from '@repo/common';
 import { ProfileAvatar } from './ProfileAvatar';
 
 const POSITIONS = [
@@ -31,18 +31,18 @@ const POSITIONS = [
 interface GroupPhotoProps {
   groupPictureUrl: string | null;
   // TODO: change this?
-  participants: {
-    id: ObjectId;
-    firstName: string;
-    lastName: string;
-    avatarUrl?: string | null;
-  }[];
+  participantProfiles: BaseProfile[];
   size?: number;
   className?: string;
 }
 
 export function GroupPhoto(props: GroupPhotoProps) {
-  const { groupPictureUrl, participants, size = 48, className = '' } = props;
+  const {
+    groupPictureUrl,
+    participantProfiles,
+    size = 48,
+    className = '',
+  } = props;
 
   if (groupPictureUrl) {
     return (
@@ -56,8 +56,8 @@ export function GroupPhoto(props: GroupPhotoProps) {
   }
 
   // Show 2-5 participant avatars, arranged in a cluster
-  const displayParticipants = participants.slice(0, 5);
-  const count = displayParticipants.length;
+  const displayProfiles = participantProfiles.slice(0, 5);
+  const count = displayProfiles.length;
   const avatarSize = size / (count > 2 ? 1.5 : 1.2);
 
   const pos = POSITIONS[count - 2] || POSITIONS[POSITIONS.length - 1];
@@ -67,27 +67,23 @@ export function GroupPhoto(props: GroupPhotoProps) {
       className={`relative flex items-center justify-center ${className}`}
       style={{ width: size, height: size }}
     >
-      {displayParticipants.map((p, i) => (
-        <div
-          key={p.id}
-          className="absolute"
-          style={{
-            left: pos[i].x * size,
-            top: pos[i].y * size,
-            width: avatarSize,
-            height: avatarSize,
-            zIndex: count - i,
-          }}
-        >
-          <ProfileAvatar
-            firstName={p.firstName}
-            lastName={p.lastName}
-            avatarUrl={p.avatarUrl}
-            size={avatarSize}
-            rounded
-          />
-        </div>
-      ))}
+      {displayProfiles.map((profile, i) => {
+        return (
+          <div
+            key={profile.id}
+            className="absolute"
+            style={{
+              left: pos[i].x * size,
+              top: pos[i].y * size,
+              width: avatarSize,
+              height: avatarSize,
+              zIndex: count - i,
+            }}
+          >
+            <ProfileAvatar profile={profile} size={avatarSize} rounded />
+          </div>
+        );
+      })}
     </div>
   );
 }

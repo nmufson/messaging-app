@@ -1,11 +1,11 @@
-import { ChatDTO } from '@repo/common';
-import * as R from 'remeda';
+import { GroupPhoto } from '@/components/GroupPhoto';
+import { ProfileAvatar } from '@/components/ProfileAvatar';
+import { PROFILE_FALLBACK } from '@/constants';
+import { formatDisplayDate, getChatDisplayName } from '@/utils/formatting';
+import { getParticipant, getParticipantProfiles } from '@/utils/general';
+import { BaseProfile, ChatActivityDTO, ChatDTO } from '@repo/common';
 import Link from 'next/link';
-import {
-  formatDisplayDate,
-  getChatDisplayName,
-  slugify,
-} from '@/utils/formatting';
+import * as R from 'remeda';
 import { useAuth } from '../../context/AuthContext';
 
 interface ChatPreviewProps {
@@ -15,41 +15,45 @@ interface ChatPreviewProps {
 export function ChatPreview({ chat }: ChatPreviewProps) {
   const {
     id: chatId,
-    type,
     name,
-    creatorId,
+    type,
     participants,
-    messages,
     groupPictureUrl,
+    activities,
     createdAt: chatCreatedAt,
   } = chat;
   const { profile } = useAuth();
-  const lastMessage = messages.length ? messages[0] : null;
+  const loggedInProfileId = profile?.id;
+
+  const participantProfiles = getParticipantProfiles(participants);
+
+  const isGroupChat = type === 'GROUP';
+  const lastActivity = activities[0];
   const displayName = getChatDisplayName({
     name,
-    participants,
+    participantProfiles,
     profileId: profile?.id,
   });
 
-  // TODO: make this show multiple user pics similar to Messages
-  const lastSender = participants.find((p) => p.id === lastMessage?.senderId);
-  const creator = participants.find((p) => p.id === creatorId);
+  const otherParticipantProfile = !isGroupChat
+    ? participantProfiles.find((p) => p.id !== loggedInProfileId)
+    : null;
 
-  const displayPicture =
-    groupPictureUrl ||
-    lastSender?.avatarUrl ||
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Flag_of_Germany_%28RGB%29.svg/330px-Flag_of_Germany_%28RGB%29.svg.png';
+  const loggedInParticipant = getParticipant(participants, loggedInProfileId);
+  const unreadActivities = loggedInParticipant?.unreadActivities ?? 0;
 
-  const displayMessage = lastMessage
-    ? lastMessage.content ||
-      `${lastSender?.firstName} ${lastSender?.lastName} sent a photo`
-    : `Chat created by ${creator?.firstName} ${creator?.lastName}`;
+  const displayPicture = isGroupChat
+    ? GroupPhoto({ groupPictureUrl, participantProfiles })
+    : ProfileAvatar({ profile: otherParticipantProfile });
 
-  const timeToShow = lastMessage ? lastMessage.createdAt : chatCreatedAt;
+  const timeToShow = lastActivity ? lastActivity.createdAt : chatCreatedAt;
   const displayTime = formatDisplayDate(timeToShow);
 
   const formattedDisplayName = R.truncate(displayName, 20);
-  const formattedDisplayMessage = R.truncate(displayMessage, 40);
+  const formattedDisplayMessage = getMessagePreview({
+    activity: lastActivity,
+    participantProfiles,
+  });
 
   const chatLink = `/chat/chat?chat=${chatId}`;
 
@@ -57,7 +61,7 @@ export function ChatPreview({ chat }: ChatPreviewProps) {
     <Link href={chatLink}>
       <div className="chat-preview-container flex items-center cursor-pointer">
         <div className="rounded-full w-10  overflow-hidden flex items-center justify-center bg-gray-200 mr-3">
-          <img alt="Chat" className="w-10 object-cover" src={displayPicture} />
+          {displayPicture}
         </div>
         <div className="flex flex-col w-full">
           <div className="flex justify-between">
@@ -71,4 +75,27 @@ export function ChatPreview({ chat }: ChatPreviewProps) {
       </div>
     </Link>
   );
+}
+
+interface GetMessagePreviewParams {
+  activity: ChatActivityDTO;
+  participantProfiles: BaseProfile[];
+}
+
+export function getMessagePreview(params: GetMessagePreviewParams) {
+  const { activity, participantProfiles } = params;
+
+  const isMessage = activity?.activityType === 'message';
+  const activityProfileId = isMessage ? activity?.senderId : activity?.actorId;
+  const activityProfile =
+    participantProfiles.find((p) => p.id === activityProfileId) ??
+    PROFILE_FALLBACK;
+
+  if (isMessage && activity.type === 'IMAGE') {
+    return `${activityProfile.firstName} ${activityProfile.lastName} sent a photo.`;
+  }
+
+  const truncatedContent = R.truncate(activity.content ?? '', 40);
+
+  return truncatedContent;
 }

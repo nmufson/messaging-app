@@ -22,6 +22,22 @@ export const SendMessageInput = z.object({
 });
 export type SendMessageInput = z.infer<typeof SendMessageInput>;
 
+export const IReactionReply = z.object({
+  id: ObjectId,
+  type: MessageType.enum.REACTION,
+  content: z.string().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date().nullable(),
+  senderId: ObjectId,
+});
+export type IReactionReply = z.infer<typeof IReactionReply>;
+
+export const ReactionReplyDTO = IReactionReply.extend({
+  createdAt: DateTimeSchema,
+  updatedAt: DateTimeSchema.nullable(),
+});
+export type ReactionReplyDTO = z.infer<typeof ReactionReplyDTO>;
+
 export const IMessage = z.object({
   id: ObjectId,
   type: MessageType,
@@ -31,12 +47,14 @@ export const IMessage = z.object({
   updatedAt: z.date().nullable(),
   senderId: ObjectId,
   replyToId: ObjectId.nullish(), // other message that this message is replying to
+  replies: IReactionReply.array().optional(), // only include reaction replies
 });
 export type IMessage = z.infer<typeof IMessage>;
 
 export const MessageDTO = IMessage.extend({
   createdAt: DateTimeSchema,
   updatedAt: DateTimeSchema.nullable(),
+  replies: ReactionReplyDTO.array().optional(),
 });
 export type MessageDTO = z.infer<typeof MessageDTO>;
 

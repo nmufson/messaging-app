@@ -79,7 +79,7 @@ function FriendRequestItem({ request }: { request: FriendRequestDTO }) {
   return (
     <li className="p-3">
       <div className="flex items-center gap-3">
-        <ProfileAvatar
+        <getProfileAvatar
           firstName={sender.firstName}
           lastName={sender.lastName}
           avatarUrl={sender.avatarUrl}

@@ -2,7 +2,6 @@ import { logger } from '@/lib/pino';
 import {
   PhotoMessageSearchResultDTO,
   TextMessageSearchResultDTO,
-  MessageWithSenderDTO,
   ObjectId,
   SendMessageInput,
 } from '@repo/common';
@@ -103,9 +102,13 @@ export const getMatchingTextMessages = async (
           name: true,
           participants: {
             select: {
-              id: true,
-              firstName: true,
-              lastName: true,
+              profile: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                },
+              },
             },
           },
         },

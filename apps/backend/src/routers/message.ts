@@ -1,12 +1,11 @@
 import { getChat } from '@/services/chat';
 import {
-  ActivityProfile,
   MessageActivityDTO,
   ObjectId,
   PhotoMessageSearchResultDTO,
   SendMessageInput,
-  TextMessageSearchResultDTO,
   tagActivity,
+  TextMessageSearchResultDTO,
   z,
 } from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';
@@ -64,14 +63,9 @@ export const messageRouter = router({
     }),
   sendToChat: profileProcedure
     .input(SendMessageInput)
-    .output(
-      z.object({
-        messageActivity: MessageActivityDTO,
-        activityProfile: ActivityProfile,
-      })
-    )
+    .output(MessageActivityDTO)
     .mutation(async ({ input, ctx }) => {
-      const { sender, chatId, content, imageUrl, type } = input;
+      const { sender, chatId } = input;
 
       const chat = await getChat(ctx.prisma, { chatId });
 
@@ -82,7 +76,9 @@ export const messageRouter = router({
         });
       }
 
-      const senderProfile = chat.participants.find((p) => p.id === sender);
+      const senderProfile = chat.participants.find(
+        (p) => p.profile.id === sender
+      );
 
       if (!senderProfile) {
         throw new TRPCError({
@@ -97,7 +93,7 @@ export const messageRouter = router({
       logger.info({ newMessage }, 'emitting message');
       eventEmitter.emit(`addMessageToChat:${chatId}`, newMessage);
 
-      return { messageActivity, activityProfile: senderProfile };
+      return messageActivity;
     }),
   getTextMessages: profileProcedure
     .input(

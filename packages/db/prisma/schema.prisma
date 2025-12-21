@@ -96,8 +96,10 @@ model Chat {
   updatedAt           DateTime?
 }
 
-enum ChatRole {
+enum ParticipationStatus {
   MEMBER
+  LEFT
+  REMOVED
 }
 
 model ChatParticipant {
@@ -107,8 +109,9 @@ model ChatParticipant {
   profileId        String
   profile          Profile  @relation(fields: [profileId], references: [id])
 
-  role             ChatRole @default(MEMBER)
+  status           ParticipationStatus @default(MEMBER)
   joinedAt         DateTime @default(now())
+  departedAt       DateTime?
   lastViewedAt     DateTime?
   unreadActivities Int      @default(0)
 

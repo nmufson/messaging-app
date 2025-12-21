@@ -1,4 +1,9 @@
-import { DateTimeSchema, ObjectId } from '@repo/common';
+import {
+  BaseProfile,
+  ChatParticipantDTO,
+  DateTimeSchema,
+  ObjectId,
+} from '@repo/common';
 import { DateTime } from 'luxon';
 import * as R from 'remeda';
 
@@ -41,29 +46,22 @@ export function slugify(str: string) {
     .replace(/[^a-z0-9-]/g, '');
 }
 
-interface ChatParticipant {
-  id: ObjectId;
-  firstName: string;
-  lastName: string;
-  avatarUrl?: string | null;
-}
-
 interface GetChatDisplayNameParams {
   name: string | null;
-  participants: ChatParticipant[];
+  participantProfiles?: Omit<BaseProfile, 'avatarUrl'>[];
   profileId?: ObjectId;
   truncate?: number;
 }
 
 export function getChatDisplayName(params: GetChatDisplayNameParams): string {
-  const { name, participants, profileId, truncate } = params;
+  const { name, participantProfiles = [], profileId, truncate } = params;
 
   // group chat with name
   if (name) {
     return name;
   }
 
-  const participantNames = participants
+  const participantNames = participantProfiles
     .filter((p) => p.id !== profileId)
     .map((p) => `${p.firstName} ${p.lastName}`);
 
