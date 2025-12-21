@@ -60,17 +60,17 @@ export function FriendRequests() {
 
 function FriendRequestItem({ request }: { request: FriendRequestDTO }) {
   const { sender } = request;
-  const { cancelFriendRequest, isLoading } = useFriendRequest();
+  const { updateFriendRequest, isLoading } = useFriendRequest();
 
   const handleAccept = () => {
-    cancelFriendRequest({
+    updateFriendRequest({
       senderId: sender.id,
       newStatus: FriendRequestStatus.enum.ACCEPTED,
     });
   };
 
   const handleDecline = () => {
-    cancelFriendRequest({
+    updateFriendRequest({
       senderId: sender.id,
       newStatus: FriendRequestStatus.enum.DECLINED,
     });
@@ -79,11 +79,7 @@ function FriendRequestItem({ request }: { request: FriendRequestDTO }) {
   return (
     <li className="p-3">
       <div className="flex items-center gap-3">
-        <getProfileAvatar
-          firstName={sender.firstName}
-          lastName={sender.lastName}
-          avatarUrl={sender.avatarUrl}
-        />
+        <ProfileAvatar profile={sender} />
         <div className="flex-1 min-w-0">
           <p className="font-medium text-sm truncate">
             {sender.firstName} {sender.lastName}

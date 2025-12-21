@@ -4,7 +4,7 @@ import * as R from 'remeda';
 interface ProfileInfo {
   firstName: string;
   lastName: string;
-  avatarUrl: string | null;
+  avatarUrl?: string | null;
 }
 
 interface ProfileAvatarProps {

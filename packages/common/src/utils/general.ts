@@ -5,7 +5,8 @@ import {
   ActivityType,
   IChatActionActivity,
   IMessageActivity,
-} from 'src/schemas/chat';
+} from 'src/schemas/activities';
+
 import { IMessage } from 'src/schemas/message';
 import { DateRange } from 'src/schemas/primitives';
 

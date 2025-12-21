@@ -1,6 +1,5 @@
 import { getChat } from '@/services/chat';
 import {
-  MessageActivityDTO,
   ObjectId,
   PhotoMessageSearchResultDTO,
   SendMessageInput,
@@ -18,6 +17,7 @@ import {
   sendMessage,
 } from '../services/message';
 import { profileProcedure, router } from '../trpc';
+import { MessageActivityDTO } from '@repo/common/schemas/activities';
 
 export const messageRouter = router({
   onNewMessage: profileProcedure

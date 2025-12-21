@@ -436,6 +436,20 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    content: 'Hey Nick!',
+    senderId: profileIds.alice,
+    chatId: chatIds.directChat1,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'Hey Charlie!',
+    senderId: profileIds.nick,
+    chatId: chatIds.directChat2,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
     content: 'Hey Bob!',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,

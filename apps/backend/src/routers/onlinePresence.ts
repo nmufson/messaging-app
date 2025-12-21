@@ -51,9 +51,9 @@ export const onlinePresenceRouter = router({
                 ...(chatId
                   ? [
                       {
-                        chats: {
+                        chatMemberships: {
                           some: {
-                            id: chatId,
+                            chatId,
                           },
                         },
                       },
@@ -126,8 +126,10 @@ export const onlinePresenceRouter = router({
       const profileWithChats = await prisma.profile.findUnique({
         where: { id: userProfileId },
         include: {
-          chats: {
-            select: { id: true },
+          chatMemberships: {
+            select: {
+              chatId: true,
+            },
           },
         },
       });
@@ -139,7 +141,9 @@ export const onlinePresenceRouter = router({
         });
       }
 
-      const isMember = profileWithChats.chats.some((c) => c.id === chatId);
+      const isMember = profileWithChats.chatMemberships.some(
+        (c) => c.chatId === chatId
+      );
       if (!isMember) {
         throw new TRPCError({
           code: 'FORBIDDEN',

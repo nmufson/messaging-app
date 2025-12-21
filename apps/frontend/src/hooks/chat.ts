@@ -15,7 +15,6 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useSubscription } from '@trpc/tanstack-react-query';
-import { first } from 'lodash';
 import { useMemo } from 'react';
 
 export function useChatList() {
@@ -84,6 +83,9 @@ export function useChat(params: UseChatParams) {
       chatId
         ? {
             chatId,
+            options: {
+              sortDirection: 'asc',
+            },
           }
         : skipToken,
       {
@@ -133,8 +135,11 @@ export function useChat(params: UseChatParams) {
     trpc.chat.onNewMessageInChat.subscriptionOptions(
       profileId ? { profileId } : skipToken,
       {
-        onData(newMessage) {
-          const messageData = newMessage.data ? newMessage.data : newMessage;
+        onData(newMessageActivityData) {
+          // TODO: re-examine this
+          const newMessageActivity = newMessageActivityData.data
+            ? newMessageActivityData.data
+            : newMessageActivityData;
           if (!chat) return;
           queryClient.setQueryData(activitiesQueryKey, (oldData) => {
             if (!oldData) return oldData;
@@ -144,10 +149,7 @@ export function useChat(params: UseChatParams) {
 
             newPages[0] = {
               ...firstPage,
-              activities: [
-                ...firstPage.activities,
-                ...tagActivity(messageData, 'message'),
-              ],
+              activities: [...firstPage.activities, ...newMessageActivity],
             };
 
             return {

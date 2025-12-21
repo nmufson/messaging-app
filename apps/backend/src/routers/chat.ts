@@ -10,7 +10,6 @@ import { sendMessage } from '@/services/message';
 import {
   ActionOutputDTO,
   CHAT_UPDATE_ACTIONS,
-  ChatActivityDTO,
   ChatDTO,
   ChatInfoDTO,
   ChatListDTO,
@@ -20,6 +19,7 @@ import {
   mergeAsyncIterators,
   MessageType,
   ObjectId,
+  tagActivity,
   UpdateChatInput,
   UserRole,
   z,
@@ -29,6 +29,10 @@ import { on } from 'events';
 import { eventEmitter } from '../lib/eventBus';
 import { logger } from '../lib/pino';
 import { adminProcedure, profileProcedure, router } from '../trpc';
+import {
+  ActivitiesQueryOptions,
+  ChatActivityDTO,
+} from '@repo/common/schemas/activities';
 
 export const chatRouter = router({
   // TODO: add something for loading more messages in chat
@@ -101,6 +105,7 @@ export const chatRouter = router({
       z.object({
         chatId: ObjectId,
         cursor: DateTimeSchema.optional(),
+        options: ActivitiesQueryOptions.optional(),
       })
     )
     .output(
@@ -110,8 +115,8 @@ export const chatRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { chatId, cursor } = input;
-      return getChatActivities(ctx.prisma, { chatId, cursor });
+      const { chatId, cursor, options } = input;
+      return getChatActivities(ctx.prisma, { chatId, cursor }, options);
     }),
   onNewMessageInChat: profileProcedure
     .input(
@@ -145,7 +150,8 @@ export const chatRouter = router({
       for await (const [message] of mergeAsyncIterators(iterables)) {
         logger.info({ message }, 'yielding message');
         if (message.senderId !== user.profile?.id) {
-          yield tracked(message.id, message);
+          const messageActivity = tagActivity(message, 'message');
+          yield tracked(message.id, messageActivity);
         }
       }
     }),

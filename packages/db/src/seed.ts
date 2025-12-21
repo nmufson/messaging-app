@@ -91,7 +91,7 @@ async function main() {
         data: chat.participantIds.map((profileId) => ({
           chatId: createdChat.id,
           profileId,
-          role: 'MEMBER',
+          status: 'MEMBER',
         })),
       });
     }

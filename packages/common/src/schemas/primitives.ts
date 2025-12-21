@@ -25,3 +25,6 @@ export const DateRange = z.object({
   endDate: DateTimeSchema,
 });
 export type DateRange = z.infer<typeof DateRange>;
+
+export const SortDirection = z.enum(['asc', 'desc']);
+export type SortDirection = z.infer<typeof SortDirection>;

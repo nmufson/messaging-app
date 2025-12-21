@@ -2,8 +2,12 @@ import { GroupPhoto } from '@/components/GroupPhoto';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { PROFILE_FALLBACK } from '@/constants';
 import { formatDisplayDate, getChatDisplayName } from '@/utils/formatting';
-import { getParticipant, getParticipantProfiles } from '@/utils/general';
-import { BaseProfile, ChatActivityDTO, ChatDTO } from '@repo/common';
+import {
+  getActionText,
+  getParticipant,
+  getParticipantProfiles,
+} from '@/utils/general';
+import { BaseProfile, ChatDTO } from '@repo/common';
 import Link from 'next/link';
 import * as R from 'remeda';
 import { useAuth } from '../../context/AuthContext';
@@ -29,6 +33,17 @@ export function ChatPreview({ chat }: ChatPreviewProps) {
 
   const isGroupChat = type === 'GROUP';
   const lastActivity = activities[0];
+
+  const isMessageActivity = lastActivity.activityType === 'message';
+  const activityProfile = participantProfiles.find(
+    (p) =>
+      p.id ===
+      (isMessageActivity ? lastActivity.senderId : lastActivity.actorId)
+  );
+  const targetProfile = !isMessageActivity
+    ? participantProfiles.find((p) => p.id === lastActivity.targetId)
+    : null;
+
   const displayName = getChatDisplayName({
     name,
     participantProfiles,
@@ -50,9 +65,11 @@ export function ChatPreview({ chat }: ChatPreviewProps) {
   const displayTime = formatDisplayDate(timeToShow);
 
   const formattedDisplayName = R.truncate(displayName, 20);
-  const formattedDisplayMessage = getMessagePreview({
+  const activityContentDisplay = getMessagePreview({
+    isSelf: loggedInProfileId === activityProfile?.id,
     activity: lastActivity,
-    participantProfiles,
+    activityProfile: activityProfile ?? PROFILE_FALLBACK,
+    targetProfile,
   });
 
   const chatLink = `/chat/chat?chat=${chatId}`;
@@ -69,7 +86,7 @@ export function ChatPreview({ chat }: ChatPreviewProps) {
             <small>{displayTime}</small>
           </div>
           <div>
-            <small>{formattedDisplayMessage}</small>
+            <small>{activityContentDisplay}</small>
           </div>
         </div>
       </div>
@@ -78,24 +95,66 @@ export function ChatPreview({ chat }: ChatPreviewProps) {
 }
 
 interface GetMessagePreviewParams {
+  isSelf: boolean;
   activity: ChatActivityDTO;
-  participantProfiles: BaseProfile[];
+  activityProfile: BaseProfile;
+  targetProfile?: BaseProfile | null;
+  truncate?: number;
 }
 
 export function getMessagePreview(params: GetMessagePreviewParams) {
-  const { activity, participantProfiles } = params;
+  const {
+    isSelf,
+    activity,
+    activityProfile,
+    targetProfile,
+    truncate = 40,
+  } = params;
 
   const isMessage = activity?.activityType === 'message';
-  const activityProfileId = isMessage ? activity?.senderId : activity?.actorId;
-  const activityProfile =
-    participantProfiles.find((p) => p.id === activityProfileId) ??
-    PROFILE_FALLBACK;
 
-  if (isMessage && activity.type === 'IMAGE') {
-    return `${activityProfile.firstName} ${activityProfile.lastName} sent a photo.`;
+  let content = '';
+
+  if (isMessage) {
+    content = getMessageActivityContent({
+      isSelf,
+      messageActivity: activity,
+      senderProfile: activityProfile,
+    });
+  } else {
+    content = getActionText({
+      ...activity,
+      actor: activityProfile,
+      target: targetProfile,
+    });
   }
 
-  const truncatedContent = R.truncate(activity.content ?? '', 40);
+  return R.truncate(content, truncate);
+}
 
-  return truncatedContent;
+interface FormatMessageActivityParams {
+  isSelf: boolean;
+  messageActivity: MessageActivityDTO;
+  senderProfile: BaseProfile;
+}
+
+function getMessageActivityContent(params: FormatMessageActivityParams) {
+  const { isSelf, messageActivity, senderProfile } = params;
+
+  if (messageActivity.type === 'IMAGE') {
+    const photoTextPrefix = getNameDisplay({ isSelf, profile: senderProfile });
+
+    return `${photoTextPrefix} sent a photo.`;
+  } else {
+    return messageActivity.content ?? '';
+  }
+}
+
+interface NameDisplay {
+  isSelf: boolean;
+  profile: BaseProfile;
+}
+
+export function getNameDisplay({ isSelf, profile }: NameDisplay) {
+  return isSelf ? 'You' : `${profile.firstName} ${profile.lastName}`;
 }

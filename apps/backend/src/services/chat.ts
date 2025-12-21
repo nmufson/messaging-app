@@ -5,13 +5,17 @@ import {
   ChatType,
   DateTimeSchema,
   IChatAction,
-  IChatActivity,
   IMessage,
   ListProfileDTO,
   ObjectId,
   ReactionEmoji,
+  SortDirection,
   tagActivity,
 } from '@repo/common';
+import {
+  ActivitiesQueryOptions,
+  IChatActivity,
+} from '@repo/common/schemas/activities';
 import { ChatActionType, prisma, PrismaClient } from '@repo/db';
 import { profile } from 'console';
 import { DateTime } from 'luxon';
@@ -188,6 +192,8 @@ export const getChat = async (
       creatorId: true,
       participants: {
         select: {
+          lastViewedAt: true,
+          unreadActivities: true,
           profile: {
             select: {
               id: true,
@@ -213,8 +219,11 @@ export const getChat = async (
 
 export const getMergedActivities = async (
   messages: IMessage[],
-  actions: IChatAction[]
+  actions: IChatAction[],
+  options?: { sortDirection?: SortDirection }
 ): Promise<IChatActivity[]> => {
+  const { sortDirection = 'desc' } = options || {};
+
   const messageActivities = messages.map((msg) => tagActivity(msg, 'message'));
 
   const actionActivities = actions.map((action) =>
@@ -222,7 +231,10 @@ export const getMergedActivities = async (
   );
 
   const mergedActivities = [...messageActivities, ...actionActivities].sort(
-    (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+    (a, b) =>
+      sortDirection === 'asc'
+        ? a.createdAt.getTime() - b.createdAt.getTime()
+        : b.createdAt.getTime() - a.createdAt.getTime()
   );
 
   return mergedActivities;
@@ -347,10 +359,10 @@ export const createAction = async (prisma: PrismaClient, data: ActionData) => {
 export const getChatActivities = async (
   prisma: PrismaClient,
   params: { chatId: ObjectId; cursor?: DateTimeSchema },
-  options?: { minActivities?: number }
+  options?: ActivitiesQueryOptions
 ) => {
   const { chatId, cursor } = params;
-  const { minActivities = 20 } = options || {};
+  const { minActivities = 20, sortDirection = 'desc' } = options || {};
 
   const endDate = cursor ? cursor : DateTime.now();
   let startDate = endDate.minus({ days: 7 });
@@ -382,7 +394,7 @@ export const getChatActivities = async (
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: sortDirection },
     });
 
     actions = await prisma.chatAction.findMany({
@@ -393,7 +405,7 @@ export const getChatActivities = async (
           lt: endDate.toJSDate(),
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: sortDirection },
     });
 
     activityCount = messages.length + actions.length;
@@ -420,7 +432,9 @@ export const getChatActivities = async (
     startDate = startDate.minus({ days: currentDuration });
   }
 
-  const mergedActivities = await getMergedActivities(messages, actions);
+  const mergedActivities = await getMergedActivities(messages, actions, {
+    sortDirection,
+  });
 
   const hasOlderActivities =
     (await prisma.message.findFirst({
