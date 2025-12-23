@@ -1,13 +1,18 @@
 import { getNameDisplay } from '@/utils/formatting';
 import { getActionText } from '@/utils/general';
-import { BaseProfile, ChatActivityDTO, MessageActivityDTO } from '@repo/common';
+import {
+  IBaseProfile,
+  ChatActivityDTO,
+  MessageActivityDTO,
+  BaseProfileDTO,
+} from '@repo/common';
 import * as R from 'remeda';
 
 interface GetMessagePreviewParams {
   isSelf: boolean;
   activity: ChatActivityDTO;
-  activityProfile: BaseProfile;
-  targetProfile?: BaseProfile | null;
+  activityProfile: BaseProfileDTO;
+  targetProfile?: BaseProfileDTO | null;
   truncate?: number;
 }
 
@@ -47,7 +52,7 @@ export function getMessagePreview(params: GetMessagePreviewParams) {
 interface FormatMessageActivityParams {
   isSelf: boolean;
   messageActivity: MessageActivityDTO;
-  senderProfile: BaseProfile;
+  senderProfile: BaseProfileDTO;
 }
 
 function getMessageActivityContent(params: FormatMessageActivityParams) {

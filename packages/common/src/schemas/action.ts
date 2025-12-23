@@ -1,6 +1,6 @@
 import z from 'zod';
 import { DateTimeSchema, ObjectId } from './primitives';
-import { BaseProfile } from './profile';
+import { BaseProfileDTO, IBaseProfile } from './profile';
 
 export const ChatActionType = z.enum([
   'CHAT_CREATED',
@@ -32,7 +32,7 @@ export const ChatActionWithActorDTO = ChatActionDTO.omit({
   actorId: true,
   targetId: true,
 }).extend({
-  actor: BaseProfile,
-  target: BaseProfile.nullish(),
+  actor: BaseProfileDTO,
+  target: BaseProfileDTO.nullish(),
 });
 export type ChatActionWithActorDTO = z.infer<typeof ChatActionWithActorDTO>;

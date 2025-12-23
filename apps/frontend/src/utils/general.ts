@@ -1,5 +1,5 @@
 import {
-  BaseProfile,
+  IBaseProfile,
   ChatActionWithActorDTO,
   ChatParticipantDTO,
   ObjectId,
@@ -10,7 +10,7 @@ import { assertNever } from './validation';
 interface GetProfileParams {
   id: ObjectId;
   participants?: ChatParticipantDTO[];
-  profiles?: BaseProfile[];
+  profiles?: IBaseProfile[];
 }
 
 export const getProfile = (params: GetProfileParams) => {

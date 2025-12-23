@@ -2,7 +2,7 @@ import { SelectedProfile } from '@/app/chats/WriteToChatModal';
 import { useAuth } from '@/context/AuthContext';
 import { useToggle } from '@/hooks/general';
 import { getChatDisplayName } from '@/utils';
-import { ChatListItemDTO, ObjectId, IParticipantProfile } from '@repo/common';
+import { BaseProfileDTO, ChatListItemDTO, ObjectId } from '@repo/common';
 import { MouseEvent } from 'react';
 import { ChatProfileItem } from '../profile/ChatProfileItem';
 import { getParticipantProfiles } from '@/utils/general';
@@ -64,7 +64,7 @@ export function ChatResultItem(props: GroupChatResultItemProps) {
         style={{ willChange: 'max-height, opacity' }}
       >
         <div className="flex flex-col">
-          {participantProfiles.map((profile: IParticipantProfile) => (
+          {participantProfiles.map((profile: BaseProfileDTO) => (
             <ChatProfileItem
               key={profile.id}
               profile={profile}

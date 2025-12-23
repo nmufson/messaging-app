@@ -1,4 +1,4 @@
-import { BaseProfile } from '@repo/common';
+import { BaseProfileDTO, IBaseProfile } from '@repo/common';
 import { ProfileAvatar } from './ProfileAvatar';
 
 const POSITIONS = [
@@ -31,7 +31,7 @@ const POSITIONS = [
 interface GroupPhotoProps {
   groupPictureUrl: string | null;
   // TODO: change this?
-  participantProfiles: BaseProfile[];
+  participantProfiles: BaseProfileDTO[];
   size?: number;
   className?: string;
 }

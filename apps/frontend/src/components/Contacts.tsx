@@ -4,14 +4,15 @@ import { useAuth } from '@/context/AuthContext';
 import { useInput } from '@/hooks/general';
 import { useOnlinePresence } from '@/hooks/onlinePresence';
 import { useFriends } from '@/hooks/profile';
-import { ListProfileDTO, ObjectId } from '@repo/common';
+import { BaseProfileDTO } from '@repo/common';
+
 import * as R from 'remeda';
 
 // TODO: add optional param for filtering out specific contacts (ones already in the chat)
 export function Contacts({
   onSelectProfile,
 }: {
-  onSelectProfile?: (profile: ListProfileDTO) => void;
+  onSelectProfile?: (profile: BaseProfileDTO) => void;
 }) {
   const { profile } = useAuth();
   const { value: searchInput, onChange: onSearchInputChange } = useInput();
@@ -111,9 +112,9 @@ export function Contacts({
 }
 
 interface ProfileListProps {
-  profiles: ListProfileDTO[];
+  profiles: BaseProfileDTO[];
   showPresence?: boolean;
-  onSelectProfile?: (profile: ListProfileDTO) => void;
+  onSelectProfile?: (profile: BaseProfileDTO) => void;
 }
 function ProfileList(props: ProfileListProps) {
   const { profiles, showPresence = false, onSelectProfile } = props;

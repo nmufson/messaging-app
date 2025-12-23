@@ -2,7 +2,7 @@ import z from 'zod';
 import { ChatActionType } from './action';
 import { DateRange, DateTimeSchema, ObjectId } from './primitives';
 import { ActionActivityDTO, ChatActivityDTO } from './activities';
-import { IParticipantProfile, ParticipantProfileDTO } from './profile';
+import { BaseProfileDTO, IBaseProfile } from './profile';
 
 export const CHAT_UPDATE_ACTIONS = {
   name: 'NAME_CHANGED',
@@ -22,13 +22,13 @@ export type UpdateChatInput = z.infer<typeof UpdateChatInput>;
 export const IChatParticipant = z.object({
   lastViewedAt: z.date().nullish(),
   unreadActivities: z.number().int().nonnegative(),
-  profile: IParticipantProfile,
+  profile: IBaseProfile,
 });
 export type IChatParticipant = z.infer<typeof IChatParticipant>;
 
 export const ChatParticipantDTO = IChatParticipant.extend({
   lastViewedAt: DateTimeSchema.nullish(),
-  profile: ParticipantProfileDTO,
+  profile: BaseProfileDTO,
 });
 export type ChatParticipantDTO = z.infer<typeof ChatParticipantDTO>;
 

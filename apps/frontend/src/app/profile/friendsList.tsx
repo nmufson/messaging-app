@@ -2,7 +2,6 @@
 
 import { ProfilePreview } from '@/components/profile/ProfilePreview';
 import { useFriends } from '@/hooks/profile';
-import { ListProfileDTO } from '@repo/common';
 import { useQueryState } from 'nuqs';
 
 export default function FriendsList() {

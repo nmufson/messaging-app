@@ -1,8 +1,8 @@
 import { logger } from '@/lib/pino';
 import {
+  BaseProfileDTO,
   CreateProfileInput,
   ObjectId,
-  ParticipantProfileDTO,
   ProfileDTO,
   ProfilePageDTO,
   UpdateProfileInput,
@@ -151,7 +151,7 @@ export const profileRouter = router({
     .input(
       z.object({ profileId: ObjectId, searchInput: z.string().optional() })
     )
-    .output(ParticipantProfileDTO.array())
+    .output(BaseProfileDTO.array())
     .query(async ({ input, ctx }) => {
       const { profileId, searchInput } = input;
 
@@ -183,7 +183,7 @@ export const profileRouter = router({
     }),
   nonFriends: profileProcedure
     .input(z.object({ searchInput: z.string() }))
-    .output(ParticipantProfileDTO.array())
+    .output(BaseProfileDTO.array())
     .query(async ({ input, ctx }) => {
       const { searchInput } = input;
       const { user } = ctx;

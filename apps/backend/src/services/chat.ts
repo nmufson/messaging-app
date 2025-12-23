@@ -4,11 +4,11 @@ import {
   ChatListItemDTO,
   ChatType,
   DateTimeSchema,
+  IBaseProfile,
   IChatAction,
   IChatListItem,
   IMessage,
   ObjectId,
-  IParticipantProfile,
   SortDirection,
   tagActivity,
 } from '@repo/common';
@@ -33,7 +33,7 @@ export const getPotentialChats = async (
   prisma: PrismaClient,
   params: GetPotentialChatsParams
 ): Promise<{
-  profiles: IParticipantProfile[];
+  profiles: IBaseProfile[];
   groupChats: IChatListItem[];
 }> => {
   const { searchNames, selectedProfiles, profileId, limit, requireInput } =

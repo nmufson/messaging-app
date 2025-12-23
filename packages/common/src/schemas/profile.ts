@@ -66,6 +66,7 @@ export const UpdateProfileInput = CreateProfileInput.extend({
 });
 export type UpdateProfileInput = z.infer<typeof UpdateProfileInput>;
 
+// TODO review this
 export const ProfileDTO = z.object({
   id: ObjectId,
   createdAt: DateTimeSchema,
@@ -103,24 +104,21 @@ export const ProfilePageDTO = z.object({
 });
 export type ProfilePageDTO = z.infer<typeof ProfilePageDTO>;
 
-export const BaseProfile = z.object({
+// TODO: add isOnline and lastOnline to these and remove IProfileWithOnline
+export const IBaseProfile = z.object({
   id: ObjectId,
   firstName: z.string(),
   lastName: z.string(),
   avatarUrl: z.string().nullable(),
-});
-export type BaseProfile = z.infer<typeof BaseProfile>;
-
-export const IParticipantProfile = BaseProfile.extend({
   isOnline: z.boolean().nullish(),
   lastOnline: z.date().nullish(),
 });
-export type IParticipantProfile = z.infer<typeof IParticipantProfile>;
+export type IBaseProfile = z.infer<typeof IBaseProfile>;
 
-export const ParticipantProfileDTO = IParticipantProfile.extend({
+export const BaseProfileDTO = IBaseProfile.extend({
   lastOnline: DateTimeSchema.nullish(),
 });
-export type ParticipantProfileDTO = z.infer<typeof ParticipantProfileDTO>;
+export type BaseProfileDTO = z.infer<typeof BaseProfileDTO>;
 
 export const PresenceUpdate = z.object({
   profileId: ObjectId,

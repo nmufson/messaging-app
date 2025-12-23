@@ -1,8 +1,9 @@
 import {
-  BaseProfile,
+  IBaseProfile,
   ChatParticipantDTO,
   DateTimeSchema,
   ObjectId,
+  BaseProfileDTO,
 } from '@repo/common';
 import { DateTime } from 'luxon';
 import * as R from 'remeda';
@@ -48,7 +49,7 @@ export function slugify(str: string) {
 
 interface GetChatDisplayNameParams {
   name: string | null;
-  participantProfiles?: Omit<BaseProfile, 'avatarUrl'>[];
+  participantProfiles?: Omit<BaseProfileDTO, 'avatarUrl'>[];
   profileId?: ObjectId;
   truncate?: number;
 }
@@ -190,7 +191,7 @@ export function getFriendsOnlineSummary(
 
 interface NameDisplay {
   isSelf: boolean;
-  profile: BaseProfile;
+  profile: BaseProfileDTO;
 }
 
 export function getNameDisplay({ isSelf, profile }: NameDisplay) {

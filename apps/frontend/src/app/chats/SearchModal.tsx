@@ -8,8 +8,8 @@ import { useMessages } from '@/hooks/messages';
 import { formatDisplayDate, getChatDisplayName } from '@/utils';
 import { useNavigation } from '@/utils/Navigation';
 import {
+  BaseProfileDTO,
   ChatListItemDTO,
-  ListProfileDTO,
   PhotoMessageSearchResultDTO,
   TextMessageSearchResultDTO,
 } from '@repo/common';
@@ -26,7 +26,7 @@ export function SearchModal() {
     requireInput: false,
   });
 
-  const combinedList: (ListProfileDTO | ChatListItemDTO)[] = [
+  const combinedList: (BaseProfileDTO | ChatListItemDTO)[] = [
     ...profiles,
     ...groupChats,
   ];
@@ -47,7 +47,7 @@ export function SearchModal() {
       </div>
       <div className="grid grid-cols-5 gap-3 max-h-[400px] overflow-y-auto">
         {combinedList.slice(0, 10).map((item) => {
-          const parsedProfile = ListProfileDTO.safeParse(item);
+          const parsedProfile = BaseProfileDTO.safeParse(item);
           const parsedChat = ChatListItemDTO.safeParse(item);
           if (parsedProfile.success) {
             return (
@@ -165,7 +165,7 @@ function TextMessagePreview({ textMessage }: TextMessagePreviewProps) {
 }
 
 type ChatResultItemProps =
-  | { type: 'profile'; profile: ListProfileDTO }
+  | { type: 'profile'; profile: BaseProfileDTO }
   | { type: 'groupChat'; groupChat: ChatListItemDTO };
 
 function ProfileOrChatItem(props: ChatResultItemProps) {

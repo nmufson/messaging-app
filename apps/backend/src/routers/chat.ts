@@ -18,7 +18,7 @@ import {
   mergeAsyncIterators,
   MessageType,
   ObjectId,
-  ParticipantProfileDTO,
+  BaseProfileDTO,
   tagActivity,
   UpdateChatInput,
   UserRole,
@@ -330,7 +330,7 @@ export const chatRouter = router({
     )
     .output(
       z.object({
-        profiles: ParticipantProfileDTO.array(),
+        profiles: BaseProfileDTO.array(),
         groupChats: ChatListItemDTO.array(),
       })
     )

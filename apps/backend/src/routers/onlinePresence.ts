@@ -1,9 +1,9 @@
 import { eventEmitter } from '@/lib/eventBus';
 import { logger } from '@/lib/pino';
 import {
+  BaseProfileDTO,
   DurationObject,
   ObjectId,
-  ParticipantProfileDTO,
   PresenceUpdate,
   z,
 } from '@repo/common';
@@ -23,7 +23,7 @@ export const onlinePresenceRouter = router({
         })
         .optional()
     )
-    .output(ParticipantProfileDTO.array())
+    .output(BaseProfileDTO.array())
     .query(async ({ ctx, input }) => {
       const { chatId, withinLast } = input || {};
       const { user, prisma } = ctx;

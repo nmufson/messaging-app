@@ -9,12 +9,11 @@ import { getChatDisplayName } from '@/utils';
 import { getParticipantProfiles } from '@/utils/general';
 import { useNavigation } from '@/utils/Navigation';
 import {
+  BaseProfileDTO,
   ChatDTO,
   ChatInfoDTO,
   ChatType,
   ObjectId,
-  IParticipantProfile,
-  ProfileDTO,
 } from '@repo/common';
 import Link from 'next/link';
 import { FormEvent, useEffect, useMemo, useRef } from 'react';
@@ -253,8 +252,8 @@ export function ChatContent(props: ChatContentProps) {
 interface ChatPhotoProps {
   chatType: ChatType;
   chat?: ChatInfoDTO;
-  participantProfiles: IParticipantProfile[];
-  otherParticipantProfile?: IParticipantProfile | null;
+  participantProfiles: BaseProfileDTO[];
+  otherParticipantProfile?: BaseProfileDTO | null;
 }
 
 function ChatPhoto(props: ChatPhotoProps) {
