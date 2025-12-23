@@ -59,6 +59,7 @@ export default function FindFriends() {
       />
 
       <div className="mt-6">
+        {/* TODO: clean this up, maybe extract to component  */}
         {!searchInput ? (
           <div className="text-center text-gray-500 py-8">
             <i className="bi bi-people text-4xl mb-2 block" />

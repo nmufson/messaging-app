@@ -46,37 +46,38 @@ export const getParticipantProfiles = (participants: ChatParticipantDTO[]) => {
   return participants.map((p) => p.profile);
 };
 
-// TODO: make this account for logged in user having sent message (in the case of photo ?)
-export const getActionText = (actionWithActor: ChatActionWithActorDTO) => {
+export const getActionText = (
+  actionWithActor: ChatActionWithActorDTO,
+  isSelf: boolean
+) => {
   const { actor, target, actionType, content } = actionWithActor;
   const actingProfileName = getProfileDisplayName(actor);
+  const actorLabel = isSelf ? 'You' : actingProfileName;
   const targetProfileName = target ? getProfileDisplayName(target) : null;
 
   switch (actionType) {
     case 'CHAT_CREATED': {
-      return `${actingProfileName} created the chat.`;
+      return `${actorLabel} created the chat.`;
     }
     case 'MEMBER_ADDED': {
-      if (!targetProfileName) return `${actingProfileName} added a member.`;
-      return `${actingProfileName} added ${targetProfileName} to the chat.`;
+      return `${actorLabel} added ${targetProfileName} to the chat.`;
     }
 
     case 'MEMBER_REMOVED': {
-      if (!targetProfileName) return `${actingProfileName} removed a member.`;
-      return `${actingProfileName} removed ${targetProfileName} from the chat.`;
+      return `${actorLabel} removed ${targetProfileName} from the chat.`;
     }
 
     case 'MEMBER_LEFT': {
-      return `${actingProfileName} left the chat.`;
+      return `${actorLabel} left the chat.`;
     }
 
     case 'NAME_CHANGED': {
       const textEnding = content ? ` to ${content}` : '';
-      return `${actingProfileName} changed the chat name${textEnding}.`;
+      return `${actorLabel} changed the chat name to${textEnding}.`;
     }
 
     case 'PICTURE_CHANGED': {
-      return `${actingProfileName} changed the chat picture.`;
+      return `${actorLabel} changed the chat picture.`;
     }
 
     default: {

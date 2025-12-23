@@ -1,16 +1,16 @@
-import { tracked, TRPCError } from '@trpc/server';
-import { router, profileProcedure } from '../trpc';
+import { eventEmitter } from '@/lib/eventBus';
+import { logger } from '@/lib/pino';
 import {
   DurationObject,
-  ListProfileDTO,
   ObjectId,
+  ParticipantProfileDTO,
   PresenceUpdate,
   z,
 } from '@repo/common';
-import { DateTime } from 'luxon';
-import { eventEmitter } from '@/lib/eventBus';
+import { TRPCError } from '@trpc/server';
 import { on } from 'events';
-import { logger } from '@/lib/pino';
+import { DateTime } from 'luxon';
+import { profileProcedure, router } from '../trpc';
 
 export const onlinePresenceRouter = router({
   // friends who are online or recently online
@@ -23,7 +23,7 @@ export const onlinePresenceRouter = router({
         })
         .optional()
     )
-    .output(ListProfileDTO.array())
+    .output(ParticipantProfileDTO.array())
     .query(async ({ ctx, input }) => {
       const { chatId, withinLast } = input || {};
       const { user, prisma } = ctx;

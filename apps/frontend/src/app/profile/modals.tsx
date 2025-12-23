@@ -1,16 +1,16 @@
 'use client';
-import { Modal } from '@/components/modal/Modal';
+import { Button, CancelButton } from '@/components/button/button';
+import { TextFieldGroup } from '@/components/FieldGroup';
+import { ImageUpload } from '@/components/ImageUpload';
+import { Modal, ModalActions } from '@/components/modal/Modal';
 import { useModalContext } from '@/context/ModalContext';
 import { useToast } from '@/context/Toast/ToastContext';
 import { useTRPC } from '@/lib/trpc';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ProfileDTO, ProfilePageDTO, UpdateProfileInput } from '@repo/common';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { TextFieldGroup } from '@/components/FieldGroup';
-import { ImageUpload } from '@/components/ImageUpload';
 import * as R from 'remeda';
 
 export function UpdateProfileModal({ profile }: { profile: ProfilePageDTO }) {
@@ -133,6 +133,30 @@ export function UpdateProfileModal({ profile }: { profile: ProfilePageDTO }) {
         </div>
         <button disabled={isPending}>Done</button>
       </form>
+    </Modal>
+  );
+}
+
+interface CancelRequestModalProps {
+  onCancelRequest: () => void;
+}
+
+export function CancelRequestModal({
+  onCancelRequest,
+}: CancelRequestModalProps) {
+  return (
+    <Modal header="Cancel Request?">
+      <p>Click to cancel friend request.</p>
+      <ModalActions>
+        <CancelButton key="close" />,
+        <Button
+          key="cancel-request"
+          onClick={onCancelRequest}
+          className="bg-red-500 text-white"
+        >
+          Cancel Friend Request
+        </Button>
+      </ModalActions>
     </Modal>
   );
 }

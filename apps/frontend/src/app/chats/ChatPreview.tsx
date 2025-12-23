@@ -2,21 +2,14 @@ import { GroupPhoto } from '@/components/GroupPhoto';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { PROFILE_FALLBACK } from '@/constants';
 import { formatDisplayDate, getChatDisplayName } from '@/utils/formatting';
-import {
-  getActionText,
-  getParticipant,
-  getParticipantProfiles,
-} from '@/utils/general';
-import { BaseProfile, ChatDTO } from '@repo/common';
+import { getParticipant, getParticipantProfiles } from '@/utils/general';
+import { ChatDTO } from '@repo/common';
 import Link from 'next/link';
 import * as R from 'remeda';
 import { useAuth } from '../../context/AuthContext';
+import { getMessagePreview } from './chatPreviewHelpers';
 
-interface ChatPreviewProps {
-  chat: ChatDTO;
-}
-
-export function ChatPreview({ chat }: ChatPreviewProps) {
+export function ChatPreview({ chat }: { chat: ChatDTO }) {
   const {
     id: chatId,
     name,
@@ -92,69 +85,4 @@ export function ChatPreview({ chat }: ChatPreviewProps) {
       </div>
     </Link>
   );
-}
-
-interface GetMessagePreviewParams {
-  isSelf: boolean;
-  activity: ChatActivityDTO;
-  activityProfile: BaseProfile;
-  targetProfile?: BaseProfile | null;
-  truncate?: number;
-}
-
-export function getMessagePreview(params: GetMessagePreviewParams) {
-  const {
-    isSelf,
-    activity,
-    activityProfile,
-    targetProfile,
-    truncate = 40,
-  } = params;
-
-  const isMessage = activity?.activityType === 'message';
-
-  let content = '';
-
-  if (isMessage) {
-    content = getMessageActivityContent({
-      isSelf,
-      messageActivity: activity,
-      senderProfile: activityProfile,
-    });
-  } else {
-    content = getActionText({
-      ...activity,
-      actor: activityProfile,
-      target: targetProfile,
-    });
-  }
-
-  return R.truncate(content, truncate);
-}
-
-interface FormatMessageActivityParams {
-  isSelf: boolean;
-  messageActivity: MessageActivityDTO;
-  senderProfile: BaseProfile;
-}
-
-function getMessageActivityContent(params: FormatMessageActivityParams) {
-  const { isSelf, messageActivity, senderProfile } = params;
-
-  if (messageActivity.type === 'IMAGE') {
-    const photoTextPrefix = getNameDisplay({ isSelf, profile: senderProfile });
-
-    return `${photoTextPrefix} sent a photo.`;
-  } else {
-    return messageActivity.content ?? '';
-  }
-}
-
-interface NameDisplay {
-  isSelf: boolean;
-  profile: BaseProfile;
-}
-
-export function getNameDisplay({ isSelf, profile }: NameDisplay) {
-  return isSelf ? 'You' : `${profile.firstName} ${profile.lastName}`;
 }

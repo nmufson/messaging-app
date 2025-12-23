@@ -1,22 +1,16 @@
 'use client';
 
-import { useTRPC } from '@/lib/trpc';
-import { extractUUIDFromSlug } from '@/utils';
-import { ListProfileDTO } from '@repo/common';
-import { skipToken, useQuery } from '@tanstack/react-query';
-import { DEFAULT_PROFILE_IMAGE } from '@/constants';
-import { useParams } from 'next/navigation';
 import { ProfilePreview } from '@/components/profile/ProfilePreview';
 import { useFriends } from '@/hooks/profile';
+import { ListProfileDTO } from '@repo/common';
+import { useQueryState } from 'nuqs';
 
 export default function FriendsList() {
-  const trpc = useTRPC();
-  const params = useParams();
-  const slug = params.slug as string;
-  const profileId = extractUUIDFromSlug(slug);
+  const [profileId] = useQueryState('profile');
 
   const { friends, isLoading, error } = useFriends(profileId);
 
+  // TODO: clean this up
   if (isLoading) {
     return <div>Loading chat...</div>;
   }
@@ -37,14 +31,14 @@ export default function FriendsList() {
   return (
     <div>
       {friends.map((friend) => {
-        return <FriendProfilePreview key={friend.id} friend={friend} />;
+        return (
+          <ProfilePreview
+            key={friend.id}
+            profile={friend}
+            asLink={`/profile?profile=${friend.id}`}
+          />
+        );
       })}
     </div>
-  );
-}
-
-function FriendProfilePreview({ friend }: { friend: ListProfileDTO }) {
-  return (
-    <ProfilePreview profile={friend} asLink={`/profile?profile=${friend.id}`} />
   );
 }

@@ -12,13 +12,13 @@ import {
   CHAT_UPDATE_ACTIONS,
   ChatDTO,
   ChatInfoDTO,
-  ChatListDTO,
+  ChatListItemDTO,
   ChatType,
   DateTimeSchema,
-  ListProfileDTO,
   mergeAsyncIterators,
   MessageType,
   ObjectId,
+  ParticipantProfileDTO,
   tagActivity,
   UpdateChatInput,
   UserRole,
@@ -330,16 +330,13 @@ export const chatRouter = router({
     )
     .output(
       z.object({
-        profiles: ListProfileDTO.array(),
-        groupChats: ChatListDTO.array(),
+        profiles: ParticipantProfileDTO.array(),
+        groupChats: ChatListItemDTO.array(),
       })
     )
     .query(async ({ input, ctx }) => {
       const { searchNames, requireInput, selectedProfiles } = input;
       const { user } = ctx;
-
-      if (!user || !user?.profile?.id)
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
 
       const { profiles, groupChats } = await getPotentialChats(ctx.prisma, {
         profileId: user.profile.id,

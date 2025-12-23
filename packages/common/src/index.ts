@@ -8,6 +8,7 @@ export * from './schemas/chat';
 export * from './schemas/profile';
 export * from './schemas/friendRequest';
 export * from './schemas/auth';
+export * from './schemas/activities';
 
 import { z } from 'zod';
 export { z };

@@ -187,3 +187,12 @@ export function getFriendsOnlineSummary(
     message: 'None online',
   };
 }
+
+interface NameDisplay {
+  isSelf: boolean;
+  profile: BaseProfile;
+}
+
+export function getNameDisplay({ isSelf, profile }: NameDisplay) {
+  return isSelf ? 'You' : `${profile.firstName} ${profile.lastName}`;
+}

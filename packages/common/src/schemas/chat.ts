@@ -2,6 +2,7 @@ import z from 'zod';
 import { ChatActionType } from './action';
 import { DateRange, DateTimeSchema, ObjectId } from './primitives';
 import { ActionActivityDTO, ChatActivityDTO } from './activities';
+import { IParticipantProfile, ParticipantProfileDTO } from './profile';
 
 export const CHAT_UPDATE_ACTIONS = {
   name: 'NAME_CHANGED',
@@ -18,17 +19,16 @@ export const UpdateChatInput = z.object({
 });
 export type UpdateChatInput = z.infer<typeof UpdateChatInput>;
 
-export const ChatParticipantDTO = z.object({
-  lastViewedAt: DateTimeSchema.nullish(),
+export const IChatParticipant = z.object({
+  lastViewedAt: z.date().nullish(),
   unreadActivities: z.number().int().nonnegative(),
-  profile: z.object({
-    id: ObjectId,
-    firstName: z.string(),
-    lastName: z.string(),
-    avatarUrl: z.string().nullable(),
-    isOnline: z.boolean().nullish(),
-    lastOnline: DateTimeSchema.nullish(),
-  }),
+  profile: IParticipantProfile,
+});
+export type IChatParticipant = z.infer<typeof IChatParticipant>;
+
+export const ChatParticipantDTO = IChatParticipant.extend({
+  lastViewedAt: DateTimeSchema.nullish(),
+  profile: ParticipantProfileDTO,
 });
 export type ChatParticipantDTO = z.infer<typeof ChatParticipantDTO>;
 
@@ -53,23 +53,19 @@ export type ChatInfoDTO = z.infer<typeof ChatInfoDTO>;
 
 export const ChatDetailDTO = ChatDTO.extend({});
 
-export const ChatListDTO = z.object({
+export const IChatListItem = z.object({
   id: ObjectId,
   type: ChatType,
   name: z.string().nullable(),
   groupPictureUrl: z.string().nullable(),
-  participants: z
-    .object({
-      profile: z.object({
-        id: ObjectId,
-        firstName: z.string(),
-        lastName: z.string(),
-        avatarUrl: z.string().nullable(),
-      }),
-    })
-    .array(),
+  participants: IChatParticipant.array(),
 });
-export type ChatListDTO = z.infer<typeof ChatListDTO>;
+export type IChatListItem = z.infer<typeof IChatListItem>;
+
+export const ChatListItemDTO = IChatListItem.extend({
+  participants: ChatParticipantDTO.array(),
+});
+export type ChatListItemDTO = z.infer<typeof ChatListItemDTO>;
 
 export const ActionOutputDTO = z.object({
   updatedChat: ChatInfoDTO,

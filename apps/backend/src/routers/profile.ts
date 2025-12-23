@@ -1,8 +1,8 @@
 import { logger } from '@/lib/pino';
 import {
   CreateProfileInput,
-  ListProfileDTO,
   ObjectId,
+  ParticipantProfileDTO,
   ProfileDTO,
   ProfilePageDTO,
   UpdateProfileInput,
@@ -39,7 +39,7 @@ export const profileRouter = router({
           _count: {
             select: {
               friends: true,
-              chats: true,
+              chatMemberships: true,
               messages: true,
             },
           },
@@ -74,7 +74,7 @@ export const profileRouter = router({
       return {
         ...profile,
         numOfFriends: profile._count.friends,
-        numOfChats: profile._count.chats,
+        numOfChats: profile._count.chatMemberships,
         numOfMessages: profile._count.messages,
         hasPendingFriendRequestFromMe: R.isTruthy(pendingFriendRequestFromMe),
         hasPendingFriendRequestForMe: R.isTruthy(pendingFriendRequestForMe),
@@ -151,7 +151,7 @@ export const profileRouter = router({
     .input(
       z.object({ profileId: ObjectId, searchInput: z.string().optional() })
     )
-    .output(ListProfileDTO.array())
+    .output(ParticipantProfileDTO.array())
     .query(async ({ input, ctx }) => {
       const { profileId, searchInput } = input;
 
@@ -183,7 +183,7 @@ export const profileRouter = router({
     }),
   nonFriends: profileProcedure
     .input(z.object({ searchInput: z.string() }))
-    .output(ListProfileDTO.array())
+    .output(ParticipantProfileDTO.array())
     .query(async ({ input, ctx }) => {
       const { searchInput } = input;
       const { user } = ctx;

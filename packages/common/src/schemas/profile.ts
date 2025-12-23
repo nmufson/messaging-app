@@ -111,11 +111,16 @@ export const BaseProfile = z.object({
 });
 export type BaseProfile = z.infer<typeof BaseProfile>;
 
-export const ListProfileDTO = BaseProfile.extend({
+export const IParticipantProfile = BaseProfile.extend({
   isOnline: z.boolean().nullish(),
+  lastOnline: z.date().nullish(),
+});
+export type IParticipantProfile = z.infer<typeof IParticipantProfile>;
+
+export const ParticipantProfileDTO = IParticipantProfile.extend({
   lastOnline: DateTimeSchema.nullish(),
 });
-export type ListProfileDTO = z.infer<typeof ListProfileDTO>;
+export type ParticipantProfileDTO = z.infer<typeof ParticipantProfileDTO>;
 
 export const PresenceUpdate = z.object({
   profileId: ObjectId,

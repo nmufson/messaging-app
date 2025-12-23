@@ -1,13 +1,13 @@
 'use client';
-import { useToast } from '@/context/Toast/ToastContext';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { FormEvent, useMemo } from 'react';
-import { useTRPC } from '../../lib/trpc';
-import { CreateUserInput } from '@repo/common';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { TextFieldGroup } from '@/components/FieldGroup';
+import { useToast } from '@/context/Toast/ToastContext';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { CreateUserInput } from '@repo/common';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useMemo } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTRPC } from '../../lib/trpc';
 
 export default function SignUp() {
   const trpc = useTRPC();

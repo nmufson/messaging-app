@@ -1,13 +1,14 @@
-import { useAuth } from '@/context/AuthContext';
-import { getChatDisplayName } from '@/utils';
-import { ChatListDTO, ListProfileDTO, ObjectId } from '@repo/common';
-import { Dispatch, SetStateAction, useState, MouseEvent } from 'react';
-import { ChatProfileItem } from '../profile/ChatProfileItem';
 import { SelectedProfile } from '@/app/chats/WriteToChatModal';
+import { useAuth } from '@/context/AuthContext';
 import { useToggle } from '@/hooks/general';
+import { getChatDisplayName } from '@/utils';
+import { ChatListItemDTO, ObjectId, IParticipantProfile } from '@repo/common';
+import { MouseEvent } from 'react';
+import { ChatProfileItem } from '../profile/ChatProfileItem';
+import { getParticipantProfiles } from '@/utils/general';
 
 interface GroupChatResultItemProps {
-  chat: ChatListDTO;
+  chat: ChatListItemDTO;
   onSelectChat: (chatId: ObjectId) => void;
   onClearSelections: () => void;
   addSelectedProfile: (profile: SelectedProfile) => void;
@@ -20,9 +21,11 @@ export function ChatResultItem(props: GroupChatResultItemProps) {
   const { status: showProfiles, toggleStatus: toggleShowProfiles } =
     useToggle();
 
+  const participantProfiles = getParticipantProfiles(participants);
+
   const chatDisplayName = getChatDisplayName({
     name,
-    participants,
+    participantProfiles,
     profileId: profile?.id,
   });
 
@@ -61,7 +64,7 @@ export function ChatResultItem(props: GroupChatResultItemProps) {
         style={{ willChange: 'max-height, opacity' }}
       >
         <div className="flex flex-col">
-          {participants.map((profile: ListProfileDTO) => (
+          {participantProfiles.map((profile: IParticipantProfile) => (
             <ChatProfileItem
               key={profile.id}
               profile={profile}

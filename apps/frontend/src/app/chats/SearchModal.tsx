@@ -8,7 +8,7 @@ import { useMessages } from '@/hooks/messages';
 import { formatDisplayDate, getChatDisplayName } from '@/utils';
 import { useNavigation } from '@/utils/Navigation';
 import {
-  ChatListDTO,
+  ChatListItemDTO,
   ListProfileDTO,
   PhotoMessageSearchResultDTO,
   TextMessageSearchResultDTO,
@@ -26,7 +26,7 @@ export function SearchModal() {
     requireInput: false,
   });
 
-  const combinedList: (ListProfileDTO | ChatListDTO)[] = [
+  const combinedList: (ListProfileDTO | ChatListItemDTO)[] = [
     ...profiles,
     ...groupChats,
   ];
@@ -48,7 +48,7 @@ export function SearchModal() {
       <div className="grid grid-cols-5 gap-3 max-h-[400px] overflow-y-auto">
         {combinedList.slice(0, 10).map((item) => {
           const parsedProfile = ListProfileDTO.safeParse(item);
-          const parsedChat = ChatListDTO.safeParse(item);
+          const parsedChat = ChatListItemDTO.safeParse(item);
           if (parsedProfile.success) {
             return (
               <ProfileOrChatItem
@@ -73,7 +73,7 @@ export function SearchModal() {
         <h5>Messages</h5>
         <div>
           {textMessages?.slice(0, 5).map((text) => (
-            <TextMessagePreview key={text.id} message={text} />
+            <TextMessagePreview key={text.id} textMessage={text} />
           ))}
         </div>
       </div>
@@ -89,11 +89,11 @@ export function SearchModal() {
   );
 }
 
-function PhotoMessagePreview({
-  photoMessage,
-}: {
+interface PhotoMessagePreviewProps {
   photoMessage: PhotoMessageSearchResultDTO;
-}) {
+}
+
+function PhotoMessagePreview({ photoMessage }: PhotoMessagePreviewProps) {
   const { imageUrl, sender, chatId, id: messageId } = photoMessage;
   const { navigateToMessage } = useNavigation();
 
@@ -114,15 +114,15 @@ function PhotoMessagePreview({
   );
 }
 
-function TextMessagePreview({
-  message,
-}: {
-  message: TextMessageSearchResultDTO;
-}) {
+interface TextMessagePreviewProps {
+  textMessage: TextMessageSearchResultDTO;
+}
+
+function TextMessagePreview({ textMessage }: TextMessagePreviewProps) {
   const { profile } = useAuth();
   const { navigateToMessage } = useNavigation();
 
-  const { sender, createdAt, chat } = message;
+  const { sender, createdAt, chat } = textMessage;
   const { name: chatName, participants: participantProfiles } = chat;
   const { firstName, lastName } = sender;
 
@@ -137,7 +137,7 @@ function TextMessagePreview({
   });
 
   const handleNavigateToMessage = () => {
-    navigateToMessage(chat.id, message.id);
+    navigateToMessage(chat.id, textMessage.id);
   };
 
   return (
@@ -151,7 +151,7 @@ function TextMessagePreview({
       </div>
       <div className="flex justify-between items-center">
         <MessageBubble
-          message={message}
+          message={textMessage}
           showName={false}
           showTime={false}
           onClick={handleNavigateToMessage}
@@ -166,7 +166,7 @@ function TextMessagePreview({
 
 type ChatResultItemProps =
   | { type: 'profile'; profile: ListProfileDTO }
-  | { type: 'groupChat'; groupChat: ChatListDTO };
+  | { type: 'groupChat'; groupChat: ChatListItemDTO };
 
 function ProfileOrChatItem(props: ChatResultItemProps) {
   const isGroupChat = props.type === 'groupChat';

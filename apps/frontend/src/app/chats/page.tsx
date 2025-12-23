@@ -16,7 +16,7 @@ export default function Chats() {
       <MessageSearchBar />
       <div>
         {!chats || chats.length === 0 ? (
-          <div>No messages found</div>
+          <div>No chats yet</div>
         ) : (
           chats.map((chat) => {
             return <ChatPreview key={chat.id} chat={chat} />;

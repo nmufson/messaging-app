@@ -1,14 +1,14 @@
 import { logger } from '@/lib/pino';
 import {
   ChatInfoDTO,
-  ChatListDTO,
+  ChatListItemDTO,
   ChatType,
   DateTimeSchema,
   IChatAction,
+  IChatListItem,
   IMessage,
-  ListProfileDTO,
   ObjectId,
-  ReactionEmoji,
+  IParticipantProfile,
   SortDirection,
   tagActivity,
 } from '@repo/common';
@@ -16,8 +16,7 @@ import {
   ActivitiesQueryOptions,
   IChatActivity,
 } from '@repo/common/schemas/activities';
-import { ChatActionType, prisma, PrismaClient } from '@repo/db';
-import { profile } from 'console';
+import { ChatActionType, PrismaClient } from '@repo/db';
 import { DateTime } from 'luxon';
 
 interface GetPotentialChatsParams {
@@ -33,7 +32,10 @@ interface GetPotentialChatsParams {
 export const getPotentialChats = async (
   prisma: PrismaClient,
   params: GetPotentialChatsParams
-): Promise<{ profiles: ListProfileDTO[]; groupChats: ChatListDTO[] }> => {
+): Promise<{
+  profiles: IParticipantProfile[];
+  groupChats: IChatListItem[];
+}> => {
   const { searchNames, selectedProfiles, profileId, limit, requireInput } =
     params;
 
@@ -114,7 +116,7 @@ export const getPotentialChats = async (
         }
       : {};
 
-  let groupChats: ChatListDTO[] = [];
+  let groupChats: IChatListItem[] = [];
   if (!selectedProfiles || selectedProfiles.length === 0) {
     groupChats = await prisma.chat.findMany({
       where: {
@@ -131,12 +133,16 @@ export const getPotentialChats = async (
         groupPictureUrl: true,
         participants: {
           select: {
+            lastViewedAt: true,
+            unreadActivities: true,
             profile: {
               select: {
                 id: true,
                 firstName: true,
                 lastName: true,
                 avatarUrl: true,
+                lastOnline: true,
+                isOnline: true,
               },
             },
           },

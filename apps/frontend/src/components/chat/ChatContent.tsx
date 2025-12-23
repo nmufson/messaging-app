@@ -1,5 +1,3 @@
-import { ActionBubble } from '@/app/chat/[slug]/ActionBubble';
-import { MessageBubble } from '@/app/chat/[slug]/MessageBubble';
 import { SelectedProfile } from '@/app/chats/WriteToChatModal';
 import { ProfileContent } from '@/app/profile/profileContent';
 import { useAuth } from '@/context/AuthContext';
@@ -8,19 +6,25 @@ import { useChat } from '@/hooks/chat';
 import { useInput } from '@/hooks/general';
 import { useOnlinePresence } from '@/hooks/onlinePresence';
 import { getChatDisplayName } from '@/utils';
+import { getParticipantProfiles } from '@/utils/general';
 import { useNavigation } from '@/utils/Navigation';
-import { ChatActivityDTO, ChatParticipantDTO, ObjectId } from '@repo/common';
-import * as _ from 'lodash';
+import {
+  ChatDTO,
+  ChatInfoDTO,
+  ChatType,
+  ObjectId,
+  IParticipantProfile,
+  ProfileDTO,
+} from '@repo/common';
 import Link from 'next/link';
-import { FormEvent, RefObject, useEffect, useMemo, useRef } from 'react';
+import { FormEvent, useEffect, useMemo, useRef } from 'react';
 import { OverlayTrigger, Spinner, Tooltip } from 'react-bootstrap';
 import * as R from 'remeda';
 import { GroupPhoto } from '../GroupPhoto';
 import { FullscreenModal } from '../modal/FullscreenModal';
 import { ProfileAvatar } from '../ProfileAvatar';
+import { Activities } from './Activities';
 import { GroupChatInfo } from './GroupChatInfo';
-import { getParticipantProfiles } from '@/utils/general';
-import { PROFILE_FALLBACK } from '@/constants';
 
 interface ChatContentProps {
   chatId: ObjectId | null;
@@ -167,19 +171,17 @@ export function ChatContent(props: ChatContentProps) {
         <Link href="/chats" className="no-underline text-inherit">
           <i className="bi bi-caret-left-fill text-3xl" />
         </Link>
-        {/* TODO: make this component */}
+
         <div className="flex flex-col items-center">
-          {type === 'GROUP' ? (
-            <GroupPhoto
-              groupPictureUrl={chat?.groupPictureUrl || null}
-              participantProfiles={participantProfiles}
-            />
-          ) : (
-            otherParticipantProfile && (
-              <ProfileAvatar profile={otherParticipantProfile} />
-            )
-          )}
+          <ChatPhoto
+            chatType={type}
+            chat={chat}
+            participantProfiles={participantProfiles}
+            otherParticipantProfile={otherParticipantProfile}
+          />
+
           <h1 className="text-xl font-semibold">{displayName}</h1>
+          {/* TODO: clean this up */}
           {isAnyOnline && (
             <OverlayTrigger
               placement="bottom"
@@ -248,121 +250,29 @@ export function ChatContent(props: ChatContentProps) {
   );
 }
 
-interface ActivitiesProps {
-  activities: ChatActivityDTO[];
-  participants: ChatParticipantDTO[];
-  messageToViewRef: RefObject<HTMLDivElement | null>;
-  messagesEndRef: RefObject<HTMLDivElement | null>;
-  messageToView?: ObjectId | null;
-  fetchNextPage: () => void;
-  hasNextPage: boolean;
-  isFetchingNextPage: boolean;
+interface ChatPhotoProps {
+  chatType: ChatType;
+  chat?: ChatInfoDTO;
+  participantProfiles: IParticipantProfile[];
+  otherParticipantProfile?: IParticipantProfile | null;
 }
 
-function Activities(props: ActivitiesProps) {
-  const {
-    activities,
-    participants,
-    messageToViewRef,
-    messagesEndRef,
-    messageToView,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = props;
+function ChatPhoto(props: ChatPhotoProps) {
+  const { chatType, chat, participantProfiles, otherParticipantProfile } =
+    props;
 
-  const handleScroll = useMemo(
-    () =>
-      _.debounce((scrollTop: number) => {
-        if (scrollTop < 100 && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      }, 300),
-    [fetchNextPage, hasNextPage, isFetchingNextPage]
-  );
-
-  if (!activities || !activities.length) {
-    return <div>No messages yet</div>;
+  if (chatType === 'GROUP') {
+    return (
+      <GroupPhoto
+        groupPictureUrl={chat?.groupPictureUrl || null}
+        participantProfiles={participantProfiles}
+      />
+    );
   }
 
-  return (
-    <div
-      onScroll={(e) => handleScroll(e.currentTarget.scrollTop)}
-      className="messages-container flex-1 overflow-y-auto py-4"
-    >
-      {activities.map((activity, i) => {
-        if (activity.activityType === 'message') {
-          const sender = participants.find(
-            (p) => p.profile.id === activity.senderId
-          );
+  if (otherParticipantProfile) {
+    return <ProfileAvatar profile={otherParticipantProfile} />;
+  }
 
-          if (!sender) {
-            console.error('Sender not found in chat participants', {
-              message: activity,
-              senderId: activity.senderId,
-            });
-          }
-          const messageWithSender = {
-            ...activity,
-            sender: sender?.profile ?? PROFILE_FALLBACK,
-          };
-
-          const { shouldShowName, shouldShowAvatar } = (() => {
-            let shouldShowName = true;
-            let shouldShowAvatar = true;
-
-            const prevActivity = activities[i - 1];
-            const isPrevActivityMessage =
-              prevActivity && prevActivity?.activityType === 'message';
-
-            const nextActivity = activities[i + 1];
-            const isNextActivityMessage =
-              nextActivity && nextActivity?.activityType === 'message';
-
-            shouldShowName =
-              !isPrevActivityMessage ||
-              prevActivity.senderId != activity.senderId;
-            shouldShowAvatar =
-              !isNextActivityMessage ||
-              nextActivity.senderId != activity.senderId;
-
-            return { shouldShowName, shouldShowAvatar };
-          })();
-
-          return (
-            <MessageBubble
-              key={activity.id}
-              message={messageWithSender}
-              showName={shouldShowName}
-              showAvatar={shouldShowAvatar}
-              ref={messageToView === activity.id ? messageToViewRef : null}
-            />
-          );
-        }
-
-        const actioner = participants.find(
-          (p) => p.profile.id === activity.actorId
-        );
-        const target = participants.find(
-          (p) => p.profile.id === activity.targetId
-        );
-
-        if (!actioner) {
-          console.error('Actioner not found in chat participants', {
-            action: activity,
-            actorId: activity.actorId,
-          });
-        }
-
-        const actionWithActor = {
-          ...activity,
-          actor: actioner?.profile ?? PROFILE_FALLBACK,
-          target: target?.profile ?? null,
-        };
-
-        return <ActionBubble key={activity.id} action={actionWithActor} />;
-      })}
-      <div ref={messagesEndRef} />
-    </div>
-  );
+  // TODO: add fallback (img of question mark)
 }

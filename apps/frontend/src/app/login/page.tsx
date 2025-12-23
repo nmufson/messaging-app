@@ -8,7 +8,6 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTRPC } from '../../lib/trpc';
-import { query } from 'express';
 
 export default function LogIn() {
   const trpc = useTRPC();

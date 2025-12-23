@@ -2,14 +2,13 @@
 
 import { ChatContent } from '@/components/chat/ChatContent';
 import { ChatResultItem } from '@/components/chats/ChatResultItem';
-
 import { SelectedProfilesInput } from '@/components/chats/SelectedProfilesInput';
 import { ProfileResultItem } from '@/components/profile/ProfileResultItem';
 import { useModalContext } from '@/context/ModalContext';
 import { usePotentialChats } from '@/hooks/chat';
 import { useInput, useSelectedValue, useSelectedValues } from '@/hooks/general';
 import { ListProfileDTO, ObjectId } from '@repo/common';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 // TODO make friends list content, with both page and modal view
 

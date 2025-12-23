@@ -8,7 +8,7 @@ import { useProfile } from '@/hooks/profile';
 import { formatDisplayDate } from '@/utils';
 import { ObjectId } from '@repo/common';
 import Link from 'next/link';
-import { UpdateProfileModal } from './updateProfileModal';
+import { CancelRequestModal, UpdateProfileModal } from './modals';
 
 export function ProfileContent({ profileId }: { profileId: ObjectId }) {
   const { launchModal, closeModal } = useModalContext();
@@ -71,7 +71,7 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
 
   const handleOpenCancelFriendRequestModal = () => {
     launchModal(
-      <CancelFriendRequestModal onCancelRequest={handleCancelFriendRequest} />
+      <CancelRequestModal onCancelRequest={handleCancelFriendRequest} />
     );
   };
 
@@ -207,27 +207,5 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function CancelFriendRequestModal({
-  onCancelRequest,
-}: {
-  onCancelRequest: () => void;
-}) {
-  return (
-    <Modal header="Cancel Request?">
-      <p>Click to cancel friend request.</p>
-      <ModalActions>
-        <CancelButton key="close" />,
-        <Button
-          key="cancel-request"
-          onClick={onCancelRequest}
-          className="bg-red-500 text-white"
-        >
-          Cancel Friend Request
-        </Button>
-      </ModalActions>
-    </Modal>
   );
 }
