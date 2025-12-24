@@ -40,6 +40,7 @@ export type ReactionReplyDTO = z.infer<typeof ReactionReplyDTO>;
 
 export const IMessage = z.object({
   id: ObjectId,
+  chatId: ObjectId,
   type: MessageType,
   content: z.string().nullable(),
   imageUrl: z.string().nullable(),

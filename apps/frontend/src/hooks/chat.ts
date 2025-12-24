@@ -1,15 +1,9 @@
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/Toast/ToastContext';
 import { useTRPC } from '@/lib/trpc';
-import {
-  ActionOutputDTO,
-  DateRange,
-  ObjectId,
-  tagActivity,
-} from '@repo/common';
+import { ActionOutputDTO, ObjectId } from '@repo/common';
 import {
   skipToken,
-  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -19,6 +13,11 @@ import { useMemo } from 'react';
 
 export function useChatList() {
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
+  const loggedInProfileId = profile?.id;
+
+  const chatListQueryKey = trpc.chat.getList.queryKey({});
 
   const {
     data: chats,
@@ -26,30 +25,44 @@ export function useChatList() {
     error,
   } = useQuery(trpc.chat.getList.queryOptions({}));
 
-  return { chats, isLoading, error };
-}
+  const { status, error: subscriptionError } = useSubscription(
+    trpc.activity.onNewActivityInChatList.subscriptionOptions(
+      loggedInProfileId ? { profileId: loggedInProfileId } : skipToken,
+      {
+        onData(newActivityData) {
+          const newActivity = newActivityData.data;
 
-interface SendMessageParams {
-  senderId: ObjectId;
-  type: 'TEXT' | 'IMAGE';
-  content?: string | null;
-  imageUrl?: string | null;
-  onSuccess?: (chatId: ObjectId) => void;
+          queryClient.setQueryData(chatListQueryKey, (oldData) => {
+            if (!oldData) return oldData;
+
+            const activityChatId = newActivity.chatId;
+
+            return oldData.map((chat) =>
+              chat.id === activityChatId
+                ? { ...chat, activities: [...chat.activities, newActivity] }
+                : chat
+            );
+          });
+        },
+      }
+    )
+  );
+
+  return { chats, isLoading, error };
 }
 
 interface UseChatParams {
   chatId: ObjectId | null;
   profileIds?: ObjectId[];
-  senderProfileId?: ObjectId;
 }
 
 export function useChat(params: UseChatParams) {
-  const { profileIds, senderProfileId: profileId } = params;
+  const { profileIds } = params;
   let { chatId } = params;
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
 
-  const queryInput = useMemo(() => {
+  const trpc = useTRPC();
+
+  const findChatQuery = useMemo(() => {
     if (chatId) {
       return { chatId };
     }
@@ -59,163 +72,16 @@ export function useChat(params: UseChatParams) {
     return null;
   }, [chatId, profileIds]);
 
-  const chatQueryKey = trpc.chat.findChat.queryKey(queryInput ?? {});
-
-  const queryOptions = trpc.chat.findChat.queryOptions(queryInput ?? skipToken);
-
-  const { data: chat, isLoading, error } = useQuery(queryOptions);
-
-  if (!chatId && chat?.id) {
-    chatId = chat.id;
-  }
-
-  const activitiesQueryKey = trpc.activity.getActivities.infiniteQueryKey(
-    chatId ? { chatId } : {}
+  const findChatQueryOptions = trpc.chat.findChat.queryOptions(
+    findChatQuery ?? skipToken
   );
 
-  const {
-    data: activityData,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery(
-    trpc.activity.getActivities.infiniteQueryOptions(
-      chatId
-        ? {
-            chatId,
-            options: {
-              sortDirection: 'asc',
-            },
-          }
-        : skipToken,
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        // enabled: !!chat,
-      }
-    )
-  );
-
-  const {
-    mutate: sendMessageToChat,
-    isPending,
-    error: sendToChatError,
-  } = useMutation(
-    trpc.message.sendToChat.mutationOptions({
-      onSuccess: (messageActivity) => {
-        queryClient.setQueryData(activitiesQueryKey, (oldData) => {
-          if (!oldData) return oldData;
-          const newPages = [...oldData.pages];
-          const firstPage = newPages[0];
-          if (!firstPage) return oldData;
-
-          newPages[0] = {
-            ...firstPage,
-            activities: [...firstPage.activities, messageActivity],
-          };
-
-          return { ...oldData, pages: newPages };
-        });
-      },
-    })
-  );
-
-  const {
-    mutate: createChat,
-    isPending: isCreateChatPending,
-    error: createChatError,
-  } = useMutation(
-    trpc.chat.create.mutationOptions({
-      onSuccess: (newChat) => {
-        queryClient.setQueryData(chatQueryKey, newChat);
-      },
-    })
-  );
-
-  const { status, error: subscriptionError } = useSubscription(
-    trpc.chat.onNewMessageInChatList.subscriptionOptions(
-      profileId ? { profileId } : skipToken,
-      {
-        onData(newMessageActivityData) {
-          // TODO: re-examine this
-          const newMessageActivity = newMessageActivityData.data
-            ? newMessageActivityData.data
-            : newMessageActivityData;
-          if (!chat) return;
-          queryClient.setQueryData(activitiesQueryKey, (oldData) => {
-            if (!oldData) return oldData;
-            const newPages = [...oldData.pages];
-            const firstPage = newPages[0];
-            if (!firstPage) return oldData;
-
-            newPages[0] = {
-              ...firstPage,
-              activities: [...firstPage.activities, ...newMessageActivity],
-            };
-
-            return {
-              ...oldData,
-              pages: newPages,
-            };
-          });
-        },
-      }
-    )
-  );
-
-  const sendMessage = (params: SendMessageParams) => {
-    const { senderId, content, imageUrl, type, onSuccess } = params;
-    // If chat exists, send message
-    if (chat && chat.id) {
-      sendMessageToChat(
-        {
-          content: content || null,
-          imageUrl: imageUrl || null,
-          sender: senderId,
-          chatId: chat.id,
-          type,
-        },
-        { onSuccess: () => onSuccess?.(chat.id) }
-      );
-    } else if (profileIds) {
-      // If chat does not exist, create chat with first message
-      const newChatProfileIds = [...profileIds, senderId];
-      createChat(
-        {
-          creator: senderId,
-          participants: newChatProfileIds,
-          type: newChatProfileIds.length > 2 ? 'GROUP' : 'DIRECT',
-          firstMessage: {
-            type,
-            content: content || null,
-            imageUrl: imageUrl || null,
-          },
-        },
-        {
-          onSuccess: (newChat) => {
-            if (newChat?.id) {
-              onSuccess?.(newChat.id);
-            }
-          },
-        }
-      );
-    } else {
-      console.error('Chat or selected profiles required to send message');
-    }
-  };
+  const { data: chat, isLoading, error } = useQuery(findChatQueryOptions);
 
   return {
     chat,
-    activityData,
     isLoading,
     error,
-    sendMessageToChat,
-    createChat,
-    isPending,
-    sendToChatError,
-    sendMessage,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
   };
 }
 

@@ -88,43 +88,7 @@ export const chatRouter = router({
       }
       return chat;
     }),
-  onNewMessageInChatList: profileProcedure
-    .input(
-      z.object({
-        profileId: ObjectId,
-      })
-    )
-    .subscription(async function* ({ input, ctx, signal }) {
-      const { profileId } = input;
-      const { user } = ctx;
-      const userProfileId = user.profile.id;
 
-      const profile = await ctx.prisma.profile.findUnique({
-        where: { id: profileId },
-        include: {
-          chatMemberships: {
-            select: { chatId: true },
-          },
-        },
-      });
-
-      if (!profile) {
-        throw new TRPCError({ code: 'NOT_FOUND' });
-      }
-
-      const iterables = profile.chatMemberships.map(({ chatId }) =>
-        on(eventEmitter, `addActivityToChat:${chatId}`, { signal })
-      );
-
-      for await (const [message] of mergeAsyncIterators(iterables)) {
-        if (message.senderId !== userProfileId) {
-          const messageActivity = tagActivity(message, 'message');
-          logger.info({ messageActivity }, 'Yielding message activity');
-
-          yield tracked(message.id, messageActivity);
-        }
-      }
-    }),
   onNewChat: profileProcedure
     .input(
       z.object({
@@ -174,6 +138,7 @@ export const chatRouter = router({
             take: 1,
             select: {
               id: true,
+              chatId: true,
               type: true,
               content: true,
               imageUrl: true,

@@ -1,15 +1,20 @@
+import { logger } from '@/lib/pino';
 import { getChatActivities, getMergedActivities } from '@/services/chat';
-import { assertNever, DateTimeSchema, ObjectId, z } from '@repo/common';
+import {
+  DateTimeSchema,
+  mergeAsyncIterators,
+  ObjectId,
+  tagActivity,
+  z,
+} from '@repo/common';
 import {
   ActivitiesQueryOptions,
-  ActivityType,
   ChatActivityDTO,
 } from '@repo/common/schemas/activities';
-import { tracked } from '@trpc/server';
+import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
 import { eventEmitter } from '../lib/eventBus';
 import { profileProcedure, router } from '../trpc';
-import { logger } from '@/lib/pino';
 
 export const activityRouter = router({
   getActivities: profileProcedure
@@ -84,6 +89,42 @@ export const activityRouter = router({
       )) {
         logger.info({ activity }, 'Yielding activity');
         yield tracked(activity.id, activity);
+      }
+    }),
+  onNewActivityInChatList: profileProcedure
+    .input(
+      z.object({
+        profileId: ObjectId,
+      })
+    )
+    .subscription(async function* ({ input, ctx, signal }) {
+      const { profileId } = input;
+      const { user } = ctx;
+      // const userProfileId = user.profile.id;
+
+      const profile = await ctx.prisma.profile.findUnique({
+        where: { id: profileId },
+        include: {
+          chatMemberships: {
+            select: { chatId: true },
+          },
+        },
+      });
+
+      if (!profile) {
+        throw new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      const iterables = profile.chatMemberships.map(({ chatId }) =>
+        on(eventEmitter, `addActivityToChat:${chatId}`, { signal })
+      );
+
+      for await (const [activity] of mergeAsyncIterators(iterables)) {
+        const taggedActivity = tagActivity(activity, activity.activityType);
+        const parsedActivity = ChatActivityDTO.parse(taggedActivity);
+
+        logger.info({ messageActivity: parsedActivity }, 'Yielding activity');
+        yield tracked(parsedActivity.id, parsedActivity);
       }
     }),
   onNewChatAction: profileProcedure

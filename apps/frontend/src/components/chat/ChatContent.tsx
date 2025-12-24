@@ -24,6 +24,7 @@ import { FullscreenModal } from '../modal/FullscreenModal';
 import { ProfileAvatar } from '../ProfileAvatar';
 import { Activities } from './Activities';
 import { GroupChatInfo } from './GroupChatInfo';
+import { useChatActivities } from '@/hooks/activity';
 
 interface ChatContentProps {
   chatId: ObjectId | null;
@@ -33,6 +34,7 @@ interface ChatContentProps {
 }
 
 export function ChatContent(props: ChatContentProps) {
+  const isFirstRender = useRef(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageToViewRef = useRef<HTMLDivElement>(null);
   const { navigateToChat } = useNavigation();
@@ -66,28 +68,19 @@ export function ChatContent(props: ChatContentProps) {
     return {
       chatId,
       profileIds,
-      senderProfileId: loggedInProfileId,
+      loggedInProfileId,
     };
   }, [chatId, loggedInProfileId, profileIds]);
 
+  const { chat, isLoading } = useChat(params);
   const {
-    chat,
-    isLoading,
     sendMessage,
-    activityData,
+    allActivities,
+    isActivitiesLoading,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useChat(params);
-
-  const allActivities = useMemo(() => {
-    return (
-      activityData?.pages
-        .slice()
-        .reverse()
-        .flatMap((page) => page.activities) ?? []
-    );
-  }, [activityData]);
+  } = useChatActivities(chat?.id, profileIds);
 
   useEffect(() => {
     if (messageToView && messageToViewRef.current) {
@@ -97,13 +90,14 @@ export function ChatContent(props: ChatContentProps) {
 
     // Only scroll to bottom on initial load
     if (
-      !isLoading &&
+      !isActivitiesLoading &&
       messagesEndRef.current &&
-      activityData?.pages.length === 1
+      isFirstRender.current
     ) {
       messagesEndRef.current.scrollIntoView({ behavior: 'instant' });
+      isFirstRender.current = false;
     }
-  }, [messagesEndRef, isLoading, messageToView, activityData?.pages.length]);
+  }, [isActivitiesLoading, messageToView]);
 
   const handleSubmitMessage = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

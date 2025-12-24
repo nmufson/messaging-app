@@ -1,14 +1,13 @@
 import { getChat } from '@/services/chat';
 import {
-  ObjectId,
   PhotoMessageSearchResultDTO,
   SendMessageInput,
   tagActivity,
   TextMessageSearchResultDTO,
   z,
 } from '@repo/common';
-import { tracked, TRPCError } from '@trpc/server';
-import { on } from 'events';
+import { MessageActivityDTO } from '@repo/common/schemas/activities';
+import { TRPCError } from '@trpc/server';
 import { logger } from 'src/lib/pino';
 import { eventEmitter } from '../lib/eventBus';
 import {
@@ -17,7 +16,6 @@ import {
   sendMessage,
 } from '../services/message';
 import { profileProcedure, router } from '../trpc';
-import { MessageActivityDTO } from '@repo/common/schemas/activities';
 
 export const messageRouter = router({
   sendToChat: profileProcedure
