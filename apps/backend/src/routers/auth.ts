@@ -1,5 +1,4 @@
 import { publicProcedure, router, userProcedure } from '../trpc';
-import { getUserByEmail } from '../services/user';
 import passport from 'passport';
 import type { User } from '@repo/db';
 import { CreateUserInput, LogInUserInput } from '@repo/common';
@@ -27,7 +26,9 @@ export const authRouter = router({
 
       const { email, password } = input;
 
-      const existingUser = await getUserByEmail(email);
+      const existingUser = await ctx.prisma.user.findUnique({
+        where: { email },
+      });
       if (existingUser) {
         throw new TRPCError({
           code: 'CONFLICT',

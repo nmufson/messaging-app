@@ -69,7 +69,7 @@ export function useChat(params: UseChatParams) {
     chatId = chat.id;
   }
 
-  const activitiesQueryKey = trpc.chat.getActivities.infiniteQueryKey(
+  const activitiesQueryKey = trpc.activity.getActivities.infiniteQueryKey(
     chatId ? { chatId } : {}
   );
 
@@ -79,7 +79,7 @@ export function useChat(params: UseChatParams) {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery(
-    trpc.chat.getActivities.infiniteQueryOptions(
+    trpc.activity.getActivities.infiniteQueryOptions(
       chatId
         ? {
             chatId,
@@ -132,7 +132,7 @@ export function useChat(params: UseChatParams) {
   );
 
   const { status, error: subscriptionError } = useSubscription(
-    trpc.chat.onNewMessageInChat.subscriptionOptions(
+    trpc.chat.onNewMessageInChatList.subscriptionOptions(
       profileId ? { profileId } : skipToken,
       {
         onData(newMessageActivityData) {
@@ -267,7 +267,7 @@ export function useChatInfo(params: ChatInfoParams) {
   const chatInfoQueryKey = trpc.chat.getInfo.queryKey({
     chatId,
   });
-  const activitiesQueryKey = trpc.chat.getActivities.infiniteQueryKey({
+  const activitiesQueryKey = trpc.activity.getActivities.infiniteQueryKey({
     chatId,
   });
 
@@ -276,7 +276,7 @@ export function useChatInfo(params: ChatInfoParams) {
   );
 
   const { mutateAsync: updateChat, isPending } = useMutation(
-    trpc.chat.updateInfo.mutationOptions({
+    trpc.action.updateInfo.mutationOptions({
       onSuccess: (data) => {
         const { updatedChat, newActionActivity } = data;
 
@@ -336,21 +336,21 @@ export function useChatInfo(params: ChatInfoParams) {
   };
 
   const { mutate: addMember, isPending: isAddingMember } = useMutation(
-    trpc.chat.addMember.mutationOptions({
+    trpc.action.addMember.mutationOptions({
       onSuccess: (updatedChat) => {
         handleSuccess(updatedChat);
       },
     })
   );
   const { mutate: removeMember, isPending: isRemovingMember } = useMutation(
-    trpc.chat.removeMember.mutationOptions({
+    trpc.action.removeMember.mutationOptions({
       onSuccess: (updatedChat) => {
         handleSuccess(updatedChat);
       },
     })
   );
   const { mutate: leaveChat, isPending: isLeavingChat } = useMutation(
-    trpc.chat.leaveChat.mutationOptions({
+    trpc.action.leaveChat.mutationOptions({
       onSuccess: (updatedChat) => {
         handleSuccess(updatedChat);
       },

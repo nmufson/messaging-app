@@ -3,9 +3,9 @@ import {
   ChatActionWithActorDTO,
   ChatParticipantDTO,
   ObjectId,
+  assertNever,
 } from '@repo/common';
 import { getProfileDisplayName } from './formatting';
-import { assertNever } from './validation';
 
 interface GetProfileParams {
   id: ObjectId;

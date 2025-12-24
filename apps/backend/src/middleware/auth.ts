@@ -1,6 +1,5 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
-import { getUserByEmail } from '../services/user';
 import { verifyPassword } from '../services/hash';
 import { prisma } from '@repo/db';
 
@@ -8,7 +7,9 @@ passport.use(
   new LocalStrategy(
     { usernameField: 'email' },
     async (email, password, done) => {
-      const user = await getUserByEmail(email);
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
 
       if (!user) {
         return done(null, false, {

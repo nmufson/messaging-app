@@ -1,26 +1,19 @@
 import {
-  createAction,
   getChat,
-  getChatActivities,
   getMergedActivities,
   getPotentialChats,
-  updateChatInfo,
 } from '@/services/chat';
 import { sendMessage } from '@/services/message';
 import {
-  ActionOutputDTO,
-  CHAT_UPDATE_ACTIONS,
+  BaseProfileDTO,
   ChatDTO,
   ChatInfoDTO,
   ChatListItemDTO,
   ChatType,
-  DateTimeSchema,
   mergeAsyncIterators,
   MessageType,
   ObjectId,
-  BaseProfileDTO,
   tagActivity,
-  UpdateChatInput,
   UserRole,
   z,
 } from '@repo/common';
@@ -29,13 +22,8 @@ import { on } from 'events';
 import { eventEmitter } from '../lib/eventBus';
 import { logger } from '../lib/pino';
 import { adminProcedure, profileProcedure, router } from '../trpc';
-import {
-  ActivitiesQueryOptions,
-  ChatActivityDTO,
-} from '@repo/common/schemas/activities';
 
 export const chatRouter = router({
-  // TODO: add something for loading more messages in chat
   byId: profileProcedure
     .input(
       z.object({
@@ -100,25 +88,7 @@ export const chatRouter = router({
       }
       return chat;
     }),
-  getActivities: profileProcedure
-    .input(
-      z.object({
-        chatId: ObjectId,
-        cursor: DateTimeSchema.optional(),
-        options: ActivitiesQueryOptions.optional(),
-      })
-    )
-    .output(
-      z.object({
-        activities: ChatActivityDTO.array(),
-        nextCursor: z.date().nullable(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const { chatId, cursor, options } = input;
-      return getChatActivities(ctx.prisma, { chatId, cursor }, options);
-    }),
-  onNewMessageInChat: profileProcedure
+  onNewMessageInChatList: profileProcedure
     .input(
       z.object({
         profileId: ObjectId,
@@ -127,8 +97,7 @@ export const chatRouter = router({
     .subscription(async function* ({ input, ctx, signal }) {
       const { profileId } = input;
       const { user } = ctx;
-
-      if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
+      const userProfileId = user.profile.id;
 
       const profile = await ctx.prisma.profile.findUnique({
         where: { id: profileId },
@@ -144,13 +113,14 @@ export const chatRouter = router({
       }
 
       const iterables = profile.chatMemberships.map(({ chatId }) =>
-        on(eventEmitter, `addMessageToChat:${chatId}`, { signal })
+        on(eventEmitter, `addActivityToChat:${chatId}`, { signal })
       );
 
       for await (const [message] of mergeAsyncIterators(iterables)) {
-        logger.info({ message }, 'yielding message');
-        if (message.senderId !== user.profile?.id) {
+        if (message.senderId !== userProfileId) {
           const messageActivity = tagActivity(message, 'message');
+          logger.info({ messageActivity }, 'Yielding message activity');
+
           yield tracked(message.id, messageActivity);
         }
       }
@@ -267,7 +237,6 @@ export const chatRouter = router({
 
       return chatsWithActivities;
     }),
-  // TODO: move this to an admin router??
   getAll: adminProcedure
     .input(
       z.object({
@@ -524,191 +493,5 @@ export const chatRouter = router({
       }
 
       return chat;
-    }),
-  updateInfo: profileProcedure
-    .input(UpdateChatInput)
-    .output(ActionOutputDTO)
-    .mutation(async ({ input, ctx }) => {
-      const { id, ...updatedFields } = input;
-      const { user } = ctx;
-      const profileId = user?.profile?.id;
-
-      logger.info(
-        { chatId: id, updatedFields, profileId },
-        'Updating chat info'
-      );
-
-      if (!profileId) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
-      }
-
-      const updatedChat = await updateChatInfo(ctx.prisma, {
-        chatId: id,
-        data: updatedFields,
-      });
-
-      // only one field will be updated at a time
-      const updatedField = updatedFields.name ? 'name' : 'groupPictureUrl';
-      const actionType = CHAT_UPDATE_ACTIONS[updatedField];
-
-      const actionData = {
-        chatId: id,
-        actionType,
-        actorId: profileId,
-        ...(actionType === 'NAME_CHANGED' && {
-          content: updatedFields.name,
-        }),
-      };
-
-      const { newActionActivity, activityProfiles } = await createAction(
-        ctx.prisma,
-        actionData
-      );
-
-      logger.info(
-        { updatedChat, newActionActivity },
-        'Chat info updated successfully'
-      );
-
-      return {
-        updatedChat,
-        newActionActivity,
-        activityProfiles,
-      };
-    }),
-
-  // TODO: move these to new chatActions router?
-  addMember: profileProcedure
-    .input(
-      z.object({
-        chatId: ObjectId,
-        profileId: ObjectId,
-      })
-    )
-    .output(ActionOutputDTO)
-    .mutation(async ({ input, ctx }) => {
-      const { chatId, profileId: profileIdToAdd } = input;
-      const { user } = ctx;
-
-      const data = {
-        participants: {
-          connect: { id: profileIdToAdd },
-        },
-      };
-
-      const updatedChat = await updateChatInfo(ctx.prisma, {
-        chatId,
-        data,
-      });
-
-      const actionData = {
-        chatId: chatId,
-        actionType: 'MEMBER_ADDED' as const,
-        actorId: user.profile.id,
-        targetId: profileIdToAdd,
-      };
-
-      const { newActionActivity, activityProfiles } = await createAction(
-        ctx.prisma,
-        actionData
-      );
-
-      logger.info({ newActionActivity, updatedChat }, 'Added member to chat');
-
-      return {
-        updatedChat,
-        newActionActivity,
-        activityProfiles,
-      };
-    }),
-
-  removeMember: profileProcedure
-    .input(
-      z.object({
-        chatId: ObjectId,
-        profileId: ObjectId,
-      })
-    )
-    .output(ActionOutputDTO)
-    .mutation(async ({ input, ctx }) => {
-      const { chatId, profileId: profileIdToRemove } = input;
-      const { user } = ctx;
-
-      const updateChatData = {
-        participants: {
-          disconnect: { id: profileIdToRemove },
-        },
-      };
-
-      const updatedChat = await updateChatInfo(ctx.prisma, {
-        chatId,
-        data: updateChatData,
-      });
-
-      const removeMemberActionData = {
-        chatId: chatId,
-        actionType: 'MEMBER_REMOVED' as const,
-        actorId: user.profile.id,
-        targetId: profileIdToRemove,
-      };
-
-      const { newActionActivity, activityProfiles } = await createAction(
-        ctx.prisma,
-        removeMemberActionData
-      );
-
-      logger.info(
-        { newActionActivity, updatedChat },
-        'Removed member from chat'
-      );
-
-      return {
-        updatedChat,
-        newActionActivity,
-        activityProfiles,
-      };
-    }),
-  leaveChat: profileProcedure
-    .input(
-      z.object({
-        chatId: ObjectId,
-      })
-    )
-    .output(ActionOutputDTO)
-    .mutation(async ({ input, ctx }) => {
-      const { chatId } = input;
-      const { user } = ctx;
-
-      const profileIdToLeave = user.profile.id;
-
-      const updateChatData = {
-        participants: {
-          disconnect: { id: profileIdToLeave },
-        },
-      };
-
-      const updatedChat = await updateChatInfo(ctx.prisma, {
-        chatId,
-        data: updateChatData,
-      });
-
-      const leaveChatActionData = {
-        chatId: chatId,
-        actionType: 'MEMBER_LEFT' as const,
-        actorId: profileIdToLeave,
-      };
-
-      const { newActionActivity, activityProfiles } = await createAction(
-        ctx.prisma,
-        leaveChatActionData
-      );
-
-      logger.info({ newActionActivity, updatedChat }, 'Member left chat');
-
-      return {
-        updatedChat,
-        newActionActivity,
-        activityProfiles,
-      };
     }),
 });

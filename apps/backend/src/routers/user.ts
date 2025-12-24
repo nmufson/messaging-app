@@ -1,8 +1,7 @@
-import { TRPCError } from '@trpc/server';
 import { z } from '@repo/common';
-import { handleTRPCError } from '../services/error';
-import { getUserByEmail, getUserById } from '../services/user';
-import { adminProcedure, router, userProcedure } from '../trpc';
+import { TRPCError } from '@trpc/server';
+
+import { adminProcedure, router } from '../trpc';
 
 export const userRouter = router({
   getUserById: adminProcedure
@@ -10,18 +9,23 @@ export const userRouter = router({
     .query(async ({ input, ctx }) => {
       const { userId } = input;
 
-      try {
-        const user = getUserById(userId);
+      const user = await ctx.prisma.user.findUnique({ where: { id: userId } });
 
-        return { user };
-      } catch (err) {
-        handleTRPCError(err, 'Failed to retrieve user');
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'No user found with this id',
+        });
       }
+
+      return user;
     }),
   getUserByEmail: adminProcedure
-    .input(z.object({ email: z.string().email() }))
+    .input(z.object({ email: z.email() }))
     .query(async ({ input, ctx }) => {
-      const user = await getUserByEmail(input.email);
+      const user = await ctx.prisma.user.findUnique({
+        where: { email: input.email },
+      });
 
       if (!user) {
         throw new TRPCError({

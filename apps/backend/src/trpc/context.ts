@@ -1,4 +1,4 @@
-import type { Profile, User } from '@repo/db';
+import type { User } from '@repo/db';
 import { parse as parseCookie } from 'cookie';
 import { Request, Response } from 'express';
 import { prisma } from '@repo/db';
@@ -6,6 +6,7 @@ import { CreateExpressContextOptions } from '@trpc/server/adapters/express';
 import type { IncomingMessage } from 'http';
 import { CreateWSSContextFnOptions } from '@trpc/server/adapters/ws';
 import { ObjectId } from '@repo/common';
+import { unsign } from 'cookie-signature';
 
 // TODO: take this from env?
 const SESSION_COOKIE_NAME = 'connect.sid'; // default for express-session
@@ -30,10 +31,7 @@ export async function authenticateWebSocketRequest(
     if (sessionIdRaw) {
       // Unsigned session ID (remove 's:' prefix if present)
       const sessionId = sessionIdRaw.startsWith('s:')
-        ? require('cookie-signature').unsign(
-            sessionIdRaw.slice(2),
-            SESSION_SECRET
-          )
+        ? unsign(sessionIdRaw.slice(2), SESSION_SECRET)
         : sessionIdRaw;
 
       if (sessionId) {

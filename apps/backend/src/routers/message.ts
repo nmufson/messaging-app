@@ -20,47 +20,6 @@ import { profileProcedure, router } from '../trpc';
 import { MessageActivityDTO } from '@repo/common/schemas/activities';
 
 export const messageRouter = router({
-  onNewMessage: profileProcedure
-    .input(
-      z.object({
-        chatId: ObjectId,
-        lastMessageId: ObjectId.nullish(),
-      })
-    )
-    .subscription(async function* ({ input, ctx, signal }) {
-      const { lastMessageId, chatId } = input;
-
-      if (lastMessageId) {
-        const lastMessage = await ctx.prisma.message.findUnique({
-          where: { id: lastMessageId },
-        });
-
-        if (lastMessage) {
-          const missedMessages = await ctx.prisma.message.findMany({
-            where: {
-              chatId,
-              // query all messages created after our lastMessage
-              createdAt: { gt: lastMessage.createdAt },
-            },
-            orderBy: { createdAt: 'asc' },
-          });
-
-          for (const msg of missedMessages) {
-            yield tracked(msg.id, msg);
-          }
-        }
-      }
-
-      for await (const [message] of on(
-        eventEmitter,
-        `addMessageToChat:${chatId}`,
-        {
-          signal,
-        }
-      )) {
-        yield tracked(message.id, message);
-      }
-    }),
   sendToChat: profileProcedure
     .input(SendMessageInput)
     .output(MessageActivityDTO)
@@ -88,12 +47,12 @@ export const messageRouter = router({
       }
 
       const newMessage = await sendMessage(ctx.prisma, input);
-      const messageActivity = tagActivity(newMessage, 'message');
+      const newMessageActivity = tagActivity(newMessage, 'message');
 
-      logger.info({ newMessage }, 'emitting message');
-      eventEmitter.emit(`addMessageToChat:${chatId}`, newMessage);
+      logger.info({ newMessageActivity }, 'Emitting message activity');
+      eventEmitter.emit(`addActivityToChat:${chatId}`, newMessageActivity);
 
-      return messageActivity;
+      return newMessageActivity;
     }),
   getTextMessages: profileProcedure
     .input(

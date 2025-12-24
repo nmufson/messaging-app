@@ -9,6 +9,8 @@ import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import { profileRouter } from '../routers/profile';
 import { onlinePresenceRouter } from '../routers/onlinePresence';
 import { debugRouter } from './debugRouter';
+import { actionRouter } from '../routers/action';
+import { activityRouter } from '../routers/activity';
 
 export const appRouter = router({
   auth: authRouter,
@@ -17,6 +19,9 @@ export const appRouter = router({
   chat: chatRouter,
   friendRequest: friendRequestRouter,
   message: messageRouter,
+  action: actionRouter,
+  activity: activityRouter,
+
   profile: profileRouter,
   onlinePresence: onlinePresenceRouter,
 
