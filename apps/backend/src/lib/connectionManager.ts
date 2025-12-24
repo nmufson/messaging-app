@@ -113,8 +113,8 @@ class ConnectionManager {
           friends: {
             select: { id: true },
           },
-          chats: {
-            select: { id: true },
+          chatMemberships: {
+            select: { id: true, chatId: true },
           },
         },
       });
@@ -128,7 +128,7 @@ class ConnectionManager {
             lastOnline: newLastOnline,
             friendsCount: populatedProfile.friends.length,
             friendIds: populatedProfile.friends.map((f) => f.id),
-            chatIds: populatedProfile.chats.map((c) => c.id),
+            chatIds: populatedProfile.chatMemberships.map((c) => c.chatId),
           },
           'Emitting presence update events to friends'
         );
@@ -146,8 +146,8 @@ class ConnectionManager {
           eventEmitter.emit(eventName, payload);
         });
 
-        populatedProfile.chats.forEach((chat) => {
-          const eventName = `presenceInChatUpdate:${chat.id}`;
+        populatedProfile.chatMemberships.forEach((chat) => {
+          const eventName = `presenceInChatUpdate:${chat.chatId}`;
           logger.info({ eventName, profileId, isOnline }, 'Emitting event');
           eventEmitter.emit(eventName, payload);
         });
