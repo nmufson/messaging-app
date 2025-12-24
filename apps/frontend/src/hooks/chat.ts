@@ -25,27 +25,42 @@ export function useChatList() {
     error,
   } = useQuery(trpc.chat.getList.queryOptions({}));
 
-  const { status, error: subscriptionError } = useSubscription(
-    trpc.activity.onNewActivityInChatList.subscriptionOptions(
-      loggedInProfileId ? { profileId: loggedInProfileId } : skipToken,
-      {
-        onData(newActivityData) {
-          const newActivity = newActivityData.data;
+  const { status: newActivityStatus, error: subscriptionError } =
+    useSubscription(
+      trpc.activity.onNewActivityInChatList.subscriptionOptions(
+        loggedInProfileId ? { profileId: loggedInProfileId } : skipToken,
+        {
+          onData(newActivityData) {
+            const newActivity = newActivityData.data;
 
-          queryClient.setQueryData(chatListQueryKey, (oldData) => {
-            if (!oldData) return oldData;
+            queryClient.setQueryData(chatListQueryKey, (oldData) => {
+              if (!oldData) return oldData;
 
-            const activityChatId = newActivity.chatId;
+              const activityChatId = newActivity.chatId;
 
-            return oldData.map((chat) =>
-              chat.id === activityChatId
-                ? { ...chat, activities: [...chat.activities, newActivity] }
-                : chat
-            );
-          });
-        },
-      }
-    )
+              return oldData.map((chat) =>
+                chat.id === activityChatId
+                  ? { ...chat, activities: [...chat.activities, newActivity] }
+                  : chat
+              );
+            });
+          },
+        }
+      )
+    );
+
+  const { status: newChatStatus } = useSubscription(
+    trpc.chat.onNewChat.subscriptionOptions(undefined, {
+      onData(newChatData) {
+        const newChat = newChatData.data;
+
+        queryClient.setQueryData(chatListQueryKey, (oldData) => {
+          if (!oldData) return oldData;
+
+          return [newChat, ...oldData];
+        });
+      },
+    })
   );
 
   return { chats, isLoading, error };

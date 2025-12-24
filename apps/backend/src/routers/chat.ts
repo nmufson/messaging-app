@@ -3,17 +3,12 @@ import {
   getMergedActivities,
   getPotentialChats,
 } from '@/services/chat';
-import { sendMessage } from '@/services/message';
 import {
   BaseProfileDTO,
   ChatDTO,
   ChatInfoDTO,
   ChatListItemDTO,
-  ChatType,
-  mergeAsyncIterators,
-  MessageType,
   ObjectId,
-  tagActivity,
   UserRole,
   z,
 } from '@repo/common';
@@ -76,7 +71,7 @@ export const chatRouter = router({
         chat = await getChat(prisma, { chatId });
       } else if (profileIds && profileIds.length > 0) {
         chat = await getChat(prisma, {
-          profileIds: [...profileIds, userProfileId],
+          participantProfileIds: [...profileIds, userProfileId],
         });
       }
 
@@ -89,28 +84,20 @@ export const chatRouter = router({
       return chat;
     }),
 
-  onNewChat: profileProcedure
-    .input(
-      z.object({
-        profileId: ObjectId,
-      })
-    )
-    .subscription(async function* ({ input, ctx, signal }) {
-      const { profileId } = input;
-      const { user } = ctx;
+  onNewChat: profileProcedure.subscription(async function* ({ ctx, signal }) {
+    const { user } = ctx;
+    const userProfileId = user.profile.id;
 
-      if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
-
-      if (user.id !== profileId && user.role !== UserRole.enum.ADMIN) {
-        throw new TRPCError({ code: 'FORBIDDEN' });
-      }
-
-      for await (const [newChat] of on(eventEmitter, `newChat:${profileId}`, {
+    for await (const [newChat] of on(
+      eventEmitter,
+      `chat:created:${userProfileId}`,
+      {
         signal,
-      })) {
-        yield tracked(newChat.id, newChat);
       }
-    }),
+    )) {
+      yield tracked(newChat.id, newChat);
+    }
+  }),
   getList: profileProcedure
     .input(
       z.object({
@@ -281,138 +268,7 @@ export const chatRouter = router({
 
       return { profiles, groupChats };
     }),
-  create: profileProcedure
-    .input(
-      z.object({
-        creator: ObjectId,
-        participants: ObjectId.array(),
-        type: ChatType,
-        firstMessage: z
-          .object({
-            type: MessageType,
-            content: z.string().nullable(),
-            imageUrl: z.string().nullable(),
-          })
-          .optional(),
-      })
-    )
-    .output(ChatDTO)
-    .mutation(async ({ input, ctx }) => {
-      const { creator, participants, type, firstMessage } = input;
 
-      const existingChat = await getChat(ctx.prisma, {
-        profileIds: participants,
-      });
-
-      if (existingChat) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Chat with these participants already exists',
-        });
-      }
-
-      const newChat = await ctx.prisma.$transaction(async (trx) => {
-        const createdChat = await trx.chat.create({
-          data: { creatorId: creator, type },
-        });
-
-        await trx.chatParticipant.createMany({
-          data: participants.map((profileId) => ({
-            chatId: createdChat.id,
-            profileId,
-            role: 'MEMBER',
-          })),
-        });
-
-        return trx.chat.findUniqueOrThrow({
-          where: { id: createdChat.id },
-          include: {
-            participants: {
-              select: {
-                lastViewedAt: true,
-                unreadActivities: true,
-                profile: {
-                  select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    avatarUrl: true,
-                  },
-                },
-              },
-            },
-            messages: {
-              take: 1,
-              orderBy: { createdAt: 'asc' },
-              select: {
-                id: true,
-                type: true,
-                content: true,
-                createdAt: true,
-                updatedAt: true,
-                imageUrl: true,
-                senderId: true,
-              },
-            },
-          },
-        });
-      });
-
-      const sender = await ctx.prisma.profile.findUnique({
-        where: { id: creator },
-      });
-
-      if (!sender) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Sender profile not found',
-        });
-      }
-
-      const createdChatAction = await ctx.prisma.chatAction.create({
-        data: {
-          chatId: newChat.id,
-          actionType: 'CHAT_CREATED',
-          actorId: creator,
-        },
-        select: {
-          id: true,
-          chatId: true,
-          actionType: true,
-          actorId: true,
-          targetId: true,
-          createdAt: true,
-          content: true,
-        },
-      });
-
-      participants.forEach((userId) => {
-        eventEmitter.emit(`newChat:${userId}`, newChat);
-      });
-
-      let messages = [];
-      if (firstMessage) {
-        const newMessage = await sendMessage(ctx.prisma, {
-          type: firstMessage.type,
-          content: firstMessage.content,
-          imageUrl: firstMessage.imageUrl,
-          sender: creator,
-          chatId: newChat.id,
-        });
-        messages.push(newMessage);
-      }
-
-      const mergedActivities = await getMergedActivities(messages, [
-        createdChatAction,
-      ]);
-
-      const fullChat = {
-        ...newChat,
-        activities: mergedActivities,
-      };
-
-      return fullChat;
-    }),
   getInfo: profileProcedure
     .input(
       z.object({

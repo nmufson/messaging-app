@@ -44,11 +44,7 @@ export const messageRouter = router({
         });
       }
 
-      const newMessage = await sendMessage(ctx.prisma, input);
-      const newMessageActivity = tagActivity(newMessage, 'message');
-
-      logger.info({ newMessageActivity }, 'Emitting message activity');
-      eventEmitter.emit(`addActivityToChat:${chatId}`, newMessageActivity);
+      const newMessageActivity = await sendMessage(ctx.prisma, input);
 
       return newMessageActivity;
     }),

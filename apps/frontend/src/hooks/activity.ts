@@ -140,7 +140,7 @@ export function useChatActivities(chatId?: ObjectId, profileIds?: ObjectId[]) {
     isPending: isCreateChatPending,
     error: createChatError,
   } = useMutation(
-    trpc.chat.create.mutationOptions({
+    trpc.action.createChat.mutationOptions({
       onSuccess: (newChat) => {
         queryClient.setQueryData(findChatQueryKey, newChat);
       },
@@ -166,8 +166,8 @@ export function useChatActivities(chatId?: ObjectId, profileIds?: ObjectId[]) {
       const newChatProfileIds = [...profileIds, senderId];
       createChat(
         {
-          creator: senderId,
-          participants: newChatProfileIds,
+          creatorId: senderId,
+          participantProfileIds: newChatProfileIds,
           type: newChatProfileIds.length > 2 ? 'GROUP' : 'DIRECT',
           firstMessage: {
             type,

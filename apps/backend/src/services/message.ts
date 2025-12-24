@@ -1,19 +1,26 @@
+import { eventEmitter } from '@/lib/eventBus';
 import { logger } from '@/lib/pino';
 import {
   PhotoMessageSearchResultDTO,
   TextMessageSearchResultDTO,
   ObjectId,
   SendMessageInput,
+  tagActivity,
+  IMessageActivity,
 } from '@repo/common';
 import { PrismaClient } from '@repo/db';
 
+/**
+ * Creates a new message
+ * Tags message as activity and emits event for new activity in chat
+ */
 export const sendMessage = async (
   prisma: PrismaClient,
   params: SendMessageInput
-) => {
+): Promise<IMessageActivity> => {
   const { chatId, sender, type, content, imageUrl } = params;
 
-  return await prisma.message.create({
+  const newMessage = await prisma.message.create({
     data: {
       type,
       content,
@@ -22,6 +29,13 @@ export const sendMessage = async (
       chat: { connect: { id: chatId } },
     },
   });
+
+  const newMessageActivity = tagActivity(newMessage, 'message');
+
+  logger.info({ newMessageActivity }, 'Emitting message activity');
+  eventEmitter.emit(`activity:create:${chatId}`, newMessageActivity);
+
+  return newMessageActivity;
 };
 
 interface GetMessagesParams {

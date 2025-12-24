@@ -82,7 +82,7 @@ export const activityRouter = router({
 
       for await (const [activity] of on(
         eventEmitter,
-        `addActivityToChat:${chatId}`,
+        `activity:create:${chatId}`,
         {
           signal,
         }
@@ -116,7 +116,7 @@ export const activityRouter = router({
       }
 
       const iterables = profile.chatMemberships.map(({ chatId }) =>
-        on(eventEmitter, `addActivityToChat:${chatId}`, { signal })
+        on(eventEmitter, `activity:create:${chatId}`, { signal })
       );
 
       for await (const [activity] of mergeAsyncIterators(iterables)) {
@@ -127,12 +127,4 @@ export const activityRouter = router({
         yield tracked(parsedActivity.id, parsedActivity);
       }
     }),
-  onNewChatAction: profileProcedure
-    .input(
-      z.object({
-        chatId: ObjectId,
-        lastMessageId: ObjectId.nullish(),
-      })
-    )
-    .subscription(async function* ({ input, ctx, signal }) {}),
 });

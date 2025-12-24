@@ -1,3 +1,4 @@
+import { eventEmitter } from '@/lib/eventBus';
 import { logger } from '@/lib/pino';
 import {
   ChatInfoDTO,
@@ -157,26 +158,26 @@ export const getPotentialChats = async (
 
 interface GetChatParams {
   chatId?: ObjectId;
-  profileIds?: ObjectId[];
+  participantProfileIds?: ObjectId[];
 }
 
 export const getChat = async (
   prisma: PrismaClient,
   params: GetChatParams
 ): Promise<ChatInfoDTO | null> => {
-  const { chatId, profileIds } = params;
+  const { chatId, participantProfileIds } = params;
 
-  logger.info({ chatId, profileIds }, 'Getting chat info');
+  logger.info({ chatId, participantProfileIds }, 'Getting chat info');
 
   let whereFilters;
 
   if (chatId) {
     whereFilters = { id: chatId };
-  } else if (profileIds) {
+  } else if (participantProfileIds) {
     whereFilters = {
       participants: {
         every: {
-          id: { in: profileIds },
+          id: { in: participantProfileIds },
         },
       },
     };
@@ -216,7 +217,10 @@ export const getChat = async (
   });
 
   if (!chat) {
-    logger.info({ chatId, profileIds }, 'Chat not found');
+    logger.info(
+      { chatId, profileIds: participantProfileIds },
+      'Chat not found'
+    );
     return null;
   }
 
@@ -323,6 +327,10 @@ interface ActionData {
 }
 
 export const createAction = async (prisma: PrismaClient, data: ActionData) => {
+  const { chatId } = data;
+
+  logger.info({ data }, 'Creating chat action');
+
   const newAction = await prisma.chatAction.create({
     data,
     select: {
@@ -355,6 +363,9 @@ export const createAction = async (prisma: PrismaClient, data: ActionData) => {
   const { actor, target, ...restOfAction } = newAction;
 
   const newActionActivity = tagActivity(newAction, 'action');
+
+  logger.info({ newActionActivity }, 'Emitting action activity');
+  eventEmitter.emit(`activity:create:${chatId}`, newActionActivity);
 
   return {
     newActionActivity,
