@@ -1,8 +1,5 @@
-import {
-  getChat,
-  getMergedActivities,
-  getPotentialChats,
-} from '@/services/chat';
+import { getChat, getPotentialChats } from '@/services/chat';
+import { getMergedActivities } from '@/services/activity';
 import {
   BaseProfileDTO,
   ChatDTO,

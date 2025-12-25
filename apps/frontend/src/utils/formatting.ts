@@ -1,10 +1,4 @@
-import {
-  IBaseProfile,
-  ChatParticipantDTO,
-  DateTimeSchema,
-  ObjectId,
-  BaseProfileDTO,
-} from '@repo/common';
+import { DateTimeSchema, ObjectId, BaseProfileDTO } from '@repo/common';
 import { DateTime } from 'luxon';
 import * as R from 'remeda';
 

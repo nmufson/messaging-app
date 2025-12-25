@@ -17,7 +17,7 @@ export const SendMessageInput = z.object({
   type: MessageType,
   content: z.string().nullable(),
   imageUrl: z.string().nullable(),
-  sender: ObjectId,
+  senderId: ObjectId,
   chatId: ObjectId,
 });
 export type SendMessageInput = z.infer<typeof SendMessageInput>;

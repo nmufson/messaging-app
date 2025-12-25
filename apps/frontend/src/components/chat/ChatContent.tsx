@@ -40,7 +40,8 @@ export function ChatContent(props: ChatContentProps) {
   const { navigateToChat } = useNavigation();
   const { launchModal } = useModalContext();
 
-  const { chatId, messageToView, profiles, inModalView } = props;
+  // TODO: can simply make inModalView check if we're at chat path or not??
+  const { chatId, messageToView, profiles, inModalView = false } = props;
   const { profile } = useAuth();
   const loggedInProfileId = profile?.id;
   const {

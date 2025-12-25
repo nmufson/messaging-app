@@ -1,5 +1,6 @@
 import { logger } from '@/lib/pino';
-import { getChatActivities, getMergedActivities } from '@/services/chat';
+import { getMergedActivities } from '@/services/activity';
+import { getChatActivities } from '@/services/activity';
 import {
   DateTimeSchema,
   mergeAsyncIterators,
@@ -15,6 +16,7 @@ import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
 import { eventEmitter } from '../lib/eventBus';
 import { profileProcedure, router } from '../trpc';
+import { checkIsActivityCreator } from '@/services/action';
 
 export const activityRouter = router({
   getActivities: profileProcedure
@@ -48,7 +50,9 @@ export const activityRouter = router({
       })
     )
     .subscription(async function* ({ input, ctx, signal }) {
+      const { user } = ctx;
       const { cursor, chatId } = input;
+      const loggedInProfileId = user.profile.id;
 
       if (cursor) {
         const { lastActivityTime, lastActivityId } = cursor;
@@ -73,9 +77,17 @@ export const activityRouter = router({
           missedActions
         );
 
-        logger.info({ missedActivities }, 'Yielding missed activities');
+        const parsedActivities =
+          ChatActivityDTO.array().parse(missedActivities);
+        for (const activity of parsedActivities) {
+          logger.info({ missedActivities }, 'Yielding missed activities');
 
-        for (const activity of missedActivities) {
+          const isCreatedByLoggedInUser = checkIsActivityCreator(
+            loggedInProfileId,
+            activity
+          );
+          if (isCreatedByLoggedInUser) return;
+
           yield tracked(activity.id, activity);
         }
       }
@@ -87,8 +99,16 @@ export const activityRouter = router({
           signal,
         }
       )) {
-        logger.info({ activity }, 'Yielding activity');
-        yield tracked(activity.id, activity);
+        const parsedActivity = ChatActivityDTO.parse(activity);
+        const isCreatedByLoggedInUser = checkIsActivityCreator(
+          loggedInProfileId,
+          activity
+        );
+        if (isCreatedByLoggedInUser) return;
+
+        logger.info({ activity: parsedActivity }, 'Yielding activity');
+
+        yield tracked(parsedActivity.id, parsedActivity);
       }
     }),
   onNewActivityInChatList: profileProcedure

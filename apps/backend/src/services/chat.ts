@@ -1,24 +1,13 @@
-import { eventEmitter } from '@/lib/eventBus';
 import { logger } from '@/lib/pino';
 import {
   ChatInfoDTO,
   ChatListItemDTO,
   ChatType,
-  DateTimeSchema,
   IBaseProfile,
-  IChatAction,
   IChatListItem,
-  IMessage,
   ObjectId,
-  SortDirection,
-  tagActivity,
 } from '@repo/common';
-import {
-  ActivitiesQueryOptions,
-  IChatActivity,
-} from '@repo/common/schemas/activities';
-import { ChatActionType, PrismaClient } from '@repo/db';
-import { DateTime } from 'luxon';
+import { PrismaClient } from '@repo/db';
 
 interface GetPotentialChatsParams {
   profileId: ObjectId;
@@ -30,13 +19,13 @@ interface GetPotentialChatsParams {
 
 // Returns profiles and existing group chats for user to begin chat
 // Doesn't include profiles that are already included in the user's potential chat list
-export const getPotentialChats = async (
+export async function getPotentialChats(
   prisma: PrismaClient,
   params: GetPotentialChatsParams
 ): Promise<{
   profiles: IBaseProfile[];
   groupChats: IChatListItem[];
-}> => {
+}> {
   const { searchNames, selectedProfiles, profileId, limit, requireInput } =
     params;
 
@@ -154,17 +143,17 @@ export const getPotentialChats = async (
   }
 
   return { profiles, groupChats };
-};
+}
 
 interface GetChatParams {
   chatId?: ObjectId;
   participantProfileIds?: ObjectId[];
 }
 
-export const getChat = async (
+export async function getChat(
   prisma: PrismaClient,
   params: GetChatParams
-): Promise<ChatInfoDTO | null> => {
+): Promise<ChatInfoDTO | null> {
   const { chatId, participantProfileIds } = params;
 
   logger.info({ chatId, participantProfileIds }, 'Getting chat info');
@@ -225,30 +214,7 @@ export const getChat = async (
   }
 
   return ChatInfoDTO.parse(chat);
-};
-
-export const getMergedActivities = async (
-  messages: IMessage[],
-  actions: IChatAction[],
-  options?: { sortDirection?: SortDirection }
-): Promise<IChatActivity[]> => {
-  const { sortDirection = 'desc' } = options || {};
-
-  const messageActivities = messages.map((msg) => tagActivity(msg, 'message'));
-
-  const actionActivities = actions.map((action) =>
-    tagActivity(action, 'action')
-  );
-
-  const mergedActivities = [...messageActivities, ...actionActivities].sort(
-    (a, b) =>
-      sortDirection === 'asc'
-        ? a.createdAt.getTime() - b.createdAt.getTime()
-        : b.createdAt.getTime() - a.createdAt.getTime()
-  );
-
-  return mergedActivities;
-};
+}
 
 const CHAT_INFO_SELECT = {
   id: true,
@@ -301,10 +267,10 @@ interface UpdateChatInfoParams {
   };
 }
 
-export const updateChatInfo = async (
+export async function updateChatInfo(
   prisma: PrismaClient,
   params: UpdateChatInfoParams
-) => {
+) {
   const { chatId, data } = params;
 
   logger.info({ chatId, data }, 'Updating chat info');
@@ -316,153 +282,4 @@ export const updateChatInfo = async (
   });
 
   return updatedChat;
-};
-
-interface ActionData {
-  chatId: ObjectId;
-  actionType: ChatActionType;
-  actorId: ObjectId;
-  targetId?: ObjectId;
-  content?: string | null;
 }
-
-export const createAction = async (prisma: PrismaClient, data: ActionData) => {
-  const { chatId } = data;
-
-  logger.info({ data }, 'Creating chat action');
-
-  const newAction = await prisma.chatAction.create({
-    data,
-    select: {
-      id: true,
-      chatId: true,
-      actionType: true,
-      actorId: true,
-      targetId: true,
-      createdAt: true,
-      content: true,
-      actor: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          avatarUrl: true,
-        },
-      },
-      target: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          avatarUrl: true,
-        },
-      },
-    },
-  });
-
-  const { actor, target, ...restOfAction } = newAction;
-
-  const newActionActivity = tagActivity(newAction, 'action');
-
-  logger.info({ newActionActivity }, 'Emitting action activity');
-  eventEmitter.emit(`activity:create:${chatId}`, newActionActivity);
-
-  return {
-    newActionActivity,
-    activityProfiles: target ? [actor, target] : [actor],
-  };
-};
-
-export const getChatActivities = async (
-  prisma: PrismaClient,
-  params: { chatId: ObjectId; cursor?: DateTimeSchema },
-  options?: ActivitiesQueryOptions
-) => {
-  const { chatId, cursor } = params;
-  const { minActivities = 20, sortDirection = 'desc' } = options || {};
-
-  const endDate = cursor ? cursor : DateTime.now();
-  let startDate = endDate.minus({ days: 7 });
-
-  let messages: IMessage[] = [];
-  let actions: IChatAction[] = [];
-  let activityCount = 0;
-
-  while (activityCount < minActivities) {
-    messages = await prisma.message.findMany({
-      where: {
-        chatId,
-        createdAt: {
-          gte: startDate.toJSDate(),
-          lt: endDate.toJSDate(),
-        },
-        type: { not: 'REACTION' },
-      },
-      include: {
-        replies: {
-          where: { type: 'REACTION' },
-          select: {
-            id: true,
-            type: true,
-            content: true,
-            createdAt: true,
-            updatedAt: true,
-            senderId: true,
-          },
-        },
-      },
-      orderBy: { createdAt: sortDirection },
-    });
-
-    actions = await prisma.chatAction.findMany({
-      where: {
-        chatId,
-        createdAt: {
-          gte: startDate.toJSDate(),
-          lt: endDate.toJSDate(),
-        },
-      },
-      orderBy: { createdAt: sortDirection },
-    });
-
-    activityCount = messages.length + actions.length;
-
-    if (activityCount >= minActivities) {
-      break;
-    }
-
-    // check for older activities before extending range to avoid infinite loop
-    const olderExists =
-      (await prisma.message.findFirst({
-        where: { chatId, createdAt: { lt: startDate.toJSDate() } },
-      })) ||
-      (await prisma.chatAction.findFirst({
-        where: { chatId, createdAt: { lt: startDate.toJSDate() } },
-      }));
-
-    if (!olderExists) {
-      break;
-    }
-
-    // extend range
-    const currentDuration = endDate.diff(startDate, 'days').days;
-    startDate = startDate.minus({ days: currentDuration });
-  }
-
-  const mergedActivities = await getMergedActivities(messages, actions, {
-    sortDirection,
-  });
-
-  const hasOlderActivities =
-    (await prisma.message.findFirst({
-      where: { chatId, createdAt: { lt: startDate.toJSDate() } },
-    })) ||
-    (await prisma.chatAction.findFirst({
-      where: { chatId, createdAt: { lt: startDate.toJSDate() } },
-    }));
-
-  return {
-    activities: mergedActivities,
-    nextCursor: hasOlderActivities ? startDate.toJSDate() : null,
-  };
-};

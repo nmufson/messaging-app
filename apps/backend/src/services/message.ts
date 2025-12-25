@@ -14,21 +14,23 @@ import { PrismaClient } from '@repo/db';
  * Creates a new message
  * Tags message as activity and emits event for new activity in chat
  */
-export const sendMessage = async (
+export async function sendMessage(
   prisma: PrismaClient,
   params: SendMessageInput
-): Promise<IMessageActivity> => {
-  const { chatId, sender, type, content, imageUrl } = params;
+): Promise<IMessageActivity> {
+  const { chatId, senderId, type, content, imageUrl } = params;
 
   const newMessage = await prisma.message.create({
     data: {
       type,
       content,
       imageUrl,
-      sender: { connect: { id: sender } },
+      sender: { connect: { id: senderId } },
       chat: { connect: { id: chatId } },
     },
   });
+
+  await incrementUnreadActivityCount(prisma, chatId, senderId);
 
   const newMessageActivity = tagActivity(newMessage, 'message');
 
@@ -36,7 +38,25 @@ export const sendMessage = async (
   eventEmitter.emit(`activity:create:${chatId}`, newMessageActivity);
 
   return newMessageActivity;
-};
+}
+
+export async function incrementUnreadActivityCount(
+  prisma: PrismaClient,
+  chatId: string,
+  excludingProfileId: string
+): Promise<void> {
+  await prisma.chatParticipant.updateMany({
+    where: {
+      chatId,
+      profileId: { not: excludingProfileId },
+    },
+    data: {
+      unreadActivities: {
+        increment: 1,
+      },
+    },
+  });
+}
 
 interface GetMessagesParams {
   profileId: string;
@@ -44,10 +64,10 @@ interface GetMessagesParams {
   limit?: number;
 }
 // TODO: implement pagination for these
-export const getMatchingTextMessages = async (
+export async function getMatchingTextMessages(
   prisma: PrismaClient,
   params: GetMessagesParams
-): Promise<TextMessageSearchResultDTO[]> => {
+): Promise<TextMessageSearchResultDTO[]> {
   const { profileId, searchInput, limit } = params;
   logger.info({ searchInput }, 'search input');
   const messages = await prisma.message.findMany({
@@ -137,7 +157,7 @@ export const getMatchingTextMessages = async (
   const parsedMessages = TextMessageSearchResultDTO.array().parse(messages);
 
   return parsedMessages;
-};
+}
 // TODO: implement pagination for these
 
 interface GetPhotoMessagesParams {
@@ -146,10 +166,10 @@ interface GetPhotoMessagesParams {
   limit?: number;
 }
 
-export const getMatchingPhotoMessages = async (
+export async function getMatchingPhotoMessages(
   prisma: PrismaClient,
   params: GetPhotoMessagesParams
-): Promise<PhotoMessageSearchResultDTO[]> => {
+): Promise<PhotoMessageSearchResultDTO[]> {
   const { profileId, searchInput, limit } = params;
 
   const photoMessages = await prisma.message.findMany({
@@ -227,4 +247,4 @@ export const getMatchingPhotoMessages = async (
     PhotoMessageSearchResultDTO.array().parse(photoMessages);
 
   return parsedPhotoMessages;
-};
+}

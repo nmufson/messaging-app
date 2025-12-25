@@ -78,7 +78,14 @@ export function ChatPreview({ chat }: { chat: ChatDTO }) {
             <h6>{formattedDisplayName}</h6>
             <small>{displayTime}</small>
           </div>
-          <div>
+          <div className="flex items-center gap-2">
+            {unreadActivities > 0 && (
+              <div className="flex items-center justify-center bg-blue-600 text-white rounded-full min-w-5 h-5 px-1.5">
+                <span className="text-xs font-semibold">
+                  {unreadActivities}
+                </span>
+              </div>
+            )}
             <small>{activityContentDisplay}</small>
           </div>
         </div>

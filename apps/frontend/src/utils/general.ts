@@ -35,16 +35,16 @@ export const getProfile = (params: GetProfileParams) => {
   }
 };
 
-export const getParticipant = (
+export function getParticipant(
   participants: ChatParticipantDTO[],
   profileId?: ObjectId
-) => {
+) {
   return participants.find((p) => p.profile.id === profileId);
-};
+}
 
-export const getParticipantProfiles = (participants: ChatParticipantDTO[]) => {
+export function getParticipantProfiles(participants: ChatParticipantDTO[]) {
   return participants.map((p) => p.profile);
-};
+}
 
 export const getActionText = (
   actionWithActor: ChatActionWithActorDTO,

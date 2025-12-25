@@ -1,5 +1,5 @@
 import { useTRPC } from '@/lib/trpc';
-import { ObjectId } from '@repo/common';
+import { ObjectId, SortDirection } from '@repo/common';
 import {
   skipToken,
   useInfiniteQuery,
@@ -17,13 +17,29 @@ interface SendMessageParams {
   onSuccess?: (chatId: ObjectId) => void;
 }
 
-export function useChatActivities(chatId?: ObjectId, profileIds?: ObjectId[]) {
+export function useChatActivities(
+  chatId?: ObjectId,
+  profileIds?: ObjectId[],
+  options?: { sortDirection?: SortDirection }
+) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const { sortDirection = 'asc' } = options || {};
 
-  const activitiesQueryKey = trpc.activity.getActivities.infiniteQueryKey(
-    chatId ? { chatId } : {}
-  );
+  const activitiesQuery = useMemo(() => {
+    if (chatId) {
+      return {
+        chatId,
+        options: {
+          sortDirection,
+        },
+      };
+    }
+    return {};
+  }, [chatId, sortDirection]);
+
+  const activitiesQueryKey =
+    trpc.activity.getActivities.infiniteQueryKey(activitiesQuery);
 
   const findChatQuery = useMemo(() => {
     if (chatId) {
@@ -49,7 +65,7 @@ export function useChatActivities(chatId?: ObjectId, profileIds?: ObjectId[]) {
         ? {
             chatId,
             options: {
-              sortDirection: 'asc',
+              sortDirection,
             },
           }
         : skipToken,
@@ -68,8 +84,10 @@ export function useChatActivities(chatId?: ObjectId, profileIds?: ObjectId[]) {
     trpc.message.sendToChat.mutationOptions({
       onSuccess: (messageActivity) => {
         queryClient.setQueryData(activitiesQueryKey, (oldData) => {
+          console.log(messageActivity);
           if (!oldData) return oldData;
           const newPages = [...oldData.pages];
+
           const firstPage = newPages[0];
           if (!firstPage) return oldData;
 
@@ -151,15 +169,20 @@ export function useChatActivities(chatId?: ObjectId, profileIds?: ObjectId[]) {
     const { senderId, content, imageUrl, type, onSuccess } = params;
     // If chat exists, send message
     if (chatId) {
+      console.log('sending message to existing chat', chatId);
       sendMessageToChat(
         {
           content: content || null,
           imageUrl: imageUrl || null,
-          sender: senderId,
+          senderId,
           chatId,
           type,
         },
-        { onSuccess: () => onSuccess?.(chatId) }
+        {
+          onSuccess: () => {
+            onSuccess?.(chatId);
+          },
+        }
       );
     } else if (profileIds) {
       // If chat does not exist, create chat with first message

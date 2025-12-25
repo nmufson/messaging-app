@@ -4,7 +4,7 @@ import { ChatPreview } from './ChatPreview';
 import { MessageSearchBar } from './SearchBar';
 import MainHeader from '@/components/mainHeader/mainHeader';
 
-export default function Chats() {
+export default function ChatList() {
   const { chats, isLoading, error } = useChatList();
 
   if (isLoading) return <div>Loading...</div>;

@@ -1,10 +1,7 @@
 import { eventEmitter } from '@/lib/eventBus';
-import {
-  createAction,
-  getChat,
-  getMergedActivities,
-  updateChatInfo,
-} from '@/services/chat';
+import { getChat, updateChatInfo } from '@/services/chat';
+import { getMergedActivities } from '@/services/activity';
+import { createAction } from '@/services/action';
 import { sendMessage } from '@/services/message';
 import { router } from '@/trpc';
 import {
@@ -322,7 +319,7 @@ export const actionRouter = router({
           type: firstMessage.type,
           content: firstMessage.content,
           imageUrl: firstMessage.imageUrl,
-          sender: creatorId,
+          senderId: creatorId,
           chatId: newChat.id,
         });
       }

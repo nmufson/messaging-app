@@ -2,14 +2,11 @@ import { getChat } from '@/services/chat';
 import {
   PhotoMessageSearchResultDTO,
   SendMessageInput,
-  tagActivity,
   TextMessageSearchResultDTO,
   z,
 } from '@repo/common';
 import { MessageActivityDTO } from '@repo/common/schemas/activities';
 import { TRPCError } from '@trpc/server';
-import { logger } from 'src/lib/pino';
-import { eventEmitter } from '../lib/eventBus';
 import {
   getMatchingPhotoMessages,
   getMatchingTextMessages,
@@ -22,7 +19,7 @@ export const messageRouter = router({
     .input(SendMessageInput)
     .output(MessageActivityDTO)
     .mutation(async ({ input, ctx }) => {
-      const { sender, chatId } = input;
+      const { senderId, chatId } = input;
 
       const chat = await getChat(ctx.prisma, { chatId });
 
@@ -34,7 +31,7 @@ export const messageRouter = router({
       }
 
       const senderProfile = chat.participants.find(
-        (p) => p.profile.id === sender
+        (p) => p.profile.id === senderId
       );
 
       if (!senderProfile) {
