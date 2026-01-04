@@ -6,7 +6,6 @@ import {
   ChatInfoDTO,
   ChatListItemDTO,
   ObjectId,
-  UserRole,
   z,
 } from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';

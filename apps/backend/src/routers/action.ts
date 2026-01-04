@@ -54,6 +54,7 @@ export const actionRouter = router({
         }),
       };
 
+      // TODO: move this within updateChatInfo ?
       const { newActionActivity, activityProfiles } = await createAction(
         ctx.prisma,
         actionData

@@ -1,5 +1,6 @@
 export * from './utils/mergeAsyncIterators';
 export * from './utils/general';
+export * from './utils/activity';
 
 export * from './schemas/primitives';
 export * from './schemas/message';

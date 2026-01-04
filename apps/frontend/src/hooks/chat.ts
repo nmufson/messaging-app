@@ -1,7 +1,11 @@
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/Toast/ToastContext';
 import { useTRPC } from '@/lib/trpc';
-import { ActionOutputDTO, ObjectId } from '@repo/common';
+import {
+  ActionOutputDTO,
+  checkIsActivityCreator,
+  ObjectId,
+} from '@repo/common';
 import {
   skipToken,
   useMutation,
@@ -38,11 +42,33 @@ export function useChatList() {
 
               const activityChatId = newActivity.chatId;
 
-              return oldData.map((chat) =>
-                chat.id === activityChatId
-                  ? { ...chat, activities: [...chat.activities, newActivity] }
-                  : chat
-              );
+              return oldData.map((chat) => {
+                if (chat.id === activityChatId) {
+                  const updatedParticipants = chat.participants.map(
+                    (participant) => {
+                      const isActivityCreator = checkIsActivityCreator(
+                        participant.profile.id,
+                        newActivity
+                      );
+
+                      if (isActivityCreator) {
+                        // don't increment unread count for activity creator
+                        return participant;
+                      }
+                      return {
+                        ...participant,
+                        unreadActivities: participant.unreadActivities + 1,
+                      };
+                    }
+                  );
+                  return {
+                    ...chat,
+                    activities: [...chat.activities, newActivity],
+                    participants: updatedParticipants,
+                  };
+                }
+                return chat;
+              });
             });
           },
         }
