@@ -55,30 +55,50 @@ export default function CreateProfile() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="max-w-xl mx-auto p-6 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col gap-6"
+    >
+      {/* Form Header */}
       <div>
-        <TextFieldGroup
-          type="text"
-          label="First Name"
-          name="firstName"
-          control={control}
-        />
+        <h2 className="text-xl font-bold text-slate-800">Create Profile</h2>
+        <p className="text-sm text-slate-500">
+          Add details for your public profile.
+        </p>
+      </div>
 
-        <TextFieldGroup
-          type="text"
-          label="Last Name"
-          name="lastName"
-          control={control}
-        />
+      <div className="flex flex-col gap-5">
+        {/* Name Fields: Side-by-Side on small screens and up */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TextFieldGroup
+            type="text"
+            label="First Name"
+            name="firstName"
+            control={control}
+          />
+          <TextFieldGroup
+            type="text"
+            label="Last Name"
+            name="lastName"
+            control={control}
+          />
+        </div>
 
-        <ImageUpload
-          label="Profile Picture"
-          name="avatarUrl"
-          control={control}
-        />
+        {/* Media Upload Section */}
+        <div className="flex flex-col gap-4 p-4 bg-slate-50 rounded-lg border border-slate-100">
+          <ImageUpload
+            label="Profile Picture"
+            name="avatarUrl"
+            control={control}
+          />
+          <ImageUpload
+            label="Header Image"
+            name="headerUrl"
+            control={control}
+          />
+        </div>
 
-        <ImageUpload label="Header Image" name="headerUrl" control={control} />
-
+        {/* Text Area Fields */}
         <TextFieldGroup
           type="text"
           as="textarea"
@@ -98,7 +118,17 @@ export default function CreateProfile() {
           helperText="Max 250 characters"
         />
       </div>
-      <button disabled={isPending}>Done</button>
+
+      {/* Form Footer / Action */}
+      <div className="flex justify-end pt-2 border-t border-slate-100">
+        <button
+          type="submit"
+          disabled={isPending}
+          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-slate-300 disabled:cursor-not-allowed"
+        >
+          {isPending ? 'Saving...' : 'Done'}
+        </button>
+      </div>
     </form>
   );
 }

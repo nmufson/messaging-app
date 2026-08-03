@@ -1,5 +1,5 @@
 import { DEFAULT_PROFILE_IMAGE } from '@/constants';
-import { getOnlineStatus } from '@/utils';
+import { getOnlineStatusDisplay } from '@/utils';
 import { ListProfileDTO } from '@repo/common';
 import Link from 'next/link';
 import { ReactNode } from 'react';
@@ -20,7 +20,7 @@ export function ProfilePreview(props: ProfilePreviewProps) {
   const profileDisplayName = `${firstName} ${lastName}`;
   const profileImage = avatarUrl ? avatarUrl : DEFAULT_PROFILE_IMAGE;
 
-  const { color, message } = getOnlineStatus({
+  const { color, message } = getOnlineStatusDisplay({
     isOnline: profile.isOnline,
     lastOnline: profile.lastOnline,
   });

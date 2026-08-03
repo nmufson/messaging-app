@@ -56,6 +56,7 @@ export function ChatContent(props: ChatContentProps) {
     numProfilesOnline: numParticipantsOnline,
   } = useOnlinePresence({
     chatId: chatId ?? undefined,
+    friendsOnly: false,
   });
   const isAnyOnline = R.isTruthy(numParticipantsOnline);
 

@@ -13,19 +13,20 @@ import { DateTime } from 'luxon';
 import { profileProcedure, router } from '../trpc';
 
 export const onlinePresenceRouter = router({
-  // friends who are online or recently online
-  getFriendsPresence: profileProcedure
+  // profiles who are online or recently online
+  profilesPresence: profileProcedure
     .input(
       z
         .object({
           chatId: ObjectId.optional(),
           withinLast: DurationObject.optional().default({ hours: 1 }),
+          friendsOnly: z.boolean().optional().default(false),
         })
         .optional()
     )
     .output(BaseProfileDTO.array())
     .query(async ({ ctx, input }) => {
-      const { chatId, withinLast } = input || {};
+      const { chatId, withinLast, friendsOnly = false } = input || {};
       const { user, prisma } = ctx;
       const userProfileId = user?.profile?.id;
 
@@ -33,34 +34,30 @@ export const onlinePresenceRouter = router({
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
 
-      const friendsWithPresence = await prisma.profile.findMany({
+      const scopeFilter =
+        friendsOnly || !chatId
+          ? {
+              friends: {
+                some: {
+                  id: userProfileId,
+                },
+              },
+            }
+          : {
+              chatMemberships: {
+                some: {
+                  chatId,
+                },
+              },
+            };
+
+      const profilesWithPresence = await prisma.profile.findMany({
         where: {
           AND: [
             {
               id: { not: userProfileId },
             },
-            {
-              OR: [
-                {
-                  friends: {
-                    some: {
-                      id: userProfileId,
-                    },
-                  },
-                },
-                ...(chatId
-                  ? [
-                      {
-                        chatMemberships: {
-                          some: {
-                            chatId,
-                          },
-                        },
-                      },
-                    ]
-                  : []),
-              ],
-            },
+            scopeFilter,
             {
               OR: [
                 { isOnline: true },
@@ -85,7 +82,7 @@ export const onlinePresenceRouter = router({
         },
       });
 
-      return friendsWithPresence;
+      return profilesWithPresence;
     }),
   // real-time presence updates
   onPresenceChange: profileProcedure

@@ -16,7 +16,9 @@ export function Sidebar(props: SidebarProps) {
   const { isOpen, onClose } = props;
   const { profile } = useAuth();
 
-  const { numProfilesOnline, activeProfiles } = useOnlinePresence();
+  const { numProfilesOnline, activeProfiles } = useOnlinePresence({
+    friendsOnly: true,
+  });
 
   const numRecentlyActive = activeProfiles.length - numProfilesOnline;
 

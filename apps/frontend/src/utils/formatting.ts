@@ -100,7 +100,9 @@ interface OnlineStatus {
   message: string | null;
 }
 
-export function getOnlineStatus(params: GetOnlineStatusParams): OnlineStatus {
+export function getOnlineStatusDisplay(
+  params: GetOnlineStatusParams
+): OnlineStatus {
   const { isOnline, lastOnline } = params;
 
   if (isOnline) {

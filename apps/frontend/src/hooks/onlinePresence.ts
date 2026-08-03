@@ -8,6 +8,7 @@ import * as R from 'remeda';
 interface OnlinePresenceOptions {
   chatId?: ObjectId;
   withinLast?: DurationObject;
+  friendsOnly?: boolean;
 }
 
 export function useOnlinePresence(options?: OnlinePresenceOptions) {
@@ -15,10 +16,10 @@ export function useOnlinePresence(options?: OnlinePresenceOptions) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const queryKey = trpc.onlinePresence.getFriendsPresence.queryKey(options);
+  const queryKey = trpc.onlinePresence.profilesPresence.queryKey(options);
 
   const { data, isLoading, error } = useQuery(
-    trpc.onlinePresence.getFriendsPresence.queryOptions(options)
+    trpc.onlinePresence.profilesPresence.queryOptions(options)
   );
 
   const handlePresenceUpdate = (presenceUpdate: PresenceUpdate) => {

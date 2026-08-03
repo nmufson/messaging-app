@@ -45,7 +45,7 @@ export function TextFieldGroup<T extends object>(
   } = useController(controllerProps);
 
   return (
-    <Form.Group className="mb-3">
+    <Form.Group className="mb-4 flex flex-col gap-1.5">
       {label && (
         <Form.Label className={disabled ? 'text-muted' : ''}>
           {label}
@@ -58,6 +58,7 @@ export function TextFieldGroup<T extends object>(
         placeholder={placeholder}
         disabled={disabled}
         isInvalid={!!error}
+        className="w-full px-3 py-2 text-slate-900 bg-white border border-slate-300 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-100 disabled:text-slate-400"
       />
       {error && (
         <Form.Control.Feedback type="invalid">

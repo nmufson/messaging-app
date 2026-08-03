@@ -17,7 +17,9 @@ export function Contacts({
   const { profile } = useAuth();
   const { value: searchInput, onChange: onSearchInputChange } = useInput();
 
-  const { activeProfiles: activeFriends } = useOnlinePresence();
+  const { activeProfiles: activeFriends } = useOnlinePresence({
+    friendsOnly: true,
+  });
 
   const presenceIds = activeFriends?.map((friend) => friend.id);
 
