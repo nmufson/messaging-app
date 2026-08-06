@@ -64,7 +64,7 @@ export const onlinePresenceRouter = router({
                 {
                   lastOnline: {
                     gte: DateTime.now()
-                      .minus(withinLast || { hours: 1 })
+                      .minus(withinLast || { hours: 24 })
                       .toJSDate(),
                   },
                 },
@@ -85,6 +85,7 @@ export const onlinePresenceRouter = router({
       return profilesWithPresence;
     }),
   // real-time presence updates
+  // TODO: rename this?
   onPresenceChange: profileProcedure
     .input(z.object({}))
     .subscription(async function* ({ ctx, signal }) {

@@ -16,7 +16,7 @@ import {
   ObjectId,
 } from '@repo/common';
 import Link from 'next/link';
-import { FormEvent, useEffect, useMemo, useRef } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useRef } from 'react';
 import { OverlayTrigger, Spinner, Tooltip } from 'react-bootstrap';
 import * as R from 'remeda';
 import { GroupPhoto } from '../GroupPhoto';
@@ -34,8 +34,9 @@ interface ChatContentProps {
 }
 
 export function ChatContent(props: ChatContentProps) {
-  const isFirstRender = useRef(true);
+  const hasScrolledOnFirstRender = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messageToViewRef = useRef<HTMLDivElement>(null);
   const { navigateToChat } = useNavigation();
   const { launchModal } = useModalContext();
@@ -84,22 +85,35 @@ export function ChatContent(props: ChatContentProps) {
     isFetchingNextPage,
   } = useChatActivities(chat?.id, profileIds);
 
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
+    const container = messagesContainerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior,
+    });
+  }, []);
+
   useEffect(() => {
     if (messageToView && messageToViewRef.current) {
       messageToViewRef.current.scrollIntoView({ behavior: 'instant' });
       return;
     }
 
-    // Only scroll to bottom on initial load
-    if (
-      !isActivitiesLoading &&
-      messagesEndRef.current &&
-      isFirstRender.current
-    ) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'instant' });
-      isFirstRender.current = false;
+    if (!hasScrolledOnFirstRender.current && allActivities.length > 0) {
+      console.log(allActivities.length);
+      const frameId = window.requestAnimationFrame(() => {
+        scrollToBottom('auto');
+      });
+
+      hasScrolledOnFirstRender.current = true;
+      return () => window.cancelAnimationFrame(frameId);
     }
-  }, [isActivitiesLoading, messageToView]);
+  }, [messageToView, scrollToBottom, allActivities.length]);
 
   const handleSubmitMessage = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -117,6 +131,10 @@ export function ChatContent(props: ChatContentProps) {
         if (inModalView) {
           navigateToChat(chatId);
         }
+
+        window.requestAnimationFrame(() => {
+          scrollToBottom('smooth');
+        });
       },
     });
 
@@ -212,6 +230,7 @@ export function ChatContent(props: ChatContentProps) {
         activities={allActivities}
         participants={participants}
         messageToViewRef={messageToViewRef}
+        messagesContainerRef={messagesContainerRef}
         messagesEndRef={messagesEndRef}
         messageToView={messageToView}
         fetchNextPage={fetchNextPage}

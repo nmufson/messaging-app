@@ -9,6 +9,7 @@ interface ActivitiesProps {
   activities: ChatActivityDTO[];
   participants: ChatParticipantDTO[];
   messageToViewRef: RefObject<HTMLDivElement | null>;
+  messagesContainerRef: RefObject<HTMLDivElement | null>;
   messagesEndRef: RefObject<HTMLDivElement | null>;
   messageToView?: ObjectId | null;
   fetchNextPage: () => void;
@@ -21,6 +22,7 @@ export function Activities(props: ActivitiesProps) {
     activities,
     participants,
     messageToViewRef,
+    messagesContainerRef,
     messagesEndRef,
     messageToView,
     fetchNextPage,
@@ -44,8 +46,9 @@ export function Activities(props: ActivitiesProps) {
 
   return (
     <div
+      ref={messagesContainerRef}
       onScroll={(e) => handleScroll(e.currentTarget.scrollTop)}
-      className="messages-container flex-1 overflow-y-auto py-4"
+      className="messages-container flex-1 overflow-y-auto py-4 pb-6"
     >
       {activities.map((activity, i) => {
         if (activity.activityType === 'message') {
