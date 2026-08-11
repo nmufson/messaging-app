@@ -1,6 +1,5 @@
-import { Button, ButtonProps } from '@/components/button/button';
 import { useModalContext } from '@/context/ModalContext';
-import { Fragment, ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 interface ModalProps {
   header?: ReactNode;

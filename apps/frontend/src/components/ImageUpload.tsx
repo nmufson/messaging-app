@@ -5,7 +5,6 @@ import { useTRPC } from '@/lib/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { UseControllerProps, useController } from 'react-hook-form';
 import { useSelectedValue } from '@/hooks/general';
-import { Button } from './button/button';
 
 export interface BaseImageUploadProps {
   label?: string;
@@ -13,6 +12,7 @@ export interface BaseImageUploadProps {
   imageClassName?: string;
   imageSize?: number;
   fallback?: ReactNode;
+  onUploadingChange?: (isUploading: boolean) => void;
 }
 
 export type ImageUploadProps<T extends object> = BaseImageUploadProps &
@@ -20,6 +20,7 @@ export type ImageUploadProps<T extends object> = BaseImageUploadProps &
 
 export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
   const trpc = useTRPC();
+  const [isLoadingFileChange, setIsLoadingFileChange] = useState(false);
 
   const {
     label,
@@ -55,18 +56,28 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
   );
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    setIsLoadingFileChange(true);
+    props.onUploadingChange?.(true);
     const file = e.target.files?.[0];
     console.log(e.target.files);
-    if (!file) return;
+
+    if (!file) {
+      props.onUploadingChange?.(false);
+      return;
+    }
 
     if (!file.type.startsWith('image/')) {
       alert('Please select an image file');
+
+      props.onUploadingChange?.(false);
       return;
     }
 
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
       alert('Image must be less than 5MB');
+
+      props.onUploadingChange?.(false);
       return;
     }
 
@@ -82,6 +93,7 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
       if (!cloudName || !apiKey) {
         console.error('Missing Cloudinary configuration');
         alert('Internal server error, please try again later.');
+        setIsLoadingFileChange(false);
         return;
       }
 
@@ -108,19 +120,16 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
       const data = await response.json();
       console.log(data);
 
-      // ppdate form with url from Cloudinary
+      // update form with url from Cloudinary
       field.onChange(data.secure_url);
       onPreviewUrlChange(data.secure_url);
     } catch (error) {
       console.error('Upload error:', error);
       alert('Failed to upload image. Please try again.');
       onPreviewUrlChange(null);
+    } finally {
+      props.onUploadingChange?.(false);
     }
-  };
-
-  const handleRemove = () => {
-    onPreviewUrlChange(null);
-    field.onChange('');
   };
 
   return (
@@ -129,11 +138,10 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
         type="file"
         accept="image/*"
         onChange={handleFileChange}
-        disabled={isPending}
+        disabled={isPending || isLoadingFileChange}
         className="hidden"
         id={inputId}
       />
-
       {label && (
         <label className="block text-sm font-medium text-gray-700 mb-2">
           {label}

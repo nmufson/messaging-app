@@ -182,45 +182,46 @@ export function useChatInfo(params: ChatInfoParams) {
     trpc.chat.getInfo.queryOptions({ chatId })
   );
 
-  const { mutateAsync: updateChat, isPending } = useMutation(
-    trpc.action.updateInfo.mutationOptions({
-      onSuccess: (data) => {
-        const { updatedChat, newActionActivity } = data;
+  const { mutateAsync: updateChat, isPending: isUpdatingChatInfo } =
+    useMutation(
+      trpc.action.updateInfo.mutationOptions({
+        onSuccess: (data) => {
+          const { updatedChat, newActionActivity } = data;
 
-        // Update the info query cache and findChat query from ChatContent
-        queryClient.setQueryData(chatInfoQueryKey, updatedChat);
+          // Update the info query cache and findChat query from ChatContent
+          queryClient.setQueryData(chatInfoQueryKey, updatedChat);
 
-        queryClient.setQueryData(activitiesQueryKey, (oldData) => {
-          if (!oldData) return oldData;
-          const newPages = [...oldData.pages];
-          const firstPage = newPages[0];
-          if (!firstPage) return oldData;
+          queryClient.setQueryData(activitiesQueryKey, (oldData) => {
+            if (!oldData) return oldData;
+            const newPages = [...oldData.pages];
+            const firstPage = newPages[0];
+            if (!firstPage) return oldData;
 
-          console.log(newActionActivity, 'new action activity');
+            console.log(newActionActivity, 'new action activity');
 
-          newPages[0] = {
-            ...firstPage,
-            activities: [...firstPage.activities, newActionActivity],
-          };
-          return { ...oldData, pages: newPages };
-        });
+            newPages[0] = {
+              ...firstPage,
+              activities: [...firstPage.activities, newActionActivity],
+            };
+            return { ...oldData, pages: newPages };
+          });
 
-        addToast({
-          header: 'Success',
-          body: 'Chat updated successfully!',
-          variant: 'success',
-        });
-      },
-      onError: (error) => {
-        addToast({
-          header: 'Error',
-          body:
-            error.message || 'Failed to update chat, please try again later.',
-          variant: 'danger',
-        });
-      },
-    })
-  );
+          addToast({
+            header: 'Success',
+            body: 'Chat updated successfully!',
+            variant: 'success',
+          });
+        },
+        onError: (error) => {
+          addToast({
+            header: 'Error',
+            body:
+              error.message || 'Failed to update chat, please try again later.',
+            variant: 'danger',
+          });
+        },
+      })
+    );
 
   const handleSuccess = (data: ActionOutputDTO) => {
     const { updatedChat, newActionActivity } = data;
@@ -268,7 +269,7 @@ export function useChatInfo(params: ChatInfoParams) {
     chat,
     isLoading,
     updateChat,
-    isPending,
+    isUpdatingChatInfo,
     addMember,
     removeMember,
     leaveChat,

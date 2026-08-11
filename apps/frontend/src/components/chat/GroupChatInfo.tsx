@@ -2,9 +2,15 @@ import { useAuth } from '@/context/AuthContext';
 import { useToggle } from '@/hooks/general';
 import { getChatDisplayName, getProfileDisplayName } from '@/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ListProfileDTO, ObjectId, UpdateChatInput } from '@repo/common';
-import { MouseEvent, useEffect, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { BaseProfileDTO, ObjectId, UpdateChatInput } from '@repo/common';
+import { MouseEvent, useEffect, useMemo, useState } from 'react';
+import {
+  Control,
+  SubmitHandler,
+  useForm,
+  useFormState,
+  UseFormHandleSubmit,
+} from 'react-hook-form';
 import { useModalContext } from '@/context/ModalContext';
 import { useChatInfo } from '@/hooks/chat';
 import * as R from 'remeda';
@@ -19,6 +25,33 @@ import { Contacts } from '../Contacts';
 import { FullscreenModal } from '../modal/FullscreenModal';
 import { getParticipantProfiles } from '@/utils/general';
 
+interface PhotoModalContentProps {
+  control: Control<Omit<UpdateChatInput, 'id'>>;
+  handleSubmit: UseFormHandleSubmit<Omit<UpdateChatInput, 'id'>>;
+  onSubmit: SubmitHandler<Omit<UpdateChatInput, 'id'>>;
+}
+
+function PhotoModalContent(props: PhotoModalContentProps) {
+  const { control, handleSubmit, onSubmit } = props;
+  const { isDirty } = useFormState({ control });
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <ImageUpload
+        name="groupPictureUrl"
+        control={control}
+        imageClassName="rounded-full object-cover"
+        imageSize={100}
+        onUploadingChange={setIsUploadingPhoto}
+      />
+      <Button type="submit" disabled={isUploadingPhoto || !isDirty}>
+        {true ? <LoadingSpinner /> : 'Confirm'}
+      </Button>
+    </form>
+  );
+}
+
 export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
   const {
     status: editMode,
@@ -28,8 +61,14 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
   const { launchModal, closeModal } = useModalContext();
   const { profile } = useAuth();
 
-  const { chat, isLoading, updateChat, isPending, addMember, removeMember } =
-    useChatInfo({ chatId });
+  const {
+    chat,
+    isLoading,
+    updateChat,
+    isUpdatingChatInfo,
+    addMember,
+    removeMember,
+  } = useChatInfo({ chatId });
 
   const defaultValues = useMemo(
     () => (chat ? UpdateChatInput.omit({ id: true }).parse(chat) : undefined),
@@ -40,12 +79,15 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
     control,
     handleSubmit,
     reset,
-    formState: { dirtyFields, isDirty },
+    watch,
+    formState: { dirtyFields },
   } = useForm({
     resolver: zodResolver(UpdateChatInput.omit({ id: true })),
     defaultValues,
     mode: 'onBlur',
   });
+
+  const groupPictureFormValue = watch('groupPictureUrl');
 
   // reset when chat data loads or changes
   useEffect(() => {
@@ -84,7 +126,6 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
   });
 
   const handleLaunchRemoveMemberModal = (profileId: ObjectId) => {
-    console.log('launching');
     const profile = participants.find(
       (p) => p.profile.id === profileId
     )?.profile;
@@ -100,7 +141,7 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
           <CancelButton key="close" />
           <Button
             key="cancel-request"
-            onClick={(e) => {
+            onClick={() => {
               removeMember({ chatId, profileId });
               closeModal();
             }}
@@ -116,17 +157,11 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
   const handleLaunchPhotoModal = () => {
     launchModal(
       <Modal>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <ImageUpload
-            name="groupPictureUrl"
-            control={control}
-            imageClassName="rounded-full object-cover"
-            imageSize={100}
-          />
-          <Button type="submit" disabled={isPending || !isDirty}>
-            <i className="bi bi-floppy" />
-          </Button>
-        </form>
+        <PhotoModalContent
+          control={control}
+          handleSubmit={handleSubmit}
+          onSubmit={onSubmit}
+        />
       </Modal>
     );
   };
@@ -143,7 +178,7 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
     );
   };
 
-  const handleLaunchAddMemberConfirmModal = (profile: ListProfileDTO) => {
+  const handleLaunchAddMemberConfirmModal = (profile: BaseProfileDTO) => {
     const displayName = getProfileDisplayName(profile);
     closeModal(); // Close contacts modal
     launchModal(
@@ -174,7 +209,7 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
       >
         <div onClick={handleLaunchPhotoModal}>
           <GroupPhoto
-            groupPictureUrl={groupPictureUrl}
+            groupPictureUrl={groupPictureFormValue || groupPictureUrl}
             participantProfiles={participantProfiles}
             size={100}
             className="cursor-pointer hover:opacity-80 transition-opacity"
@@ -186,7 +221,7 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
           {editMode ? (
             <>
               <TextFieldGroup type="text" name="name" control={control} />
-              <Button type="submit" disabled={isPending}>
+              <Button type="submit" disabled={isUpdatingChatInfo}>
                 <i className="bi bi-floppy" />
               </Button>
             </>

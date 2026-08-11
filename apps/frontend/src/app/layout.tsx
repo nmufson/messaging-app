@@ -15,6 +15,7 @@ import { superjson } from '@repo/common';
 import { AuthProvider } from '../context/AuthContext';
 import { ModalContextWrapper } from '@/context/ModalContext';
 import { ToastProvider } from '@/context/Toast/ToastContext';
+// import 'bootstrap/dist/css/bootstrap.min.css';
 
 function makeQueryClient() {
   return new QueryClient({
