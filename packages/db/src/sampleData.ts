@@ -223,7 +223,7 @@ export const profilesData = [
   {
     id: profileIds.nick,
     firstName: 'Nick',
-    lastName: 'Smith',
+    lastName: 'Mufson',
     avatarUrl: PROFILE_PIC_URL,
     userId: userIds.nick,
     friends: [

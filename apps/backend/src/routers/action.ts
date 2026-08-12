@@ -1,5 +1,5 @@
 import { eventEmitter } from '@/lib/eventBus';
-import { getChat, updateChatInfo } from '@/services/chat';
+import { CHAT_INFO_SELECT, getChat } from '@/services/chat';
 import { getMergedActivities } from '@/services/activity';
 import { createAction } from '@/services/action';
 import { sendMessage } from '@/services/message';
@@ -36,9 +36,10 @@ export const actionRouter = router({
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
 
-      const updatedChat = await updateChatInfo(ctx.prisma, {
-        chatId: id,
+      const updatedChat = await ctx.prisma.chat.update({
+        where: { id },
         data: updatedFields,
+        select: CHAT_INFO_SELECT,
       });
 
       // only one field will be updated at a time
@@ -83,16 +84,42 @@ export const actionRouter = router({
       const { chatId, profileId: profileIdToAdd } = input;
       const { user } = ctx;
 
-      const data = {
-        participants: {
-          connect: { id: profileIdToAdd },
+      // Update record if it exists, otherwise create new participant
+      const chatParticipant = await ctx.prisma.chatParticipant.upsert({
+        where: {
+          chatId_profileId: {
+            chatId,
+            profileId: profileIdToAdd,
+          },
         },
-      };
-
-      const updatedChat = await updateChatInfo(ctx.prisma, {
-        chatId,
-        data,
+        update: {
+          status: 'MEMBER',
+          joinedAt: new Date(),
+          departedAt: null,
+        },
+        create: {
+          chatId,
+          profileId: profileIdToAdd,
+          status: 'MEMBER',
+        },
       });
+
+      logger.info(
+        { chatParticipant, chatId, profileIdToAdd },
+        'Added member to chat'
+      );
+
+      const updatedChat = await ctx.prisma.chat.findUnique({
+        where: { id: chatId },
+        select: CHAT_INFO_SELECT,
+      });
+
+      if (!updatedChat) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Chat not found',
+        });
+      }
 
       const actionData = {
         chatId: chatId,
@@ -127,15 +154,25 @@ export const actionRouter = router({
       const { chatId, profileId: profileIdToRemove } = input;
       const { user } = ctx;
 
-      const updateChatData = {
-        participants: {
-          disconnect: { id: profileIdToRemove },
+      const updatedChat = await ctx.prisma.chat.update({
+        where: { id: chatId },
+        data: {
+          participants: {
+            update: {
+              where: {
+                chatId_profileId: {
+                  chatId,
+                  profileId: profileIdToRemove,
+                },
+              },
+              data: {
+                status: 'REMOVED',
+                departedAt: new Date(),
+              },
+            },
+          },
         },
-      };
-
-      const updatedChat = await updateChatInfo(ctx.prisma, {
-        chatId,
-        data: updateChatData,
+        select: CHAT_INFO_SELECT,
       });
 
       const removeMemberActionData = {
@@ -174,15 +211,25 @@ export const actionRouter = router({
 
       const profileIdToLeave = user.profile.id;
 
-      const updateChatData = {
-        participants: {
-          disconnect: { id: profileIdToLeave },
+      const updatedChat = await ctx.prisma.chat.update({
+        where: { id: chatId },
+        data: {
+          participants: {
+            update: {
+              where: {
+                chatId_profileId: {
+                  chatId,
+                  profileId: profileIdToLeave,
+                },
+              },
+              data: {
+                status: 'LEFT',
+                departedAt: new Date(),
+              },
+            },
+          },
         },
-      };
-
-      const updatedChat = await updateChatInfo(ctx.prisma, {
-        chatId,
-        data: updateChatData,
+        select: CHAT_INFO_SELECT,
       });
 
       const leaveChatActionData = {

@@ -286,6 +286,9 @@ export const chatRouter = router({
           updatedAt: true,
           creatorId: true,
           participants: {
+            where: {
+              status: 'MEMBER',
+            },
             select: {
               lastViewedAt: true,
               unreadActivities: true,

@@ -35,6 +35,7 @@ function PhotoModalContent(props: PhotoModalContentProps) {
   const { control, handleSubmit, onSubmit } = props;
   const { isDirty } = useFormState({ control });
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const { closeModal } = useModalContext();
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -45,8 +46,12 @@ function PhotoModalContent(props: PhotoModalContentProps) {
         imageSize={100}
         onUploadingChange={setIsUploadingPhoto}
       />
-      <Button type="submit" disabled={isUploadingPhoto || !isDirty}>
-        {true ? <LoadingSpinner /> : 'Confirm'}
+      <Button
+        type="submit"
+        onClick={closeModal}
+        disabled={isUploadingPhoto || !isDirty}
+      >
+        {isUploadingPhoto ? <LoadingSpinner /> : 'Confirm'}
       </Button>
     </form>
   );
@@ -141,7 +146,9 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
           <CancelButton key="close" />
           <Button
             key="cancel-request"
-            onClick={() => {
+            type="button"
+            onClick={(e: MouseEvent<HTMLButtonElement>) => {
+              e.preventDefault();
               removeMember({ chatId, profileId });
               closeModal();
             }}
@@ -188,7 +195,8 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
           <CancelButton key="close" />
           <Button
             key="add-member"
-            onClick={() => {
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+              e.preventDefault();
               addMember({ chatId, profileId: profile.id });
               closeModal();
             }}
@@ -244,25 +252,28 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
       <div>
         <h3>Members</h3>
         <div>
-          {participants.map((p) => (
-            <ProfilePreview
-              key={p.profile.id}
-              profile={p.profile}
-              showPresence={true}
-              rightContent={
-                <Button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleLaunchRemoveMemberModal(p.profile.id);
-                  }}
-                  className="opacity-100 cursor-pointer md:opacity-0 md:group-hover:opacity-100 md:transition-opacity text-red-500 hover:text-red-700 p-2"
-                  aria-label="Remove member"
-                >
-                  <i className="bi bi-x-circle text-xl" />
-                </Button>
-              }
-            />
-          ))}
+          {participants.map((p) => {
+            if (p.profile.id === profile?.id) return;
+            return (
+              <ProfilePreview
+                key={p.profile.id}
+                profile={p.profile}
+                showPresence={true}
+                rightContent={
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleLaunchRemoveMemberModal(p.profile.id);
+                    }}
+                    className="opacity-100 cursor-pointer md:opacity-0 md:group-hover:opacity-100 md:transition-opacity text-red-500 hover:text-red-700 p-2"
+                    aria-label="Remove member"
+                  >
+                    <i className="bi bi-x-circle text-xl" />
+                  </Button>
+                }
+              />
+            );
+          })}
           <Button onClick={handleLaunchContactsModal}>Add Member</Button>
           {/* TODO: button for adding member */}
         </div>

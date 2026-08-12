@@ -216,7 +216,7 @@ export async function getChat(
   return ChatInfoDTO.parse(chat);
 }
 
-const CHAT_INFO_SELECT = {
+export const CHAT_INFO_SELECT = {
   id: true,
   type: true,
   name: true,
@@ -254,32 +254,3 @@ const CHAT_INFO_SELECT = {
     },
   },
 } as const;
-
-interface UpdateChatInfoParams {
-  chatId: ObjectId;
-  data: {
-    participants?: {
-      connect?: { id: ObjectId };
-      disconnect?: { id: ObjectId };
-    };
-    name?: string | null;
-    groupPictureUrl?: string | null;
-  };
-}
-
-export async function updateChatInfo(
-  prisma: PrismaClient,
-  params: UpdateChatInfoParams
-) {
-  const { chatId, data } = params;
-
-  logger.info({ chatId, data }, 'Updating chat info');
-
-  const updatedChat = await prisma.chat.update({
-    where: { id: chatId },
-    data,
-    select: CHAT_INFO_SELECT,
-  });
-
-  return updatedChat;
-}

@@ -1,11 +1,6 @@
 import { eventEmitter } from '@/lib/eventBus';
 import { logger } from '@/lib/pino';
-import {
-  ChatActivityDTO,
-  IChatActivity,
-  ObjectId,
-  tagActivity,
-} from '@repo/common';
+import { ObjectId, tagActivity } from '@repo/common';
 import { Chat, ChatActionType, PrismaClient } from '@repo/db';
 import { incrementUnreadActivityCount } from './message';
 

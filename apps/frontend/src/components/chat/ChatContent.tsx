@@ -105,7 +105,6 @@ export function ChatContent(props: ChatContentProps) {
     }
 
     if (!hasScrolledOnFirstRender.current && allActivities.length > 0) {
-      console.log(allActivities.length);
       const frameId = window.requestAnimationFrame(() => {
         scrollToBottom('auto');
       });
@@ -148,8 +147,6 @@ export function ChatContent(props: ChatContentProps) {
 
   const { participants, name, type } = chat;
   const participantProfiles = getParticipantProfiles(participants);
-
-  // const participantProfiles = participants.map((p) => p.profile);
 
   const displayName = getChatDisplayName({
     name,
