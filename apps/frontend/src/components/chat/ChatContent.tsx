@@ -8,13 +8,7 @@ import { useOnlinePresence } from '@/hooks/onlinePresence';
 import { getChatDisplayName } from '@/utils';
 import { getParticipantProfiles } from '@/utils/general';
 import { useNavigation } from '@/utils/Navigation';
-import {
-  BaseProfileDTO,
-  ChatDTO,
-  ChatInfoDTO,
-  ChatType,
-  ObjectId,
-} from '@repo/common';
+import { BaseProfileDTO, ChatInfoDTO, ChatType, ObjectId } from '@repo/common';
 import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useMemo, useRef } from 'react';
 import { OverlayTrigger, Spinner, Tooltip } from 'react-bootstrap';
@@ -79,13 +73,12 @@ export function ChatContent(props: ChatContentProps) {
   const {
     sendMessage,
     allActivities,
-    isActivitiesLoading,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
   } = useChatActivities(chat?.id, profileIds);
 
-  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
+  const scrollToBottom = useCallback((behavior: 'auto' | 'smooth' = 'auto') => {
     const container = messagesContainerRef.current;
 
     if (!container) {
@@ -163,7 +156,7 @@ export function ChatContent(props: ChatContentProps) {
     if (type === 'GROUP') {
       launchModal(
         <FullscreenModal title="Group Info">
-          <GroupChatInfo chatId={chat.id} />
+          <GroupChatInfo chatId={chat.id} onScrollToBottom={scrollToBottom} />
         </FullscreenModal>
       );
     } else if (type === 'DIRECT' && otherParticipantProfile) {

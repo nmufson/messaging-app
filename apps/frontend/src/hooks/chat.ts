@@ -170,13 +170,19 @@ export function useChatInfo(params: ChatInfoParams) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
+  const activitiesQueryInput = {
+    chatId,
+    options: {
+      sortDirection: 'asc' as const,
+    },
+  };
+
   const chatInfoQueryKey = trpc.chat.getInfo.queryKey({
     chatId,
   });
   const findChatQueryKey = trpc.chat.findChat.queryKey({ chatId });
-  const activitiesQueryKey = trpc.activity.getActivities.infiniteQueryKey({
-    chatId,
-  });
+  const activitiesQueryKey =
+    trpc.activity.getActivities.infiniteQueryKey(activitiesQueryInput);
 
   const { data: chat, isLoading } = useQuery(
     trpc.chat.getInfo.queryOptions({ chatId })

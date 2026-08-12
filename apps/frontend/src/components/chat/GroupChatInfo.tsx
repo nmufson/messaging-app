@@ -57,7 +57,13 @@ function PhotoModalContent(props: PhotoModalContentProps) {
   );
 }
 
-export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
+export function GroupChatInfo({
+  chatId,
+  onScrollToBottom,
+}: {
+  chatId: ObjectId;
+  onScrollToBottom: () => void;
+}) {
   const {
     status: editMode,
     toggleStatus: toggleEditMode,
@@ -132,6 +138,13 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
     profileId: profile?.id,
   });
 
+  const handleMutationSuccess = () => {
+    closeModal();
+    window.requestAnimationFrame(() => {
+      onScrollToBottom();
+    });
+  };
+
   const handleLaunchRemoveMemberModal = (profileId: ObjectId) => {
     const profile = participants.find(
       (p) => p.profile.id === profileId
@@ -151,8 +164,12 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
             type="button"
             onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.preventDefault();
-              removeMember({ chatId, profileId });
-              closeModal();
+              removeMember(
+                { chatId, profileId },
+                {
+                  onSuccess: handleMutationSuccess,
+                }
+              );
             }}
             className="bg-red-500 text-white"
           >
@@ -200,8 +217,12 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
             type="button"
             onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.preventDefault();
-              addMember({ chatId, profileId: profile.id });
-              closeModal();
+              addMember(
+                { chatId, profileId: profile.id },
+                {
+                  onSuccess: handleMutationSuccess,
+                }
+              );
             }}
             className="bg-green-500 text-white"
           >
