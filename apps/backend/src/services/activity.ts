@@ -2,7 +2,7 @@ import {
   ObjectId,
   DateTimeSchema,
   ActivitiesQueryOptions,
-  IMessage,
+  IMessageWithSender,
   IChatAction,
   IChatActivity,
   SortDirection,
@@ -22,7 +22,7 @@ export async function getChatActivities(
   const endDate = cursor ? cursor : DateTime.now();
   let startDate = endDate.minus({ days: 7 });
 
-  let messages: IMessage[] = [];
+  let messages: IMessageWithSender[] = [];
   let actions: IChatAction[] = [];
   let activityCount = 0;
 
@@ -37,6 +37,14 @@ export async function getChatActivities(
         type: { not: 'REACTION' },
       },
       include: {
+        sender: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+          },
+        },
         replies: {
           where: { type: 'REACTION' },
           select: {
@@ -58,6 +66,30 @@ export async function getChatActivities(
         createdAt: {
           gte: startDate.toJSDate(),
           lt: endDate.toJSDate(),
+        },
+      },
+      select: {
+        id: true,
+        chatId: true,
+        actionType: true,
+        actorId: true,
+        targetId: true,
+        createdAt: true,
+        actor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+          },
+        },
+        target: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+          },
         },
       },
       orderBy: { createdAt: sortDirection },
@@ -106,7 +138,7 @@ export async function getChatActivities(
 }
 
 export async function getMergedActivities(
-  messages: IMessage[],
+  messages: IMessageWithSender[],
   actions: IChatAction[],
   options?: { sortDirection?: SortDirection }
 ): Promise<IChatActivity[]> {

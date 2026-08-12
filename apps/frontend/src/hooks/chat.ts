@@ -29,53 +29,52 @@ export function useChatList() {
     error,
   } = useQuery(trpc.chat.getList.queryOptions({}));
 
-  const { status: newActivityStatus, error: subscriptionError } =
-    useSubscription(
-      trpc.activity.onNewActivityInChatList.subscriptionOptions(
-        loggedInProfileId ? { profileId: loggedInProfileId } : skipToken,
-        {
-          onData(newActivityData) {
-            const newActivity = newActivityData.data;
+  useSubscription(
+    trpc.activity.onNewActivityInChatList.subscriptionOptions(
+      loggedInProfileId ? { profileId: loggedInProfileId } : skipToken,
+      {
+        onData(newActivityData) {
+          const newActivity = newActivityData.data;
 
-            queryClient.setQueryData(chatListQueryKey, (oldData) => {
-              if (!oldData) return oldData;
+          queryClient.setQueryData(chatListQueryKey, (oldData) => {
+            if (!oldData) return oldData;
 
-              const activityChatId = newActivity.chatId;
+            const activityChatId = newActivity.chatId;
 
-              return oldData.map((chat) => {
-                if (chat.id === activityChatId) {
-                  const updatedParticipants = chat.participants.map(
-                    (participant) => {
-                      const isActivityCreator = checkIsActivityCreator(
-                        participant.profile.id,
-                        newActivity
-                      );
+            return oldData.map((chat) => {
+              if (chat.id === activityChatId) {
+                const updatedParticipants = chat.participants.map(
+                  (participant) => {
+                    const isActivityCreator = checkIsActivityCreator(
+                      participant.profile.id,
+                      newActivity
+                    );
 
-                      if (isActivityCreator) {
-                        // don't increment unread count for activity creator
-                        return participant;
-                      }
-                      return {
-                        ...participant,
-                        unreadActivities: participant.unreadActivities + 1,
-                      };
+                    if (isActivityCreator) {
+                      // don't increment unread count for activity creator
+                      return participant;
                     }
-                  );
-                  return {
-                    ...chat,
-                    activities: [...chat.activities, newActivity],
-                    participants: updatedParticipants,
-                  };
-                }
-                return chat;
-              });
+                    return {
+                      ...participant,
+                      unreadActivities: participant.unreadActivities + 1,
+                    };
+                  }
+                );
+                return {
+                  ...chat,
+                  activities: [...chat.activities, newActivity],
+                  participants: updatedParticipants,
+                };
+              }
+              return chat;
             });
-          },
-        }
-      )
-    );
+          });
+        },
+      }
+    )
+  );
 
-  const { status: newChatStatus } = useSubscription(
+  useSubscription(
     trpc.chat.onNewChat.subscriptionOptions(undefined, {
       onData(newChatData) {
         const newChat = newChatData.data;
@@ -174,6 +173,7 @@ export function useChatInfo(params: ChatInfoParams) {
   const chatInfoQueryKey = trpc.chat.getInfo.queryKey({
     chatId,
   });
+  const findChatQueryKey = trpc.chat.findChat.queryKey({ chatId });
   const activitiesQueryKey = trpc.activity.getActivities.infiniteQueryKey({
     chatId,
   });
@@ -227,10 +227,11 @@ export function useChatInfo(params: ChatInfoParams) {
     const { updatedChat, newActionActivity } = data;
 
     queryClient.setQueryData(chatInfoQueryKey, updatedChat);
+    queryClient.setQueryData(findChatQueryKey, updatedChat);
 
     queryClient.setQueryData(activitiesQueryKey, (oldData) => {
+      console.log(oldData, 'old data');
       if (!oldData) return oldData;
-
       const newPages = [...oldData.pages];
       const firstPage = newPages[0];
       if (!firstPage) return oldData;
@@ -245,24 +246,20 @@ export function useChatInfo(params: ChatInfoParams) {
 
   const { mutate: addMember, isPending: isAddingMember } = useMutation(
     trpc.action.addMember.mutationOptions({
-      onSuccess: (updatedChat) => {
-        handleSuccess(updatedChat);
+      onSuccess: (addMemberOutput: ActionOutputDTO) => {
+        handleSuccess(addMemberOutput);
       },
     })
   );
   const { mutate: removeMember, isPending: isRemovingMember } = useMutation(
     trpc.action.removeMember.mutationOptions({
-      onSuccess: (updatedChat) => {
-        handleSuccess(updatedChat);
+      onSuccess: (removeMemberOutput: ActionOutputDTO) => {
+        handleSuccess(removeMemberOutput);
       },
     })
   );
   const { mutate: leaveChat, isPending: isLeavingChat } = useMutation(
-    trpc.action.leaveChat.mutationOptions({
-      onSuccess: (updatedChat) => {
-        handleSuccess(updatedChat);
-      },
-    })
+    trpc.action.leaveChat.mutationOptions({})
   );
 
   return {

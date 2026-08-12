@@ -96,22 +96,13 @@ model Chat {
   updatedAt           DateTime?
 }
 
-enum ParticipationStatus {
-  MEMBER
-  LEFT
-  REMOVED
-}
-
 model ChatParticipant {
   id               String   @id @default(uuid())
   chatId           String
   chat             Chat     @relation(fields: [chatId], references: [id])
   profileId        String
   profile          Profile  @relation(fields: [profileId], references: [id])
-
-  status           ParticipationStatus @default(MEMBER)
   joinedAt         DateTime @default(now())
-  departedAt       DateTime?
   lastViewedAt     DateTime?
   unreadActivities Int      @default(0)
 
@@ -159,7 +150,6 @@ model ChatAction {
   actor       Profile         @relation("ActingProfile", fields: [actorId], references: [id])
   targetId    String?         
   target      Profile?        @relation("TargetProfile", fields: [targetId], references: [id])
-  content     String?
   createdAt   DateTime        @default(now())
 }
 

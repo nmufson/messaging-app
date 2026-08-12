@@ -2,6 +2,7 @@ import { logger } from '@/lib/pino';
 import { getMergedActivities } from '@/services/activity';
 import { getChatActivities } from '@/services/activity';
 import {
+  checkIsActivityCreator,
   DateTimeSchema,
   mergeAsyncIterators,
   ObjectId,
@@ -16,7 +17,6 @@ import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
 import { eventEmitter } from '../lib/eventBus';
 import { profileProcedure, router } from '../trpc';
-import { checkIsActivityCreator } from '@/services/action';
 
 export const activityRouter = router({
   getActivities: profileProcedure
@@ -64,11 +64,45 @@ export const activityRouter = router({
         };
         const missedMessages = await ctx.prisma.message.findMany({
           where: whereFilters,
+          include: {
+            sender: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+              },
+            },
+          },
           orderBy: { createdAt: 'asc' },
         });
 
         const missedActions = await ctx.prisma.chatAction.findMany({
           where: whereFilters,
+          select: {
+            id: true,
+            chatId: true,
+            actionType: true,
+            actorId: true,
+            targetId: true,
+            createdAt: true,
+            actor: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+              },
+            },
+            target: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+              },
+            },
+          },
           orderBy: { createdAt: 'asc' },
         });
 
@@ -119,8 +153,6 @@ export const activityRouter = router({
     )
     .subscription(async function* ({ input, ctx, signal }) {
       const { profileId } = input;
-      const { user } = ctx;
-      // const userProfileId = user.profile.id;
 
       const profile = await ctx.prisma.profile.findUnique({
         where: { id: profileId },

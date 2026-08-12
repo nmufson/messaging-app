@@ -225,7 +225,6 @@ export function ChatContent(props: ChatContentProps) {
       </div>
       <Activities
         activities={allActivities}
-        participants={participants}
         messageToViewRef={messageToViewRef}
         messagesContainerRef={messagesContainerRef}
         messagesEndRef={messagesEndRef}

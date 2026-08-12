@@ -59,13 +59,21 @@ export const MessageDTO = IMessage.extend({
 });
 export type MessageDTO = z.infer<typeof MessageDTO>;
 
+export const MessageSenderDTO = z.object({
+  id: ObjectId,
+  firstName: z.string(),
+  lastName: z.string(),
+  avatarUrl: z.string().nullable(),
+});
+export type MessageSenderDTO = z.infer<typeof MessageSenderDTO>;
+
+export const IMessageWithSender = IMessage.extend({
+  sender: MessageSenderDTO,
+});
+export type IMessageWithSender = z.infer<typeof IMessageWithSender>;
+
 export const MessageWithSenderDTO = MessageDTO.omit({ senderId: true }).extend({
-  sender: z.object({
-    id: ObjectId,
-    firstName: z.string(),
-    lastName: z.string(),
-    avatarUrl: z.string().nullable(),
-  }),
+  sender: MessageSenderDTO,
 });
 export type MessageWithSenderDTO = z.infer<typeof MessageWithSenderDTO>;
 

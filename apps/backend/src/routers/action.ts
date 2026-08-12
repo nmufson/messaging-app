@@ -50,9 +50,6 @@ export const actionRouter = router({
         chatId: id,
         actionType,
         actorId: profileId,
-        ...(actionType === 'NAME_CHANGED' && {
-          content: updatedFields.name,
-        }),
       };
 
       // TODO: move this within updateChatInfo ?
@@ -84,7 +81,7 @@ export const actionRouter = router({
       const { chatId, profileId: profileIdToAdd } = input;
       const { user } = ctx;
 
-      // Update record if it exists, otherwise create new participant
+      // Keep membership idempotent in case the profile is already in the chat.
       const chatParticipant = await ctx.prisma.chatParticipant.upsert({
         where: {
           chatId_profileId: {
@@ -92,15 +89,10 @@ export const actionRouter = router({
             profileId: profileIdToAdd,
           },
         },
-        update: {
-          status: 'MEMBER',
-          joinedAt: new Date(),
-          departedAt: null,
-        },
+        update: {},
         create: {
           chatId,
           profileId: profileIdToAdd,
-          status: 'MEMBER',
         },
       });
 
@@ -158,16 +150,10 @@ export const actionRouter = router({
         where: { id: chatId },
         data: {
           participants: {
-            update: {
-              where: {
-                chatId_profileId: {
-                  chatId,
-                  profileId: profileIdToRemove,
-                },
-              },
-              data: {
-                status: 'REMOVED',
-                departedAt: new Date(),
+            delete: {
+              chatId_profileId: {
+                chatId,
+                profileId: profileIdToRemove,
               },
             },
           },
@@ -215,16 +201,10 @@ export const actionRouter = router({
         where: { id: chatId },
         data: {
           participants: {
-            update: {
-              where: {
-                chatId_profileId: {
-                  chatId,
-                  profileId: profileIdToLeave,
-                },
-              },
-              data: {
-                status: 'LEFT',
-                departedAt: new Date(),
+            delete: {
+              chatId_profileId: {
+                chatId,
+                profileId: profileIdToLeave,
               },
             },
           },
@@ -290,7 +270,6 @@ export const actionRouter = router({
           data: participantProfileIds.map((profileId) => ({
             chatId: createdChat.id,
             profileId,
-            role: 'MEMBER',
           })),
         });
 
@@ -328,17 +307,6 @@ export const actionRouter = router({
         });
       });
 
-      const creator = await ctx.prisma.profile.findUnique({
-        where: { id: creatorId },
-      });
-
-      if (!creator) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Creator profile not found',
-        });
-      }
-
       const createdChatAction = await ctx.prisma.chatAction.create({
         data: {
           chatId: newChat.id,
@@ -352,7 +320,22 @@ export const actionRouter = router({
           actorId: true,
           targetId: true,
           createdAt: true,
-          content: true,
+          actor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+            },
+          },
+          target: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+            },
+          },
         },
       });
 

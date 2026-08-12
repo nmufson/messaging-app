@@ -28,6 +28,16 @@ export async function sendMessage(
       sender: { connect: { id: senderId } },
       chat: { connect: { id: chatId } },
     },
+    include: {
+      sender: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          avatarUrl: true,
+        },
+      },
+    },
   });
 
   await incrementUnreadActivityCount(prisma, chatId, senderId);

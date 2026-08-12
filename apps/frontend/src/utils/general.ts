@@ -1,11 +1,4 @@
-import {
-  IBaseProfile,
-  ChatActionWithActorDTO,
-  ChatParticipantDTO,
-  ObjectId,
-  assertNever,
-} from '@repo/common';
-import { getProfileDisplayName } from './formatting';
+import { IBaseProfile, ChatParticipantDTO, ObjectId } from '@repo/common';
 
 interface GetProfileParams {
   id: ObjectId;
@@ -45,45 +38,3 @@ export function getParticipant(
 export function getParticipantProfiles(participants: ChatParticipantDTO[]) {
   return participants.map((p) => p.profile);
 }
-
-export const getActionText = (
-  actionWithActor: ChatActionWithActorDTO,
-  isSelf: boolean
-) => {
-  console.log(actionWithActor);
-  const { actor, target, actionType, content } = actionWithActor;
-  const actingProfileName = getProfileDisplayName(actor);
-  const actorLabel = isSelf ? 'You' : actingProfileName;
-  const targetProfileName = target ? getProfileDisplayName(target) : null;
-
-  switch (actionType) {
-    case 'CHAT_CREATED': {
-      return `${actorLabel} created the chat.`;
-    }
-    case 'MEMBER_ADDED': {
-      return `${actorLabel} added ${targetProfileName} to the chat.`;
-    }
-
-    case 'MEMBER_REMOVED': {
-      return `${actorLabel} removed ${targetProfileName} from the chat.`;
-    }
-
-    case 'MEMBER_LEFT': {
-      return `${actorLabel} left the chat.`;
-    }
-
-    case 'NAME_CHANGED': {
-      const textEnding = content ? ` to ${content}` : '';
-      return `${actorLabel} changed the chat name to${textEnding}.`;
-    }
-
-    case 'PICTURE_CHANGED': {
-      return `${actorLabel} changed the chat picture.`;
-    }
-
-    default: {
-      // to ensure we're covering all cases
-      return assertNever(actionType);
-    }
-  }
-};

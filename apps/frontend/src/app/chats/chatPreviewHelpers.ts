@@ -1,29 +1,20 @@
 import { getNameDisplay } from '@/utils/formatting';
-import { getActionText } from '@/utils/general';
 import {
-  IBaseProfile,
+  getActionDisplayText,
   ChatActivityDTO,
   MessageActivityDTO,
-  BaseProfileDTO,
+  ObjectId,
 } from '@repo/common';
 import * as R from 'remeda';
 
 interface GetMessagePreviewParams {
-  isSelf: boolean;
   activity: ChatActivityDTO;
-  activityProfile: BaseProfileDTO;
-  targetProfile?: BaseProfileDTO | null;
+  profileId?: ObjectId | null;
   truncate?: number;
 }
 
 export function getMessagePreview(params: GetMessagePreviewParams) {
-  const {
-    isSelf,
-    activity,
-    activityProfile,
-    targetProfile,
-    truncate = 40,
-  } = params;
+  const { activity, profileId, truncate = 40 } = params;
 
   const isMessage = activity?.activityType === 'message';
 
@@ -31,35 +22,29 @@ export function getMessagePreview(params: GetMessagePreviewParams) {
 
   if (isMessage) {
     content = getMessageActivityContent({
-      isSelf,
       messageActivity: activity,
-      senderProfile: activityProfile,
+      profileId,
     });
   } else {
-    content = getActionText(
-      {
-        ...activity,
-        actor: activityProfile,
-        target: targetProfile,
-      },
-      isSelf
-    );
+    content = getActionDisplayText({ action: activity, profileId });
   }
 
   return R.truncate(content, truncate);
 }
 
 interface FormatMessageActivityParams {
-  isSelf: boolean;
   messageActivity: MessageActivityDTO;
-  senderProfile: BaseProfileDTO;
+  profileId?: ObjectId | null;
 }
 
 function getMessageActivityContent(params: FormatMessageActivityParams) {
-  const { isSelf, messageActivity, senderProfile } = params;
+  const { messageActivity, profileId } = params;
 
   if (messageActivity.type === 'IMAGE') {
-    const photoTextPrefix = getNameDisplay({ isSelf, profile: senderProfile });
+    const photoTextPrefix = getNameDisplay({
+      isSelf: profileId === messageActivity.sender.id,
+      profile: messageActivity.sender,
+    });
 
     return `${photoTextPrefix} sent a photo.`;
   } else {

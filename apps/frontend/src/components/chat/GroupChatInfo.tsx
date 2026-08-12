@@ -123,6 +123,7 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
   if (!chat) return null;
 
   const { name, participants, groupPictureUrl } = chat;
+
   const participantProfiles = getParticipantProfiles(participants);
 
   const displayName = getChatDisplayName({

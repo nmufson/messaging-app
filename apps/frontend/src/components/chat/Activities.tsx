@@ -1,13 +1,11 @@
 import { ActionBubble } from '@/app/chat/[slug]/ActionBubble';
 import { MessageBubble } from '@/app/chat/[slug]/MessageBubble';
-import { PROFILE_FALLBACK } from '@/constants';
-import { ChatActivityDTO, ChatParticipantDTO, ObjectId } from '@repo/common';
+import { ChatActivityDTO, ObjectId } from '@repo/common';
 import * as _ from 'lodash';
 import { RefObject, useMemo } from 'react';
 
 interface ActivitiesProps {
   activities: ChatActivityDTO[];
-  participants: ChatParticipantDTO[];
   messageToViewRef: RefObject<HTMLDivElement | null>;
   messagesContainerRef: RefObject<HTMLDivElement | null>;
   messagesEndRef: RefObject<HTMLDivElement | null>;
@@ -20,7 +18,6 @@ interface ActivitiesProps {
 export function Activities(props: ActivitiesProps) {
   const {
     activities,
-    participants,
     messageToViewRef,
     messagesContainerRef,
     messagesEndRef,
@@ -52,19 +49,9 @@ export function Activities(props: ActivitiesProps) {
     >
       {activities.map((activity, i) => {
         if (activity.activityType === 'message') {
-          const sender = participants.find(
-            (p) => p.profile.id === activity.senderId
-          );
-
-          if (!sender) {
-            console.error('Sender not found in chat participants', {
-              message: activity,
-              senderId: activity.senderId,
-            });
-          }
           const messageWithSender = {
             ...activity,
-            sender: sender?.profile ?? PROFILE_FALLBACK,
+            sender: activity.sender,
           };
 
           const { shouldShowName, shouldShowAvatar } = (() => {
@@ -100,27 +87,7 @@ export function Activities(props: ActivitiesProps) {
           );
         }
 
-        const actioner = participants.find(
-          (p) => p.profile.id === activity.actorId
-        );
-        const target = participants.find(
-          (p) => p.profile.id === activity.targetId
-        );
-
-        if (!actioner) {
-          console.error('Actioner not found in chat participants', {
-            action: activity,
-            actorId: activity.actorId,
-          });
-        }
-
-        const actionWithActor = {
-          ...activity,
-          actor: actioner?.profile ?? PROFILE_FALLBACK,
-          target: target?.profile ?? null,
-        };
-
-        return <ActionBubble key={activity.id} action={actionWithActor} />;
+        return <ActionBubble key={activity.id} action={activity} />;
       })}
       <div ref={messagesEndRef} />
     </div>

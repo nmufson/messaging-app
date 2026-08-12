@@ -1,7 +1,7 @@
 import { eventEmitter } from '@/lib/eventBus';
 import { logger } from '@/lib/pino';
 import { ObjectId, tagActivity } from '@repo/common';
-import { Chat, ChatActionType, PrismaClient } from '@repo/db';
+import { ChatActionType, PrismaClient } from '@repo/db';
 import { incrementUnreadActivityCount } from './message';
 
 interface ActionData {
@@ -9,7 +9,6 @@ interface ActionData {
   actionType: ChatActionType;
   actorId: ObjectId;
   targetId?: ObjectId;
-  content?: string | null;
 }
 
 export async function createAction(prisma: PrismaClient, data: ActionData) {
@@ -26,7 +25,6 @@ export async function createAction(prisma: PrismaClient, data: ActionData) {
       actorId: true,
       targetId: true,
       createdAt: true,
-      content: true,
       actor: {
         select: {
           id: true,
@@ -48,8 +46,8 @@ export async function createAction(prisma: PrismaClient, data: ActionData) {
 
   await incrementUnreadActivityCount(prisma, chatId, actorId);
 
-  const { actor, target, ...restOfAction } = newAction;
   const newActionActivity = tagActivity(newAction, 'action');
+  const { actor, target } = newAction;
 
   logger.info({ newActionActivity }, 'Emitting action activity');
   eventEmitter.emit(`activity:create:${chatId}`, newActionActivity);

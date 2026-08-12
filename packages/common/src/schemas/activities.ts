@@ -1,15 +1,12 @@
 import z from 'zod';
 import { ChatActionDTO, IChatAction } from './action';
-import { IMessage, MessageDTO } from './message';
+import { IMessageWithSender, MessageDTO, MessageSenderDTO } from './message';
 import { SortDirection } from './primitives';
 
 export const ActivityType = z.enum(['message', 'action']);
 export type ActivityType = z.infer<typeof ActivityType>;
 
-export const ParticipationStatus = z.enum(['MEMBER', 'LEFT', 'REMOVED']);
-export type ParticipationStatus = z.infer<typeof ParticipationStatus>;
-
-export const IMessageActivity = IMessage.extend({
+export const IMessageActivity = IMessageWithSender.extend({
   activityType: z.literal('message'),
 });
 export type IMessageActivity = z.infer<typeof IMessageActivity>;
@@ -24,6 +21,7 @@ export const IChatActivity = z.discriminatedUnion('activityType', [
 export type IChatActivity = z.infer<typeof IChatActivity>;
 
 export const MessageActivityDTO = MessageDTO.extend({
+  sender: MessageSenderDTO,
   activityType: z.literal('message'),
 });
 export type MessageActivityDTO = z.infer<typeof MessageActivityDTO>;

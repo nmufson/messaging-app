@@ -1,6 +1,5 @@
 import { GroupPhoto } from '@/components/GroupPhoto';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
-import { PROFILE_FALLBACK } from '@/constants';
 import { formatDisplayDate, getChatDisplayName } from '@/utils/formatting';
 import { getParticipant, getParticipantProfiles } from '@/utils/general';
 import { ChatDTO } from '@repo/common';
@@ -21,21 +20,10 @@ export function ChatPreview({ chat }: { chat: ChatDTO }) {
   } = chat;
   const { profile } = useAuth();
   const loggedInProfileId = profile?.id;
-  console.log(participants);
   const participantProfiles = getParticipantProfiles(participants);
 
   const isGroupChat = type === 'GROUP';
   const lastActivity = activities[0];
-
-  const isMessageActivity = lastActivity.activityType === 'message';
-  const activityProfile = participantProfiles.find(
-    (p) =>
-      p.id ===
-      (isMessageActivity ? lastActivity.senderId : lastActivity.actorId)
-  );
-  const targetProfile = !isMessageActivity
-    ? participantProfiles.find((p) => p.id === lastActivity.targetId)
-    : null;
 
   const displayName = getChatDisplayName({
     name,
@@ -59,10 +47,8 @@ export function ChatPreview({ chat }: { chat: ChatDTO }) {
 
   const formattedDisplayName = R.truncate(displayName, 20);
   const activityContentDisplay = getMessagePreview({
-    isSelf: loggedInProfileId === activityProfile?.id,
     activity: lastActivity,
-    activityProfile: activityProfile ?? PROFILE_FALLBACK,
-    targetProfile,
+    profileId: loggedInProfileId,
   });
 
   const chatLink = `/chat/chat?chat=${chatId}`;

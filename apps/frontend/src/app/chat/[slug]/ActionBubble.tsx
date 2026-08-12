@@ -1,16 +1,16 @@
 import { useAuth } from '@/context/AuthContext';
 import { formatDisplayDate } from '@/utils';
-import { getActionText } from '@/utils/general';
-import { ChatActionWithActorDTO } from '@repo/common';
+import { getActionDisplayText, ChatActionDTO } from '@repo/common';
 
-export function ActionBubble({ action }: { action: ChatActionWithActorDTO }) {
+export function ActionBubble({ action }: { action: ChatActionDTO }) {
   const { profile } = useAuth();
   const { createdAt } = action;
 
   const displayTime = formatDisplayDate(createdAt, { includeTime: true });
-
-  const isSelf = profile?.id === action.actor.id;
-  const displayText = getActionText(action, isSelf);
+  const displayText = getActionDisplayText({
+    action,
+    profileId: profile?.id,
+  });
 
   return (
     <div className="flex justify-center mt-3 mb-3">

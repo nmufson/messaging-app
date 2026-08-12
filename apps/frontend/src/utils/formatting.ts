@@ -2,6 +2,8 @@ import { DateTimeSchema, ObjectId, BaseProfileDTO } from '@repo/common';
 import { DateTime } from 'luxon';
 import * as R from 'remeda';
 
+export { getProfileDisplayName } from '@repo/common';
+
 export function formatDisplayDate(
   dt: DateTime,
   options?: { withPreposition?: boolean; includeTime?: boolean }
@@ -66,18 +68,6 @@ export function getChatDisplayName(params: GetChatDisplayNameParams): string {
     return R.truncate(joined, truncate);
   }
   return joined;
-}
-
-interface GetProfileDisplayNameParams {
-  firstName: string;
-  lastName: string;
-}
-
-export function getProfileDisplayName({
-  firstName,
-  lastName,
-}: GetProfileDisplayNameParams): string {
-  return `${firstName} ${lastName}`;
 }
 
 export function toDateTime(date: unknown): DateTime | null {

@@ -1,7 +1,6 @@
 import { logger } from '@/lib/pino';
 import {
   ChatInfoDTO,
-  ChatListItemDTO,
   ChatType,
   IBaseProfile,
   IChatListItem,
@@ -234,12 +233,25 @@ export const CHAT_INFO_SELECT = {
       actorId: true,
       targetId: true,
       createdAt: true,
+      actor: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          avatarUrl: true,
+        },
+      },
+      target: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          avatarUrl: true,
+        },
+      },
     },
   },
   participants: {
-    where: {
-      status: 'MEMBER',
-    },
     select: {
       lastViewedAt: true,
       unreadActivities: true,

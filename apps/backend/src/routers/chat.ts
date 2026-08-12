@@ -110,7 +110,7 @@ export const chatRouter = router({
         where: {
           participants: {
             some: {
-              AND: [{ profileId }, { status: 'MEMBER' }],
+              profileId,
             },
           },
         },
@@ -130,6 +130,14 @@ export const chatRouter = router({
               createdAt: true,
               updatedAt: true,
               senderId: true,
+              sender: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  avatarUrl: true,
+                },
+              },
             },
           },
           actions: {
@@ -141,8 +149,23 @@ export const chatRouter = router({
               actionType: true,
               targetId: true,
               createdAt: true,
-              content: true,
               actorId: true,
+              actor: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  avatarUrl: true,
+                },
+              },
+              target: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  avatarUrl: true,
+                },
+              },
             },
           },
           participants: {
@@ -211,9 +234,6 @@ export const chatRouter = router({
             },
           },
           participants: {
-            where: {
-              status: 'MEMBER',
-            },
             select: {
               lastViewedAt: true,
               unreadActivities: true,
@@ -285,9 +305,6 @@ export const chatRouter = router({
           updatedAt: true,
           creatorId: true,
           participants: {
-            where: {
-              status: 'MEMBER',
-            },
             select: {
               lastViewedAt: true,
               unreadActivities: true,
