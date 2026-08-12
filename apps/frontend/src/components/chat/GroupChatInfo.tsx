@@ -73,6 +73,7 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
     isUpdatingChatInfo,
     addMember,
     removeMember,
+    leaveChat,
   } = useChatInfo({ chatId });
 
   const defaultValues = useMemo(
@@ -195,7 +196,8 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
           <CancelButton key="close" />
           <Button
             key="add-member"
-            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+            type="button"
+            onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.preventDefault();
               addMember({ chatId, profileId: profile.id });
               closeModal();
@@ -203,6 +205,31 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
             className="bg-green-500 text-white"
           >
             Add
+          </Button>
+        </ModalActions>
+      </Modal>
+    );
+  };
+
+  const handleLaunchLeaveChatModal = () => {
+    launchModal(
+      <Modal header="Leave chat?">
+        <p className="text-sm text-gray-700">
+          Are you sure you want to leave {displayName}?
+        </p>
+        <ModalActions>
+          <CancelButton key="close" />
+          <Button
+            key="leave-chat"
+            type="button"
+            onClick={(e: MouseEvent<HTMLButtonElement>) => {
+              e.preventDefault();
+              leaveChat({ chatId });
+              closeModal();
+            }}
+            className="bg-red-500 text-white hover:bg-red-600"
+          >
+            Leave Chat
           </Button>
         </ModalActions>
       </Modal>
@@ -249,9 +276,9 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
         </div>
       </form>
 
-      <div>
-        <h3>Members</h3>
-        <div>
+      <div className="mt-6">
+        <h3 className="mb-3 text-lg font-semibold">Members</h3>
+        <div className="space-y-3">
           {participants.map((p) => {
             if (p.profile.id === profile?.id) return;
             return (
@@ -261,6 +288,7 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
                 showPresence={true}
                 rightContent={
                   <Button
+                    type="button"
                     onClick={(e) => {
                       e.preventDefault();
                       handleLaunchRemoveMemberModal(p.profile.id);
@@ -274,8 +302,23 @@ export function GroupChatInfo({ chatId }: { chatId: ObjectId }) {
               />
             );
           })}
-          <Button onClick={handleLaunchContactsModal}>Add Member</Button>
-          {/* TODO: button for adding member */}
+
+          <div className="flex flex-col gap-3 pt-2">
+            <Button
+              type="button"
+              onClick={handleLaunchContactsModal}
+              className="bg-sky-600 text-white hover:bg-sky-700"
+            >
+              Add Member
+            </Button>
+            <Button
+              type="button"
+              onClick={handleLaunchLeaveChatModal}
+              className="bg-red-500 text-white hover:bg-red-600"
+            >
+              Leave Chat
+            </Button>
+          </div>
         </div>
       </div>
     </div>

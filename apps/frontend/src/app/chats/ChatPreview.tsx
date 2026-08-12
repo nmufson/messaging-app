@@ -21,7 +21,7 @@ export function ChatPreview({ chat }: { chat: ChatDTO }) {
   } = chat;
   const { profile } = useAuth();
   const loggedInProfileId = profile?.id;
-
+  console.log(participants);
   const participantProfiles = getParticipantProfiles(participants);
 
   const isGroupChat = type === 'GROUP';

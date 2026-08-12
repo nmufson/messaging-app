@@ -50,6 +50,7 @@ export const getActionText = (
   actionWithActor: ChatActionWithActorDTO,
   isSelf: boolean
 ) => {
+  console.log(actionWithActor);
   const { actor, target, actionType, content } = actionWithActor;
   const actingProfileName = getProfileDisplayName(actor);
   const actorLabel = isSelf ? 'You' : actingProfileName;

@@ -109,7 +109,9 @@ export const chatRouter = router({
       const chats = await ctx.prisma.chat.findMany({
         where: {
           participants: {
-            some: { profileId },
+            some: {
+              AND: [{ profileId }, { status: 'MEMBER' }],
+            },
           },
         },
         // TODO: can use unit pagination w cursor here
@@ -144,9 +146,6 @@ export const chatRouter = router({
             },
           },
           participants: {
-            where: {
-              status: 'MEMBER',
-            },
             select: {
               lastViewedAt: true,
               unreadActivities: true,
