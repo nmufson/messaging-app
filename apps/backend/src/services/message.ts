@@ -10,6 +10,38 @@ import {
 } from '@repo/common';
 import { PrismaClient } from '@repo/db';
 
+function buildNameSearchFilters(searchInput: string) {
+  const normalizedInput = searchInput.trim().replace(/\s+/g, ' ');
+  if (!normalizedInput) {
+    return [];
+  }
+
+  const getContainsFilter = (value: string) => ({
+    contains: value,
+    mode: 'insensitive' as const,
+  });
+
+  const tokens = normalizedInput.split(' ').filter(Boolean);
+
+  // single-field matches and tokenized matching for full names
+  return [
+    { firstName: getContainsFilter(normalizedInput) },
+    { lastName: getContainsFilter(normalizedInput) },
+    ...(tokens.length > 1
+      ? [
+          {
+            AND: tokens.map((token) => ({
+              OR: [
+                { firstName: getContainsFilter(token) },
+                { lastName: getContainsFilter(token) },
+              ],
+            })),
+          },
+        ]
+      : []),
+  ];
+}
+
 /**
  * Creates a new message
  * Tags message as activity and emits event for new activity in chat
@@ -79,10 +111,12 @@ export async function getMatchingTextMessages(
   params: GetMessagesParams
 ): Promise<TextMessageSearchResultDTO[]> {
   const { profileId, searchInput, limit } = params;
-  const normalizedSearchInput = searchInput?.trim();
+  const nameSearchFilters = searchInput
+    ? buildNameSearchFilters(searchInput)
+    : [];
 
   logger.info(
-    { profileId, searchInput: normalizedSearchInput, limit },
+    { profileId, searchInput: searchInput, limit },
     'Fetching matching text messages'
   );
 
@@ -99,36 +133,23 @@ export async function getMatchingTextMessages(
           },
         },
       },
-      ...(normalizedSearchInput && {
+      ...(searchInput && {
         OR: [
           {
             content: {
-              contains: normalizedSearchInput,
+              contains: searchInput,
               mode: 'insensitive' as const,
             },
           },
           {
             sender: {
-              OR: [
-                {
-                  firstName: {
-                    contains: normalizedSearchInput,
-                    mode: 'insensitive' as const,
-                  },
-                },
-                {
-                  lastName: {
-                    contains: normalizedSearchInput,
-                    mode: 'insensitive' as const,
-                  },
-                },
-              ],
+              OR: nameSearchFilters,
             },
           },
           {
             chat: {
               name: {
-                contains: normalizedSearchInput,
+                contains: searchInput,
                 mode: 'insensitive' as const,
               },
             },
@@ -188,7 +209,9 @@ export async function getMatchingPhotoMessages(
   params: GetPhotoMessagesParams
 ): Promise<PhotoMessageSearchResultDTO[]> {
   const { profileId, searchInput, limit } = params;
-  const normalizedSearchInput = searchInput?.trim();
+  const nameSearchFilters = searchInput
+    ? buildNameSearchFilters(searchInput)
+    : [];
 
   const photoMessages = await prisma.message.findMany({
     where: {
@@ -201,38 +224,38 @@ export async function getMatchingPhotoMessages(
           },
         },
       },
-      ...(normalizedSearchInput && {
+      ...(searchInput && {
         OR: [
           {
             imageUrl: {
-              contains: normalizedSearchInput,
+              contains: searchInput,
               mode: 'insensitive' as const,
             },
           },
           {
             sender: {
-              OR: [
-                {
-                  firstName: {
-                    contains: normalizedSearchInput,
-                    mode: 'insensitive' as const,
-                  },
-                },
-                {
-                  lastName: {
-                    contains: normalizedSearchInput,
-                    mode: 'insensitive' as const,
-                  },
-                },
-              ],
+              OR: nameSearchFilters,
             },
           },
           {
             chat: {
-              name: {
-                contains: normalizedSearchInput,
-                mode: 'insensitive' as const,
-              },
+              OR: [
+                {
+                  name: {
+                    contains: searchInput,
+                    mode: 'insensitive' as const,
+                  },
+                },
+                {
+                  participants: {
+                    some: {
+                      profile: {
+                        OR: nameSearchFilters,
+                      },
+                    },
+                  },
+                },
+              ],
             },
           },
         ],
