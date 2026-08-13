@@ -73,32 +73,37 @@ interface GetMessagesParams {
   searchInput?: string;
   limit?: number;
 }
-// TODO: implement pagination for these
+
 export async function getMatchingTextMessages(
   prisma: PrismaClient,
   params: GetMessagesParams
 ): Promise<TextMessageSearchResultDTO[]> {
   const { profileId, searchInput, limit } = params;
-  logger.info({ searchInput }, 'search input');
+  const normalizedSearchInput = searchInput?.trim();
+
+  logger.info(
+    { profileId, searchInput: normalizedSearchInput, limit },
+    'Fetching matching text messages'
+  );
+
   const messages = await prisma.message.findMany({
     where: {
       type: 'TEXT',
-      senderId: { not: profileId },
       content: {
         not: null,
       },
       chat: {
         participants: {
           some: {
-            id: profileId,
+            profileId,
           },
         },
       },
-      ...(searchInput && {
+      ...(normalizedSearchInput && {
         OR: [
           {
             content: {
-              contains: searchInput,
+              contains: normalizedSearchInput,
               mode: 'insensitive' as const,
             },
           },
@@ -107,13 +112,13 @@ export async function getMatchingTextMessages(
               OR: [
                 {
                   firstName: {
-                    contains: searchInput,
+                    contains: normalizedSearchInput,
                     mode: 'insensitive' as const,
                   },
                 },
                 {
                   lastName: {
-                    contains: searchInput,
+                    contains: normalizedSearchInput,
                     mode: 'insensitive' as const,
                   },
                 },
@@ -123,7 +128,7 @@ export async function getMatchingTextMessages(
           {
             chat: {
               name: {
-                contains: searchInput,
+                contains: normalizedSearchInput,
                 mode: 'insensitive' as const,
               },
             },
@@ -151,6 +156,7 @@ export async function getMatchingTextMessages(
                   id: true,
                   firstName: true,
                   lastName: true,
+                  avatarUrl: true,
                 },
               },
             },
@@ -163,9 +169,10 @@ export async function getMatchingTextMessages(
     },
     take: limit,
   });
+  logger.info({ messages }, 'Fetched matching text messages');
 
   const parsedMessages = TextMessageSearchResultDTO.array().parse(messages);
-
+  logger.info({ parsedMessages }, 'Parsed matching text messages');
   return parsedMessages;
 }
 // TODO: implement pagination for these
@@ -181,24 +188,24 @@ export async function getMatchingPhotoMessages(
   params: GetPhotoMessagesParams
 ): Promise<PhotoMessageSearchResultDTO[]> {
   const { profileId, searchInput, limit } = params;
+  const normalizedSearchInput = searchInput?.trim();
 
   const photoMessages = await prisma.message.findMany({
     where: {
       type: 'IMAGE',
-      senderId: { not: profileId },
       imageUrl: { not: null },
       chat: {
         participants: {
           some: {
-            id: profileId,
+            profileId,
           },
         },
       },
-      ...(searchInput && {
+      ...(normalizedSearchInput && {
         OR: [
           {
             imageUrl: {
-              contains: searchInput,
+              contains: normalizedSearchInput,
               mode: 'insensitive' as const,
             },
           },
@@ -207,13 +214,13 @@ export async function getMatchingPhotoMessages(
               OR: [
                 {
                   firstName: {
-                    contains: searchInput,
+                    contains: normalizedSearchInput,
                     mode: 'insensitive' as const,
                   },
                 },
                 {
                   lastName: {
-                    contains: searchInput,
+                    contains: normalizedSearchInput,
                     mode: 'insensitive' as const,
                   },
                 },
@@ -223,7 +230,7 @@ export async function getMatchingPhotoMessages(
           {
             chat: {
               name: {
-                contains: searchInput,
+                contains: normalizedSearchInput,
                 mode: 'insensitive' as const,
               },
             },

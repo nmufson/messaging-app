@@ -13,6 +13,7 @@ import {
   sendMessage,
 } from '../services/message';
 import { profileProcedure, router } from '../trpc';
+import { logger } from '@/lib/pino';
 
 export const messageRouter = router({
   sendToChat: profileProcedure
@@ -45,7 +46,7 @@ export const messageRouter = router({
 
       return newMessageActivity;
     }),
-  getTextMessages: profileProcedure
+  textMessages: profileProcedure
     .input(
       z.object({
         searchInput: z.string().optional(),
@@ -55,7 +56,6 @@ export const messageRouter = router({
     .output(TextMessageSearchResultDTO.array())
     .query(async ({ ctx, input }) => {
       const { user } = ctx;
-      const { searchInput, limit } = input;
 
       const userProfileId = user?.profile?.id;
 
@@ -70,7 +70,7 @@ export const messageRouter = router({
 
       return messages;
     }),
-  getPhotoMessages: profileProcedure
+  photoMessages: profileProcedure
     .input(
       z.object({
         searchInput: z.string().optional(),
@@ -79,7 +79,6 @@ export const messageRouter = router({
     )
     .output(PhotoMessageSearchResultDTO.array())
     .query(async ({ ctx, input }) => {
-      const { searchInput, limit } = input;
       const { user } = ctx;
       const userProfileId = user?.profile?.id;
 

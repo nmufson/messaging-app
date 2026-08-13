@@ -10,6 +10,7 @@ export * from './schemas/profile';
 export * from './schemas/friendRequest';
 export * from './schemas/auth';
 export * from './schemas/activities';
+export * from './schemas/chatParticipant';
 
 import { z } from 'zod';
 export { z };

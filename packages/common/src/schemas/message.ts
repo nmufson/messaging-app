@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { DateTimeSchema, ObjectId } from './primitives';
+import { BaseParticipantWithProfile } from './chatParticipant';
 
 export const MessageType = z.enum(['TEXT', 'IMAGE', 'REACTION']);
 export type MessageType = z.infer<typeof MessageType>;
@@ -81,13 +82,7 @@ export const TextMessageSearchResultDTO = MessageWithSenderDTO.extend({
   chat: z.object({
     id: ObjectId,
     name: z.string().nullish(),
-    participants: z.array(
-      z.object({
-        id: ObjectId,
-        firstName: z.string(),
-        lastName: z.string(),
-      })
-    ),
+    participants: BaseParticipantWithProfile.array(),
   }),
 });
 export type TextMessageSearchResultDTO = z.infer<

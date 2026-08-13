@@ -26,9 +26,9 @@ export function SearchModal() {
     requireInput: false,
   });
 
-  const combinedList: (BaseProfileDTO | ChatListItemDTO)[] = [
-    ...profiles,
+  const combinedList: (ChatListItemDTO | BaseProfileDTO)[] = [
     ...groupChats,
+    ...profiles,
   ];
 
   const { textMessages, photoMessages } = useMessages({ searchInput });
@@ -47,24 +47,18 @@ export function SearchModal() {
       </div>
       <div className="grid grid-cols-5 gap-3 max-h-[400px] overflow-y-auto">
         {combinedList.slice(0, 10).map((item) => {
-          const parsedProfile = BaseProfileDTO.safeParse(item);
           const parsedChat = ChatListItemDTO.safeParse(item);
-          if (parsedProfile.success) {
-            return (
-              <ProfileOrChatItem
-                type="profile"
-                profile={parsedProfile.data}
-                key={item.id}
-              />
-            );
-          }
+          const parsedProfile = BaseProfileDTO.safeParse(item);
+
           if (parsedChat.success) {
             return (
-              <ProfileOrChatItem
-                type="groupChat"
-                groupChat={parsedChat.data}
-                key={item.id}
-              />
+              <GroupChatSearchItem groupChat={parsedChat.data} key={item.id} />
+            );
+          }
+
+          if (parsedProfile.success) {
+            return (
+              <ProfileSearchItem profile={parsedProfile.data} key={item.id} />
             );
           }
         })}
@@ -123,7 +117,8 @@ function TextMessagePreview({ textMessage }: TextMessagePreviewProps) {
   const { navigateToMessage } = useNavigation();
 
   const { sender, createdAt, chat } = textMessage;
-  const { name: chatName, participants: participantProfiles } = chat;
+  const { name: chatName, participants } = chat;
+  const participantProfiles = participants.map(({ profile }) => profile);
   const { firstName, lastName } = sender;
 
   const senderDisplayName = `${firstName} ${lastName}`;
@@ -164,33 +159,42 @@ function TextMessagePreview({ textMessage }: TextMessagePreviewProps) {
   );
 }
 
-type ChatResultItemProps =
-  | { type: 'profile'; profile: BaseProfileDTO }
-  | { type: 'groupChat'; groupChat: ChatListItemDTO };
+interface ProfileSearchItemProps {
+  profile: BaseProfileDTO;
+}
 
-function ProfileOrChatItem(props: ChatResultItemProps) {
-  const isGroupChat = props.type === 'groupChat';
-  const participantProfiles = isGroupChat
-    ? props.groupChat.participants.map((p) => p.profile)
-    : [];
-  const chatName = isGroupChat ? props.groupChat.name : null;
-
-  const displayName = isGroupChat
-    ? getChatDisplayName({ name: chatName, participantProfiles, truncate: 30 })
-    : `${props.profile.firstName} ${props.profile.lastName}`;
+function ProfileSearchItem(props: ProfileSearchItemProps) {
+  const { profile } = props;
+  const displayName = `${profile.firstName} ${profile.lastName}`;
 
   return (
     <div className="flex flex-col items-center text-center w-[50px] whitespace-normal">
-      {isGroupChat ? (
-        <GroupPhoto
-          groupPictureUrl={props.groupChat.groupPictureUrl}
-          participantProfiles={props.groupChat.participants.map(
-            (p) => p.profile
-          )}
-        />
-      ) : (
-        <ProfileAvatar profile={props.profile} />
-      )}
+      <ProfileAvatar profile={profile} />
+      <span>{displayName}</span>
+    </div>
+  );
+}
+
+interface GroupChatSearchItemProps {
+  groupChat: ChatListItemDTO;
+}
+
+function GroupChatSearchItem(props: GroupChatSearchItemProps) {
+  const { groupChat } = props;
+  const participantProfiles = groupChat.participants.map((p) => p.profile);
+
+  const displayName = getChatDisplayName({
+    name: groupChat.name,
+    participantProfiles,
+    truncate: 30,
+  });
+
+  return (
+    <div className="flex flex-col items-center text-center w-[50px] whitespace-normal">
+      <GroupPhoto
+        groupPictureUrl={groupChat.groupPictureUrl}
+        participantProfiles={participantProfiles}
+      />
       <span>{displayName}</span>
     </div>
   );

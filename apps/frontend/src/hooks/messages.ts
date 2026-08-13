@@ -8,13 +8,13 @@ interface MessagesParams {
 
 export function useMessages({ searchInput, limit }: MessagesParams) {
   const trpc = useTRPC();
-
+  console.log(searchInput);
   const {
     data: textMessages,
     isLoading: isTextMessagesLoading,
     error: textMessagesError,
   } = useQuery(
-    trpc.message.getTextMessages.queryOptions({
+    trpc.message.textMessages.queryOptions({
       searchInput,
       limit,
     })
@@ -25,7 +25,7 @@ export function useMessages({ searchInput, limit }: MessagesParams) {
     isLoading: isPhotosLoading,
     error: photosError,
   } = useQuery(
-    trpc.message.getPhotoMessages.queryOptions({
+    trpc.message.photoMessages.queryOptions({
       searchInput,
       limit,
     })
