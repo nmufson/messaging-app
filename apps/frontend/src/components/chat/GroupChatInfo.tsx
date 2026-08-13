@@ -193,12 +193,14 @@ export function GroupChatInfo({
   };
 
   const handleLaunchContactsModal = () => {
+    const participantIds = participants.map((p) => p.profile.id);
     launchModal(
       <FullscreenModal title="Add Member">
         <Contacts
           onSelectProfile={(profile) => {
             handleLaunchAddMemberConfirmModal(profile);
           }}
+          profilesToExclude={participantIds}
         />
       </FullscreenModal>
     );
