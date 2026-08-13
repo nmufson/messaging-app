@@ -10,6 +10,7 @@ import { getParticipantProfiles } from '@/utils/general';
 import { useNavigation } from '@/utils/Navigation';
 import { BaseProfileDTO, ChatInfoDTO, ChatType, ObjectId } from '@repo/common';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useMemo, useRef } from 'react';
 import { OverlayTrigger, Spinner, Tooltip } from 'react-bootstrap';
 import * as R from 'remeda';
@@ -32,6 +33,7 @@ export function ChatContent(props: ChatContentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messageToViewRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
   const { navigateToChat } = useNavigation();
   const { launchModal } = useModalContext();
 
@@ -90,6 +92,10 @@ export function ChatContent(props: ChatContentProps) {
       behavior,
     });
   }, []);
+
+  useEffect(() => {
+    hasScrolledOnFirstRender.current = false;
+  }, [pathname, chatId]);
 
   useEffect(() => {
     if (messageToView && messageToViewRef.current) {

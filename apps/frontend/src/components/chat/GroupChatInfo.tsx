@@ -250,6 +250,7 @@ export function GroupChatInfo({
               e.preventDefault();
               leaveChat({ chatId });
               closeModal();
+              window.location.href = '/chats';
             }}
             className="bg-red-500 text-white hover:bg-red-600"
           >
