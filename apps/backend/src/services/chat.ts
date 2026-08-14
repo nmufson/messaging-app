@@ -162,12 +162,27 @@ export async function getChat(
   if (chatId) {
     whereFilters = { id: chatId };
   } else if (participantProfileIds) {
+    const uniqueParticipantProfileIds = Array.from(
+      new Set(participantProfileIds)
+    );
+
     whereFilters = {
-      participants: {
-        every: {
-          id: { in: participantProfileIds },
+      AND: [
+        {
+          participants: {
+            every: {
+              profileId: { in: uniqueParticipantProfileIds },
+            },
+          },
         },
-      },
+        ...uniqueParticipantProfileIds.map((profileId) => ({
+          participants: {
+            some: {
+              profileId,
+            },
+          },
+        })),
+      ],
     };
   }
 

@@ -143,10 +143,28 @@ export function ChatContent(props: ChatContentProps) {
   };
 
   if (isLoading) return <Spinner />;
-  if (!chat) return <div>Chat not found.</div>;
+  const draftParticipantProfiles: BaseProfileDTO[] =
+    profiles?.map((selectedProfile) => ({
+      ...selectedProfile,
+      avatarUrl: null,
+      isOnline: undefined,
+      lastOnline: undefined,
+    })) ?? [];
 
-  const { participants, name, type } = chat;
-  const participantProfiles = getParticipantProfiles(participants);
+  const isDraftChat = !chat && draftParticipantProfiles.length > 0;
+
+  if (!chat && !isDraftChat) return <div>Chat not found.</div>;
+
+  const participants = chat?.participants;
+  const participantProfiles = participants
+    ? getParticipantProfiles(participants)
+    : draftParticipantProfiles;
+  const name = chat?.name ?? null;
+  const type: ChatType =
+    chat?.type ??
+    (participantProfiles.length > 1
+      ? ChatType.enum.GROUP
+      : ChatType.enum.DIRECT);
 
   const displayName = getChatDisplayName({
     name,
@@ -160,6 +178,10 @@ export function ChatContent(props: ChatContentProps) {
       : null;
 
   const handleInfoClick = () => {
+    if (!chat) {
+      return;
+    }
+
     if (type === 'GROUP') {
       launchModal(
         <FullscreenModal title="Group Info">
@@ -233,6 +255,12 @@ export function ChatContent(props: ChatContentProps) {
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
       />
+
+      {isDraftChat && (
+        <div className="px-4 py-2 text-center text-sm text-gray-500 border-t border-gray-100">
+          New conversation. Send your first message to create this chat.
+        </div>
+      )}
 
       <form
         onSubmit={handleSubmitMessage}

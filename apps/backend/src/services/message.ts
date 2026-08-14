@@ -48,9 +48,10 @@ function buildNameSearchFilters(searchInput: string) {
  */
 export async function sendMessage(
   prisma: PrismaClient,
-  params: SendMessageInput
+  params: { message: SendMessageInput; chatId: ObjectId }
 ): Promise<IMessageActivity> {
-  const { chatId, senderId, type, content, imageUrl } = params;
+  const { chatId, message } = params;
+  const { senderId, type, content, imageUrl } = message;
 
   const newMessage = await prisma.message.create({
     data: {

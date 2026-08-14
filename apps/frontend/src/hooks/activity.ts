@@ -12,8 +12,8 @@ import { useMemo } from 'react';
 interface SendMessageParams {
   senderId: ObjectId;
   type: 'TEXT' | 'IMAGE';
-  content?: string | null;
-  imageUrl?: string | null;
+  content: string | null;
+  imageUrl: string | null;
   onSuccess?: (chatId: ObjectId) => void;
 }
 
@@ -40,18 +40,6 @@ export function useChatActivities(
 
   const activitiesQueryKey =
     trpc.activity.getActivities.infiniteQueryKey(activitiesQuery);
-
-  const findChatQuery = useMemo(() => {
-    if (chatId) {
-      return { chatId };
-    }
-    if (profileIds && profileIds.length > 0) {
-      return { profileIds };
-    }
-    return null;
-  }, [chatId, profileIds]);
-
-  const findChatQueryKey = trpc.chat.findChat.queryKey(findChatQuery ?? {});
 
   const {
     data: activityData,
@@ -101,6 +89,12 @@ export function useChatActivities(
       },
     })
   );
+
+  const {
+    mutate: sendMessageToNewChat,
+    isPending: isSendingToNewChat,
+    error: sendToNewChatError,
+  } = useMutation(trpc.message.sendToNewChat.mutationOptions());
 
   const allActivities = useMemo(() => {
     return (
@@ -153,30 +147,15 @@ export function useChatActivities(
     })
   );
 
-  const {
-    mutate: createChat,
-    isPending: isCreateChatPending,
-    error: createChatError,
-  } = useMutation(
-    trpc.action.createChat.mutationOptions({
-      onSuccess: (newChat) => {
-        queryClient.setQueryData(findChatQueryKey, newChat);
-      },
-    })
-  );
-
   const sendMessage = (params: SendMessageParams) => {
-    const { senderId, content, imageUrl, type, onSuccess } = params;
+    const { onSuccess, ...message } = params;
     // If chat exists, send message
     if (chatId) {
       console.log('sending message to existing chat', chatId);
       sendMessageToChat(
         {
-          content: content || null,
-          imageUrl: imageUrl || null,
-          senderId,
+          message,
           chatId,
-          type,
         },
         {
           onSuccess: () => {
@@ -185,24 +164,14 @@ export function useChatActivities(
         }
       );
     } else if (profileIds) {
-      // If chat does not exist, create chat with first message
-      const newChatProfileIds = [...profileIds, senderId];
-      createChat(
+      sendMessageToNewChat(
         {
-          creatorId: senderId,
-          participantProfileIds: newChatProfileIds,
-          type: newChatProfileIds.length > 2 ? 'GROUP' : 'DIRECT',
-          firstMessage: {
-            type,
-            content: content || null,
-            imageUrl: imageUrl || null,
-          },
+          message,
+          participantProfileIds: profileIds,
         },
         {
-          onSuccess: (newChat) => {
-            if (newChat?.id) {
-              onSuccess?.(newChat.id);
-            }
+          onSuccess: (messageActivity) => {
+            onSuccess?.(messageActivity.chatId);
           },
         }
       );
@@ -218,5 +187,7 @@ export function useChatActivities(
     hasNextPage,
     isFetchingNextPage,
     isActivitiesLoading,
+    isSendingMessage: isPending || isSendingToNewChat,
+    sendMessageError: sendToChatError ?? sendToNewChatError,
   };
 }

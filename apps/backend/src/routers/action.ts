@@ -1,15 +1,9 @@
-import { eventEmitter } from '@/lib/eventBus';
-import { CHAT_INFO_SELECT, getChat } from '@/services/chat';
-import { getMergedActivities } from '@/services/activity';
+import { CHAT_INFO_SELECT } from '@/services/chat';
 import { createAction } from '@/services/action';
-import { sendMessage } from '@/services/message';
 import { router } from '@/trpc';
 import {
   ActionOutputDTO,
   CHAT_UPDATE_ACTIONS,
-  ChatDTO,
-  ChatType,
-  MessageType,
   ObjectId,
   UpdateChatInput,
   z,
@@ -230,141 +224,5 @@ export const actionRouter = router({
         newActionActivity,
         activityProfiles,
       };
-    }),
-  createChat: profileProcedure
-    .input(
-      z.object({
-        creatorId: ObjectId,
-        participantProfileIds: ObjectId.array(),
-        type: ChatType,
-        firstMessage: z
-          .object({
-            type: MessageType,
-            content: z.string().nullable(),
-            imageUrl: z.string().nullable(),
-          })
-          .optional(),
-      })
-    )
-    .output(ChatDTO)
-    .mutation(async ({ input, ctx }) => {
-      const { creatorId, participantProfileIds, type, firstMessage } = input;
-
-      const existingChat = await getChat(ctx.prisma, {
-        participantProfileIds: participantProfileIds,
-      });
-
-      if (existingChat) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Chat with these participants already exists',
-        });
-      }
-
-      const newChat = await ctx.prisma.$transaction(async (trx) => {
-        const createdChat = await trx.chat.create({
-          data: { creatorId, type },
-        });
-
-        await trx.chatParticipant.createMany({
-          data: participantProfileIds.map((profileId) => ({
-            chatId: createdChat.id,
-            profileId,
-          })),
-        });
-
-        return trx.chat.findUniqueOrThrow({
-          where: { id: createdChat.id },
-          include: {
-            participants: {
-              select: {
-                lastViewedAt: true,
-                unreadActivities: true,
-                profile: {
-                  select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    avatarUrl: true,
-                  },
-                },
-              },
-            },
-            messages: {
-              take: 1,
-              orderBy: { createdAt: 'asc' },
-              select: {
-                id: true,
-                type: true,
-                content: true,
-                createdAt: true,
-                updatedAt: true,
-                imageUrl: true,
-                senderId: true,
-              },
-            },
-          },
-        });
-      });
-
-      const createdChatAction = await ctx.prisma.chatAction.create({
-        data: {
-          chatId: newChat.id,
-          actionType: 'CHAT_CREATED',
-          actorId: creatorId,
-        },
-        select: {
-          id: true,
-          chatId: true,
-          actionType: true,
-          actorId: true,
-          targetId: true,
-          createdAt: true,
-          actor: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              avatarUrl: true,
-            },
-          },
-          target: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              avatarUrl: true,
-            },
-          },
-        },
-      });
-
-      participantProfileIds.forEach((profileId) => {
-        if (profileId === creatorId) return;
-        eventEmitter.emit(`chat:created:${profileId}`, newChat);
-      });
-
-      let newMessage;
-      if (firstMessage) {
-        newMessage = await sendMessage(ctx.prisma, {
-          type: firstMessage.type,
-          content: firstMessage.content,
-          imageUrl: firstMessage.imageUrl,
-          senderId: creatorId,
-          chatId: newChat.id,
-        });
-      }
-
-      const mergedActivities = await getMergedActivities(
-        newMessage ? [newMessage] : [],
-        [createdChatAction]
-      );
-
-      const chatWithActivities = {
-        ...newChat,
-        activities: mergedActivities,
-      };
-
-      return chatWithActivities;
     }),
 });
