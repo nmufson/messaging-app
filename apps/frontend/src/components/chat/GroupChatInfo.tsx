@@ -261,6 +261,10 @@ export function GroupChatInfo({
     );
   };
 
+  const handleProfilePreviewClick = (profileId: ObjectId) => {
+    window.location.href = `/profile?profileId=${profileId}`;
+  };
+
   return (
     <div>
       <form
@@ -311,6 +315,7 @@ export function GroupChatInfo({
                 key={p.profile.id}
                 profile={p.profile}
                 showPresence={true}
+                onClick={() => handleProfilePreviewClick(p.profile.id)}
                 rightContent={
                   <Button
                     type="button"

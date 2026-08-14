@@ -34,7 +34,7 @@ export function ProfilePreview(props: ProfilePreviewProps) {
 
   const content = (
     <div
-      className={`group flex items-center p-3 border-b border-grey-200 w-full text-left cursor-pointer ${className ?? ''}`}
+      className={`profile-preview group flex items-center p-3 border-b border-grey-200 w-full text-left cursor-pointer ${className ?? ''}`}
       onClick={onClick}
     >
       <img

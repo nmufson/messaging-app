@@ -160,3 +160,27 @@ export function CancelRequestModal({
     </Modal>
   );
 }
+
+interface RemoveFriendModalProps {
+  onConfirmRemoveFriend: () => void;
+}
+
+export function RemoveFriendModal({
+  onConfirmRemoveFriend,
+}: RemoveFriendModalProps) {
+  return (
+    <Modal header="Remove Friend?">
+      <p>This person will be removed from your friends list.</p>
+      <ModalActions>
+        <CancelButton key="close" />
+        <Button
+          key="remove-friend"
+          onClick={onConfirmRemoveFriend}
+          className="bg-red-500 text-white"
+        >
+          Remove Friend
+        </Button>
+      </ModalActions>
+    </Modal>
+  );
+}

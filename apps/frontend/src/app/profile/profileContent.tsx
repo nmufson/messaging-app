@@ -1,16 +1,24 @@
 'use client';
-import { Button, CancelButton } from '@/components/button/button';
-import { Modal, ModalActions } from '@/components/modal/Modal';
+import { Button } from '@/components/button/button';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
 import { useFriendRequest } from '@/hooks/friendRequest';
 import { useProfile } from '@/hooks/profile';
+import { useTRPC } from '@/lib/trpc';
 import { formatDisplayDate } from '@/utils';
-import { ObjectId } from '@repo/common';
+import { ObjectId, RelationshipToViewer } from '@repo/common';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { CancelRequestModal, UpdateProfileModal } from './modals';
+import { useState } from 'react';
+import {
+  CancelRequestModal,
+  RemoveFriendModal,
+  UpdateProfileModal,
+} from './modals';
 
 export function ProfileContent({ profileId }: { profileId: ObjectId }) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const { launchModal, closeModal } = useModalContext();
   const { profile: loggedInProfile } = useAuth();
 
@@ -22,8 +30,25 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
     error: profileError,
   } = useProfile(profileId);
 
-  const { sendFriendRequest, updateFriendRequest, isLoading } =
-    useFriendRequest();
+  const { sendFriendRequest, updateFriendRequest } = useFriendRequest();
+  const { mutateAsync: removeFriend } = useMutation(
+    trpc.profile.removeFriend.mutationOptions({
+      onSuccess: () => {
+        const profileQueryKey = trpc.profile.byId.queryKey({ profileId });
+        queryClient.setQueryData(profileQueryKey, (old) => {
+          if (!old) {
+            return old;
+          }
+
+          return {
+            ...old,
+            relationshipToViewer: 'NONE' as const,
+            numOfFriends: Math.max(0, old.numOfFriends - 1),
+          };
+        });
+      },
+    })
+  );
 
   if (isProfileLoading) {
     return <div>Loading chat...</div>;
@@ -79,6 +104,21 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
     launchModal(<UpdateProfileModal profile={profile} />);
   };
 
+  const handleRemoveFriend = async () => {
+    try {
+      await removeFriend({ friendProfileId: profileId });
+      closeModal();
+    } catch (error) {
+      console.error(error, 'Failed removing friend');
+    }
+  };
+
+  const handleOpenRemoveFriendModal = () => {
+    launchModal(
+      <RemoveFriendModal onConfirmRemoveFriend={handleRemoveFriend} />
+    );
+  };
+
   const {
     firstName,
     lastName,
@@ -89,8 +129,7 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
     numOfChats,
     numOfFriends,
     numOfMessages,
-    hasPendingFriendRequestFromMe,
-    hasPendingFriendRequestForMe,
+    relationshipToViewer,
   } = profile;
 
   const formattedJoinDate = `Joined ${formatDisplayDate(createdAt)}`;
@@ -138,38 +177,16 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
 
         <div className="flex gap-5 justify-center">
           {isOwnProfile ? (
-            <button
-              onClick={handleUpdateProfileClick}
-              className="w-40 rounded-3xl text-white bg-brand-dark"
-            >
-              Update Profile
-            </button>
+            <OwnProfileButtons
+              onUpdateProfileClick={handleUpdateProfileClick}
+            />
           ) : (
-            <>
-              <Button
-                onClick={
-                  hasPendingFriendRequestFromMe
-                    ? handleOpenCancelFriendRequestModal
-                    : handleSendFriendRequest
-                }
-                className={
-                  hasPendingFriendRequestFromMe
-                    ? 'bg-gray-400'
-                    : 'bg-brand-dark'
-                }
-              >
-                {hasPendingFriendRequestFromMe
-                  ? 'Request Sent'
-                  : 'Add as Friend'}
-              </Button>
-
-              <Button
-                onClick={() => {}}
-                className="w-30 border border-brand-light text-brand-light bg-white"
-              >
-                Message
-              </Button>
-            </>
+            <OtherProfileButtons
+              relationshipToViewer={relationshipToViewer}
+              onSendFriendRequest={handleSendFriendRequest}
+              onCancelFriendRequest={handleOpenCancelFriendRequestModal}
+              onRemoveFriend={handleOpenRemoveFriendModal}
+            />
           )}
         </div>
 
@@ -206,6 +223,112 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
           <small>{formattedJoinDate}</small>
         </div>
       </div>
+    </div>
+  );
+}
+
+function OwnProfileButtons({
+  onUpdateProfileClick,
+}: {
+  onUpdateProfileClick: () => void;
+}) {
+  return (
+    <div>
+      <button
+        onClick={onUpdateProfileClick}
+        className="w-40 h-10 rounded-md text-white bg-brand-dark"
+      >
+        Update Profile
+      </button>
+    </div>
+  );
+}
+
+interface OtherProfileButtonsProps {
+  relationshipToViewer: RelationshipToViewer;
+  onSendFriendRequest: () => void;
+  onCancelFriendRequest: () => void;
+  onRemoveFriend: () => void;
+}
+
+function OtherProfileButtons(props: OtherProfileButtonsProps) {
+  const {
+    relationshipToViewer,
+    onSendFriendRequest,
+    onCancelFriendRequest,
+    onRemoveFriend,
+  } = props;
+  const [isFriendMenuOpen, setIsFriendMenuOpen] = useState(false);
+
+  const isFriend = relationshipToViewer === 'FRIEND';
+  const hasPendingOutgoing =
+    relationshipToViewer === 'PENDING_OUTGOING_REQUEST';
+  const hasPendingIncoming =
+    relationshipToViewer === 'PENDING_INCOMING_REQUEST';
+
+  const actionLabel = isFriend
+    ? 'Friends'
+    : hasPendingOutgoing
+      ? 'Request Sent'
+      : hasPendingIncoming
+        ? 'Request Pending'
+        : 'Add as Friend';
+
+  const shouldDisableAction = isFriend || hasPendingIncoming;
+
+  const handleActionClick = () => {
+    if (isFriend) {
+      setIsFriendMenuOpen((prev) => !prev);
+      return;
+    }
+
+    if (hasPendingOutgoing) {
+      onCancelFriendRequest();
+      return;
+    }
+
+    if (!shouldDisableAction) {
+      onSendFriendRequest();
+    }
+  };
+
+  const handleMessageClick = () => {};
+
+  return (
+    <div className="flex gap-5">
+      <div className="relative">
+        <Button
+          onClick={handleActionClick}
+          disabled={shouldDisableAction}
+          className={`${isFriend || hasPendingOutgoing ? 'bg-gray-400' : 'bg-brand-dark'} rounded-md h-10`}
+        >
+          {actionLabel}
+        </Button>
+
+        {isFriend && isFriendMenuOpen && (
+          <div className="absolute z-20 mt-2 min-w-[150px] rounded-md border border-gray-200 bg-white shadow-lg">
+            <button
+              type="button"
+              onClick={() => {
+                setIsFriendMenuOpen(false);
+                onRemoveFriend();
+              }}
+              className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50"
+            >
+              Remove Friend
+            </button>
+          </div>
+        )}
+      </div>
+
+      {isFriend && (
+        <Button
+          onClick={() => {}}
+          className="w-30 h-10 rounded-md border border-brand-light text-brand-light bg-white"
+        >
+          Message
+        </Button>
+      )}
     </div>
   );
 }

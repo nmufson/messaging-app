@@ -92,13 +92,21 @@ export const ProfileDTO = z.object({
 });
 export type ProfileDTO = z.infer<typeof ProfileDTO>;
 
+export const RelationshipToViewer = z.enum([
+  'SELF',
+  'FRIEND',
+  'PENDING_OUTGOING_REQUEST',
+  'PENDING_INCOMING_REQUEST',
+  'NONE',
+]);
+export type RelationshipToViewer = z.infer<typeof RelationshipToViewer>;
+
 export const ProfilePageDTO = z.object({
   ...ProfileDTO.shape,
   numOfFriends: z.number(),
   numOfChats: z.number(),
   numOfMessages: z.number(),
-  hasPendingFriendRequestFromMe: z.boolean(),
-  hasPendingFriendRequestForMe: z.boolean(),
+  relationshipToViewer: RelationshipToViewer,
   isOnline: z.boolean().nullish(),
   lastOnline: DateTimeSchema.nullish(),
 });

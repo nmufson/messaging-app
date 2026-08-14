@@ -1,5 +1,5 @@
 import { useTRPC } from '@/lib/trpc';
-import { FriendRequestStatus } from '@repo/common';
+import { FriendRequestStatus, RelationshipToViewer } from '@repo/common';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useFriendRequest = (requestStatuses?: FriendRequestStatus[]) => {
@@ -8,7 +8,7 @@ export const useFriendRequest = (requestStatuses?: FriendRequestStatus[]) => {
 
   const requestListQueryKey = trpc.friendRequest.getRequests.queryKey();
 
-  const { data: requests, isLoading: isLoadingRequests } = useQuery(
+  const { data: requests } = useQuery(
     trpc.friendRequest.getRequests.queryOptions({ statuses: requestStatuses })
   );
 
@@ -25,7 +25,12 @@ export const useFriendRequest = (requestStatuses?: FriendRequestStatus[]) => {
           profileId: variables.receiverId,
         });
         queryClient.setQueryData(receiverProfileQueryKey, (old) =>
-          old ? { ...old, hasPendingFriendRequestFromMe: true } : old
+          old
+            ? {
+                ...old,
+                relationshipToViewer: 'PENDING_OUTGOING_REQUEST' as const,
+              }
+            : old
         );
       },
     })
@@ -42,8 +47,17 @@ export const useFriendRequest = (requestStatuses?: FriendRequestStatus[]) => {
         const senderProfileQueryKey = trpc.profile.byId.queryKey({
           profileId: variables.senderId,
         });
+
+        const nextRelationship: RelationshipToViewer =
+          variables.newStatus === 'ACCEPTED' ? 'FRIEND' : 'NONE';
+
         queryClient.setQueryData(senderProfileQueryKey, (old) =>
-          old ? { ...old, hasPendingFriendRequestForMe: false } : old
+          old
+            ? {
+                ...old,
+                relationshipToViewer: nextRelationship,
+              }
+            : old
         );
 
         queryClient.invalidateQueries({ queryKey: requestListQueryKey });
