@@ -4,7 +4,7 @@ import { MouseEvent } from 'react';
 import { useModalContext } from '@/context/ModalContext';
 import { ProfileContent } from '@/app/profile/profileContent';
 import { FullscreenModal } from '@/components/modal/FullscreenModal';
-import { SelectedProfile } from '@/app/chats/WriteToChatModal';
+import { SelectedProfile } from '@/app/chats/ComposeMessageModal';
 
 interface ChatProfileItemProps {
   profile: ListProfileDTO;

@@ -1,4 +1,4 @@
-import { SelectedProfile } from '@/app/chats/WriteToChatModal';
+import { SelectedProfile } from '@/app/chats/ComposeMessageModal';
 import { useAuth } from '@/context/AuthContext';
 import { useToggle } from '@/hooks/general';
 import { getChatDisplayName } from '@/utils';

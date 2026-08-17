@@ -18,7 +18,7 @@ export interface SelectedProfile {
   lastName: string;
 }
 
-export function WriteToChatModal() {
+export function ComposeMessageModal() {
   const { closeModal } = useModalContext();
   const {
     value: searchNameInput,
@@ -134,6 +134,7 @@ export function WriteToChatModal() {
           chatId={selectedGroupChat}
           profiles={selectedProfiles}
           inModalView={true}
+          isComposeMessageView={true}
         />
       )}
     </div>

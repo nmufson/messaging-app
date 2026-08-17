@@ -15,7 +15,7 @@ export function FullscreenModal(props: FullscreenModalProps) {
   if (!showModal) return null;
 
   return (
-    <div className="fixed bottom-0 z-50 bg-white overflow-y-auto flex flex-col w-full h-98/100">
+    <div className="full-screen-modal fixed bottom-0 z-50 bg-white overflow-y-auto flex flex-col w-full h-100/100">
       {showHeader && (
         <div className="flex items-center gap-2 p-4 border-b border-gray-200 flex-shrink-0">
           <button

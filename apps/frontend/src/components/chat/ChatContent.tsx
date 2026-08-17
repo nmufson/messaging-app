@@ -1,4 +1,4 @@
-import { SelectedProfile } from '@/app/chats/WriteToChatModal';
+import { SelectedProfile } from '@/app/chats/ComposeMessageModal';
 import { ProfileContent } from '@/app/profile/profileContent';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
@@ -26,6 +26,7 @@ interface ChatContentProps {
   messageToView?: ObjectId | null;
   profiles?: SelectedProfile[];
   inModalView?: boolean;
+  isComposeMessageView?: boolean;
 }
 
 export function ChatContent(props: ChatContentProps) {
@@ -38,7 +39,13 @@ export function ChatContent(props: ChatContentProps) {
   const { launchModal } = useModalContext();
 
   // TODO: can simply make inModalView check if we're at chat path or not??
-  const { chatId, messageToView, profiles, inModalView = false } = props;
+  const {
+    chatId,
+    messageToView,
+    profiles,
+    inModalView = false,
+    isComposeMessageView = false,
+  } = props;
   console.log(profiles);
   const { profile } = useAuth();
   const loggedInProfileId = profile?.id;
@@ -172,10 +179,9 @@ export function ChatContent(props: ChatContentProps) {
     profileId: loggedInProfileId,
   });
 
-  const otherParticipantProfile =
-    type === 'DIRECT'
-      ? participantProfiles.find((p) => p.id !== loggedInProfileId)
-      : null;
+  const otherParticipantProfiles = participantProfiles.filter(
+    (p) => p.id !== loggedInProfileId
+  );
 
   const handleInfoClick = () => {
     if (!chat) {
@@ -188,10 +194,10 @@ export function ChatContent(props: ChatContentProps) {
           <GroupChatInfo chatId={chat.id} onScrollToBottom={scrollToBottom} />
         </FullscreenModal>
       );
-    } else if (type === 'DIRECT' && otherParticipantProfile) {
+    } else if (type === 'DIRECT' && otherParticipantProfiles[0]) {
       launchModal(
         <FullscreenModal title="Chat">
-          <ProfileContent profileId={otherParticipantProfile.id} />
+          <ProfileContent profileId={otherParticipantProfiles[0].id} />
         </FullscreenModal>
       );
     }
@@ -199,52 +205,55 @@ export function ChatContent(props: ChatContentProps) {
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="header-container pt-2 pb-0 px-4 border-b bg-gray-50 flex justify-between items-center flex-shrink-0">
-        <Link href="/chats" className="no-underline text-inherit">
-          <i className="bi bi-caret-left-fill text-3xl" />
-        </Link>
+      {!isComposeMessageView && (
+        <div className="header-container pt-2 pb-0 px-4 border-b bg-gray-50 flex justify-between items-center flex-shrink-0">
+          <Link href="/chats" className="no-underline text-inherit">
+            <i className="bi bi-caret-left-fill text-3xl" />
+          </Link>
 
-        <div className="flex flex-col items-center">
-          <ChatPhoto
-            chatType={type}
-            chat={chat}
-            participantProfiles={participantProfiles}
-            otherParticipantProfile={otherParticipantProfile}
-          />
+          <div className="flex flex-col items-center">
+            <ChatPhoto
+              chatType={type}
+              chat={chat}
+              otherParticipantProfiles={otherParticipantProfiles}
+            />
 
-          <h1 className="text-xl font-semibold">{displayName}</h1>
-          {/* TODO: clean this up */}
-          {isAnyOnline && (
-            <OverlayTrigger
-              placement="bottom"
-              overlay={(props) => (
-                <Tooltip id="online-participants-tooltip" {...props}>
-                  {onlineParticipants.slice(0, 5).map((p) => (
-                    <div key={p.id}>
-                      {p.id === loggedInProfileId
-                        ? 'You'
-                        : `${p.firstName} ${p.lastName}`}
-                    </div>
-                  ))}
-                  {onlineParticipants.length > 5 && (
-                    <div>+ {onlineParticipants.length - 5} more...</div>
-                  )}
-                </Tooltip>
-              )}
-            >
-              <div
-                className="flex items-center -mt-2 cursor-pointer"
-                tabIndex={0}
+            <h1 className="text-xl font-semibold">{displayName}</h1>
+            {/* TODO: clean this up */}
+            {isAnyOnline && (
+              <OverlayTrigger
+                placement="bottom"
+                overlay={(props) => (
+                  <Tooltip id="online-participants-tooltip" {...props}>
+                    {onlineParticipants.slice(0, 5).map((p) => (
+                      <div key={p.id}>
+                        {p.id === loggedInProfileId
+                          ? 'You'
+                          : `${p.firstName} ${p.lastName}`}
+                      </div>
+                    ))}
+                    {onlineParticipants.length > 5 && (
+                      <div>+ {onlineParticipants.length - 5} more...</div>
+                    )}
+                  </Tooltip>
+                )}
               >
-                <i className="bi bi-dot text-4xl text-green-900"></i>
-                <span>{type === 'GROUP' && numParticipantsOnline} Online</span>
-              </div>
-            </OverlayTrigger>
-          )}
+                <div
+                  className="flex items-center -mt-2 cursor-pointer"
+                  tabIndex={0}
+                >
+                  <i className="bi bi-dot text-4xl text-green-900"></i>
+                  <span>
+                    {type === 'GROUP' && numParticipantsOnline} Online
+                  </span>
+                </div>
+              </OverlayTrigger>
+            )}
+          </div>
+          {/* have this button go to user profile if its direct chat, if group go to group info */}
+          <i className="bi bi-info-circle text-2xl" onClick={handleInfoClick} />
         </div>
-        {/* have this button go to user profile if its direct chat, if group go to group info */}
-        <i className="bi bi-info-circle text-2xl" onClick={handleInfoClick} />
-      </div>
+      )}
       <Activities
         activities={allActivities}
         messageToViewRef={messageToViewRef}
@@ -288,29 +297,28 @@ export function ChatContent(props: ChatContentProps) {
   );
 }
 
+// Don't include user's profile in group photo
 interface ChatPhotoProps {
   chatType: ChatType;
   chat?: ChatInfoDTO;
-  participantProfiles: BaseProfileDTO[];
-  otherParticipantProfile?: BaseProfileDTO | null;
+  otherParticipantProfiles: BaseProfileDTO[];
 }
 
 function ChatPhoto(props: ChatPhotoProps) {
-  const { chatType, chat, participantProfiles, otherParticipantProfile } =
-    props;
+  const { chatType, chat, otherParticipantProfiles } = props;
 
   if (chatType === 'GROUP') {
     return (
       <GroupPhoto
         groupPictureUrl={chat?.groupPictureUrl || null}
-        participantProfiles={participantProfiles}
+        participantProfiles={otherParticipantProfiles}
       />
     );
   }
 
-  if (otherParticipantProfile) {
-    return <ProfileAvatar profile={otherParticipantProfile} />;
-  }
+  const otherProfile = otherParticipantProfiles[0];
 
-  // TODO: add fallback (img of question mark)
+  if (otherProfile) {
+    return <ProfileAvatar profile={otherProfile} />;
+  }
 }

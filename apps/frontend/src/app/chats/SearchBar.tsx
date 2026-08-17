@@ -1,5 +1,5 @@
 import { FullscreenModal } from '@/components/modal/FullscreenModal';
-import { WriteToChatModal } from '@/app/chats/WriteToChatModal';
+import { ComposeMessageModal } from '@/app/chats/ComposeMessageModal';
 import { useModalContext } from '@/context/ModalContext';
 import { SearchModal } from './SearchModal';
 
@@ -14,10 +14,10 @@ export function MessageSearchBar() {
     );
   };
 
-  const handleOpenWriteToChatModal = () => {
+  const handleOpenComposeMessageModal = () => {
     launchModal(
-      <FullscreenModal>
-        <WriteToChatModal />
+      <FullscreenModal showHeader={false}>
+        <ComposeMessageModal />
       </FullscreenModal>
     );
   };
@@ -37,7 +37,7 @@ export function MessageSearchBar() {
         </button>
       </div>
       <button
-        onClick={handleOpenWriteToChatModal}
+        onClick={handleOpenComposeMessageModal}
         className="ml-3 text-brand-dark text-2xl p-2 hover:bg-gray-100 transition border-none"
       >
         <i className="bi bi-pencil-square" />
