@@ -3,28 +3,69 @@ import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { SearchInput } from '@/components/SearchInput';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
-import { usePotentialChats } from '@/hooks/chat';
+import { ChatContent } from '@/components/chat/ChatContent';
+import { useChat, usePotentialChats } from '@/hooks/chat';
 import { useMessages } from '@/hooks/messages';
 import { formatDisplayDate, getChatDisplayName } from '@/utils';
 import { useNavigation } from '@/utils/Navigation';
 import {
   BaseProfileDTO,
   ChatListItemDTO,
+  ObjectId,
   PhotoMessageSearchResultDTO,
   TextMessageSearchResultDTO,
 } from '@repo/common';
 
 import { MessageBubble } from '../chat/[slug]/MessageBubble';
-import { useInput } from '@/hooks/general';
+import { useInput, useSelectedValue } from '@/hooks/general';
+import { useEffect } from 'react';
+import { SelectedProfile } from '@/types/profile';
 
 export function SearchModal() {
+  const { navigateToChat, navigateToMessage } = useNavigation();
   const { closeModal } = useModalContext();
   const { value: searchInput, onChange: onChangeSearchInput } = useInput();
+  const { value: selectedProfile, onChange: onSelectedProfileChange } =
+    useSelectedValue<SelectedProfile | null>(null);
 
   const { profiles, groupChats } = usePotentialChats({
     searchInput: searchInput,
     requireInput: false,
   });
+
+  const { chat: existingDirectChat, isLoading: isCheckingDirectChat } = useChat(
+    {
+      chatId: null,
+      profileIds: selectedProfile ? [selectedProfile.id] : [],
+    }
+  );
+
+  // navigate to chat if we've loaded one
+  useEffect(() => {
+    if (selectedProfile && !isCheckingDirectChat && existingDirectChat) {
+      navigateToChat(existingDirectChat.id);
+      closeModal();
+    }
+  }, [
+    selectedProfile,
+    isCheckingDirectChat,
+    existingDirectChat,
+    navigateToChat,
+    closeModal,
+  ]);
+
+  const handleSelectGroupChat = (chatId: ObjectId) => {
+    navigateToChat(chatId);
+    closeModal();
+  };
+
+  const handleSelectProfile = (profile: BaseProfileDTO) => {
+    onSelectedProfileChange({
+      id: profile.id,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+    });
+  };
 
   const combinedList: (ChatListItemDTO | BaseProfileDTO)[] = [
     ...groupChats,
@@ -34,7 +75,7 @@ export function SearchModal() {
   const { textMessages, photoMessages } = useMessages({ searchInput });
 
   return (
-    <div className="px-1">
+    <div className="search-modal px-1">
       <div className="flex justify-between items-center gap-3 p-3">
         <SearchInput
           value={searchInput}
@@ -52,13 +93,21 @@ export function SearchModal() {
 
           if (parsedChat.success) {
             return (
-              <GroupChatSearchItem groupChat={parsedChat.data} key={item.id} />
+              <GroupChatSearchItem
+                groupChat={parsedChat.data}
+                onSelectChat={handleSelectGroupChat}
+                key={item.id}
+              />
             );
           }
 
           if (parsedProfile.success) {
             return (
-              <ProfileSearchItem profile={parsedProfile.data} key={item.id} />
+              <ProfileSearchItem
+                profile={parsedProfile.data}
+                onSelectProfile={handleSelectProfile}
+                key={item.id}
+              />
             );
           }
         })}
@@ -67,7 +116,12 @@ export function SearchModal() {
         <h5>Messages</h5>
         <div>
           {textMessages?.slice(0, 5).map((text) => (
-            <TextMessagePreview key={text.id} textMessage={text} />
+            <TextMessagePreview
+              key={text.id}
+              textMessage={text}
+              onNavigateToMessage={navigateToMessage}
+              closeModal={closeModal}
+            />
           ))}
         </div>
       </div>
@@ -75,24 +129,43 @@ export function SearchModal() {
         <h5>Photos</h5>
         <div className="flex flex-wrap">
           {photoMessages?.map((message) => (
-            <PhotoMessagePreview key={message.id} photoMessage={message} />
+            <PhotoMessagePreview
+              key={message.id}
+              photoMessage={message}
+              onNavigateToMessage={navigateToMessage}
+              closeModal={closeModal}
+            />
           ))}
         </div>
       </div>
+      {/* Allow composing message before chat is created */}
+      {selectedProfile && !isCheckingDirectChat && !existingDirectChat && (
+        <div className="mt-4 border-t pt-3">
+          <ChatContent
+            chatId={null}
+            profiles={[selectedProfile]}
+            inModalView={true}
+            isComposeMessageView={true}
+          />
+        </div>
+      )}
     </div>
   );
 }
 
 interface PhotoMessagePreviewProps {
   photoMessage: PhotoMessageSearchResultDTO;
+  onNavigateToMessage: (chatId: ObjectId, messageId: ObjectId) => void;
+  closeModal: () => void;
 }
 
-function PhotoMessagePreview({ photoMessage }: PhotoMessagePreviewProps) {
+function PhotoMessagePreview(props: PhotoMessagePreviewProps) {
+  const { photoMessage, onNavigateToMessage, closeModal } = props;
   const { imageUrl, sender, chatId, id: messageId } = photoMessage;
-  const { navigateToMessage } = useNavigation();
 
   const handleNavigateToMessage = () => {
-    navigateToMessage(chatId, messageId);
+    onNavigateToMessage(chatId, messageId);
+    closeModal();
   };
 
   return (
@@ -110,11 +183,13 @@ function PhotoMessagePreview({ photoMessage }: PhotoMessagePreviewProps) {
 
 interface TextMessagePreviewProps {
   textMessage: TextMessageSearchResultDTO;
+  onNavigateToMessage: (chatId: ObjectId, messageId: ObjectId) => void;
+  closeModal: () => void;
 }
 
-function TextMessagePreview({ textMessage }: TextMessagePreviewProps) {
+function TextMessagePreview(props: TextMessagePreviewProps) {
+  const { textMessage, onNavigateToMessage, closeModal } = props;
   const { profile } = useAuth();
-  const { navigateToMessage } = useNavigation();
 
   const { sender, createdAt, chat } = textMessage;
   const { name: chatName, participants } = chat;
@@ -132,7 +207,8 @@ function TextMessagePreview({ textMessage }: TextMessagePreviewProps) {
   });
 
   const handleNavigateToMessage = () => {
-    navigateToMessage(chat.id, textMessage.id);
+    onNavigateToMessage(chat.id, textMessage.id);
+    closeModal();
   };
 
   return (
@@ -161,26 +237,32 @@ function TextMessagePreview({ textMessage }: TextMessagePreviewProps) {
 
 interface ProfileSearchItemProps {
   profile: BaseProfileDTO;
+  onSelectProfile: (profile: BaseProfileDTO) => void;
 }
 
 function ProfileSearchItem(props: ProfileSearchItemProps) {
-  const { profile } = props;
+  const { profile, onSelectProfile } = props;
   const displayName = `${profile.firstName} ${profile.lastName}`;
 
   return (
-    <div className="flex flex-col items-center text-center w-[50px] whitespace-normal">
+    <button
+      type="button"
+      onClick={() => onSelectProfile(profile)}
+      className="profile-search-item flex flex-col items-center text-center w-[50px] whitespace-normal border-none bg-transparent p-0"
+    >
       <ProfileAvatar profile={profile} />
       <span>{displayName}</span>
-    </div>
+    </button>
   );
 }
 
 interface GroupChatSearchItemProps {
   groupChat: ChatListItemDTO;
+  onSelectChat: (chatId: ObjectId) => void;
 }
 
 function GroupChatSearchItem(props: GroupChatSearchItemProps) {
-  const { groupChat } = props;
+  const { groupChat, onSelectChat } = props;
   const participantProfiles = groupChat.participants.map((p) => p.profile);
 
   const displayName = getChatDisplayName({
@@ -190,12 +272,16 @@ function GroupChatSearchItem(props: GroupChatSearchItemProps) {
   });
 
   return (
-    <div className="flex flex-col items-center text-center w-[50px] whitespace-normal">
+    <button
+      type="button"
+      onClick={() => onSelectChat(groupChat.id)}
+      className="gc-search-item flex flex-col items-center text-center w-[50px] whitespace-normal border-none bg-transparent p-0"
+    >
       <GroupPhoto
         groupPictureUrl={groupChat.groupPictureUrl}
         participantProfiles={participantProfiles}
       />
       <span>{displayName}</span>
-    </div>
+    </button>
   );
 }

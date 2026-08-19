@@ -7,16 +7,9 @@ import { ProfileResultItem } from '@/components/profile/ProfileResultItem';
 import { useModalContext } from '@/context/ModalContext';
 import { usePotentialChats } from '@/hooks/chat';
 import { useInput, useSelectedValue, useSelectedValues } from '@/hooks/general';
+import { SelectedProfile } from '@/types/profile';
 import { BaseProfileDTO, ObjectId } from '@repo/common';
 import { useMemo } from 'react';
-
-// TODO make friends list content, with both page and modal view
-
-export interface SelectedProfile {
-  id: ObjectId;
-  firstName: string;
-  lastName: string;
-}
 
 export function ComposeMessageModal() {
   const { closeModal } = useModalContext();

@@ -1,5 +1,6 @@
+import { SelectedProfile } from '@/types/profile';
 import { ObjectId } from '@repo/common';
-import { SelectedProfile } from '@/app/chats/ComposeMessageModal';
+
 import { ChangeEvent, useEffect, useRef } from 'react';
 import { KeyboardEvent } from 'react';
 
