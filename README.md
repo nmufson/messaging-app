@@ -4,8 +4,6 @@ Full-stack messaging platform built with Next.js, Express, tRPC, Prisma, and Pos
 
 This repository is currently in progress.
 
-## WIP Status
-
 ### Implemented
 
 - User authentication with session-based login/logout and profile-aware user context
