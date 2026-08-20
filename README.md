@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Messaging App (Portfolio Project)
 
-## Getting Started
+Full-stack messaging platform built with Next.js, Express, tRPC, Prisma, and PostgreSQL.
 
-First, run the development server:
+This repository is currently in progress.
+
+## WIP Status
+
+### Implemented
+
+- User authentication with session-based login/logout and profile-aware user context
+- Profile creation and editing
+- Direct and group conversations
+- Real-time activity updates via WebSocket subscriptions
+- Friend request flow (send, accept, decline, cancel)
+- Online presence and recent presence tracking
+- Conversation and message search flows
+- Image upload signature flow for Cloudinary
+
+## Technology Stack
+
+### Frontend
+
+- Next.js 15
+- React 19
+- TanStack Query
+- Tailwind CSS and React Bootstrap
+
+### Backend
+
+- Node.js
+- Express 5
+- tRPC 11
+- WebSocket server using ws
+
+### Database and Data Modeling
+
+- PostgreSQL
+- Prisma ORM
+- Zod schemas for API input and DTO validation
+
+## Feature Highlights
+
+1. Real-time Messaging and Activity Feed
+
+- Live updates for new messages and chat actions through tRPC subscriptions over WebSockets
+- UI cache synchronization using subscription events and query cache updates
+
+2. Conversation System
+
+- Supports both direct and group chats
+- Automatic chat creation when messaging a new set of participants
+- Chat list previews and unread activity tracking
+
+3. Profile Friendships
+
+- Friend request lifecycle: pending, accepted, declined, cancelled
+- Profile relationship states surfaced in the UI
+- Friend connect/disconnect updates persisted in relational data
+
+4. Presence and Engagement
+
+- Online status and last seen tracking
+- Presence updates available globally and within chat scopes
+
+5. Profile and Media Workflows
+
+- Editable profiles with avatar/header support
+- Image upload signature endpoint integrated with Cloudinary
+
+6. Search and Discoverability
+
+- Conversation targeting and profile search for potential chats
+- Text and photo message search queries
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
 pnpm dev
-# or
-bun dev
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
