@@ -1,16 +1,20 @@
 'use client';
+import styles from './FriendRequests.module.css';
 import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { Button } from '@/components/button/button';
 import { useFriendRequest } from '@/hooks/friendRequest';
 import { useToggle } from '@/hooks/general';
 import { useNavigation } from '@/utils/Navigation';
 import { FriendRequestDTO, FriendRequestStatus } from '@repo/common';
+import { useState } from 'react';
 import { Spinner } from 'react-bootstrap';
 
 export function FriendRequests() {
   const { status: isExpanded, toggleStatus: toggleExpanded } = useToggle();
 
-  const { requests, numRequests, isLoading } = useFriendRequest(['PENDING']);
+  const { requests, numRequests, isLoading } = useFriendRequest({
+    requestStatuses: ['PENDING'],
+  });
 
   return (
     <div>
@@ -59,7 +63,9 @@ export function FriendRequests() {
 
 function FriendRequestItem({ request }: { request: FriendRequestDTO }) {
   const { sender } = request;
-  const { updateFriendRequest, isLoading } = useFriendRequest();
+  const { updateFriendRequest, isLoading } = useFriendRequest({
+    listQueryEnabled: false,
+  });
   const { navigateToProfile } = useNavigation();
 
   const handleAccept = () => {

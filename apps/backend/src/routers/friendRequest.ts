@@ -79,6 +79,7 @@ export const friendRequestRouter = router({
           data: { status: newStatus },
         });
 
+        // If request is accepted, add each profile to the others friends list
         if (newStatus === FriendRequestStatus.enum.ACCEPTED) {
           await tx.profile.update({
             where: { id: actionerId },

@@ -1,16 +1,29 @@
+import { useToast } from '@/context/Toast/ToastContext';
 import { useTRPC } from '@/lib/trpc';
 import { FriendRequestStatus, RelationshipToViewer } from '@repo/common';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-export const useFriendRequest = (requestStatuses?: FriendRequestStatus[]) => {
+interface UseFriendRequestParams {
+  requestStatuses?: FriendRequestStatus[];
+  listQueryEnabled?: boolean;
+}
+
+export const useFriendRequest = (params: UseFriendRequestParams = {}) => {
+  const { requestStatuses } = params;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
-  const requestListQueryKey = trpc.friendRequest.getRequests.queryKey();
+  const requestListQueryKey = trpc.friendRequest.getRequests.queryKey({
+    statuses: requestStatuses,
+  });
+  const requestListQueryOptions = trpc.friendRequest.getRequests.queryOptions({
+    statuses: requestStatuses,
+  });
 
-  const { data: requests } = useQuery(
-    trpc.friendRequest.getRequests.queryOptions({ statuses: requestStatuses })
-  );
+  const { data: requests } = useQuery({
+    ...requestListQueryOptions,
+  });
 
   const numRequests = requests?.length ?? 0;
   const {
@@ -61,6 +74,29 @@ export const useFriendRequest = (requestStatuses?: FriendRequestStatus[]) => {
         );
 
         queryClient.invalidateQueries({ queryKey: requestListQueryKey });
+
+        if (variables.newStatus === FriendRequestStatus.enum.ACCEPTED) {
+          addToast({
+            header: 'Friend Request Accepted',
+            body: 'Friend request accepted successfully.',
+            variant: 'success',
+          });
+        } else {
+          addToast({
+            header: 'Friend Request Declined',
+            body: 'Friend request declined successfully.',
+            variant: 'info',
+          });
+        }
+      },
+      onError: (error) => {
+        addToast({
+          header: 'Unable to Respond to Request',
+          body:
+            error.message ||
+            'Something went wrong while responding to this request.',
+          variant: 'danger',
+        });
       },
     })
   );
