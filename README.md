@@ -72,7 +72,3 @@ This repository is currently in progress.
 
 - Conversation targeting and profile search for potential chats
 - Text and photo message search queries
-
-```bash
-pnpm dev
-```
