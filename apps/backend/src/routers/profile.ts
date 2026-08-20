@@ -187,7 +187,7 @@ export const profileRouter = router({
     )
     .output(
       z.object({
-        removedFriendProfileId: ObjectId,
+        success: z.boolean(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -222,21 +222,36 @@ export const profileRouter = router({
         });
       }
 
-      await ctx.prisma.profile.update({
-        where: {
-          id: viewerProfileId,
-        },
-        data: {
-          friends: {
-            disconnect: {
-              id: friendProfileId,
+      await ctx.prisma.$transaction(async (tx) => {
+        await tx.profile.update({
+          where: {
+            id: viewerProfileId,
+          },
+          data: {
+            friends: {
+              disconnect: {
+                id: friendProfileId,
+              },
             },
           },
-        },
+        });
+
+        await tx.profile.update({
+          where: {
+            id: friendProfileId,
+          },
+          data: {
+            friends: {
+              disconnect: {
+                id: viewerProfileId,
+              },
+            },
+          },
+        });
       });
 
       return {
-        removedFriendProfileId: friendProfileId,
+        success: true,
       };
     }),
 

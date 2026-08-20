@@ -50,11 +50,11 @@ export const useFriendRequest = (params: UseFriendRequestParams = {}) => {
   );
 
   const {
-    mutate: updateFriendRequest,
+    mutate: updateIncomingFriendRequest,
     isPending: isUpdating,
     error: updateError,
   } = useMutation(
-    trpc.friendRequest.update.mutationOptions({
+    trpc.friendRequest.updateIncoming.mutationOptions({
       onSuccess: (data, variables) => {
         // Update cache for sender's profile to reflect change on their profile view
         const senderProfileQueryKey = trpc.profile.byId.queryKey({
@@ -62,7 +62,7 @@ export const useFriendRequest = (params: UseFriendRequestParams = {}) => {
         });
 
         const nextRelationship: RelationshipToViewer =
-          variables.newStatus === 'ACCEPTED' ? 'FRIEND' : 'NONE';
+          data.status === FriendRequestStatus.enum.ACCEPTED ? 'FRIEND' : 'NONE';
 
         queryClient.setQueryData(senderProfileQueryKey, (old) =>
           old
@@ -101,13 +101,55 @@ export const useFriendRequest = (params: UseFriendRequestParams = {}) => {
     })
   );
 
+  const {
+    mutate: cancelOutgoingFriendRequest,
+    isPending: isCancelling,
+    error: cancelError,
+  } = useMutation(
+    trpc.friendRequest.updateOutgoing.mutationOptions({
+      onSuccess: (_data, variables) => {
+        const receiverProfileQueryKey = trpc.profile.byId.queryKey({
+          profileId: variables.receiverId,
+        });
+
+        queryClient.setQueryData(receiverProfileQueryKey, (old) =>
+          old
+            ? {
+                ...old,
+                relationshipToViewer: 'NONE' as const,
+              }
+            : old
+        );
+
+        queryClient.invalidateQueries({ queryKey: requestListQueryKey });
+
+        addToast({
+          header: 'Friend Request Cancelled',
+          body: 'Friend request cancelled successfully.',
+          variant: 'info',
+        });
+      },
+      onError: (error) => {
+        addToast({
+          header: 'Unable to Cancel Request',
+          body:
+            error.message ||
+            'Something went wrong while cancelling this request.',
+          variant: 'danger',
+        });
+      },
+    })
+  );
+
   return {
     sendFriendRequest,
-    updateFriendRequest,
+    updateIncomingFriendRequest,
+    cancelOutgoingFriendRequest,
     requests: requests ?? [],
     numRequests,
-    isLoading: isSending || isUpdating,
+    isLoading: isSending || isUpdating || isCancelling,
     sendError,
     updateError,
+    cancelError,
   };
 };

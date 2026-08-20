@@ -39,7 +39,7 @@ export default function FindFriends() {
 
   const handleAddFriend = (receiverId: ObjectId) => {
     if (!profile) return;
-    sendFriendRequest({ senderId: profile.id, receiverId });
+    sendFriendRequest({ receiverId });
   };
 
   return (

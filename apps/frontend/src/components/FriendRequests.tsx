@@ -16,9 +16,11 @@ interface RespondedRequestItemProps {
 export function FriendRequests() {
   const { status: isExpanded, toggleStatus: toggleExpanded } = useToggle();
 
-  const { requests, isLoading, updateFriendRequest } = useFriendRequest({
-    requestStatuses: ['PENDING', 'ACCEPTED', 'DECLINED'],
-  });
+  const { requests, isLoading, updateIncomingFriendRequest } = useFriendRequest(
+    {
+      requestStatuses: ['PENDING', 'ACCEPTED', 'DECLINED'],
+    }
+  );
 
   const pendingRequests = requests.filter(
     (request) => request.status === FriendRequestStatus.enum.PENDING
@@ -83,7 +85,7 @@ export function FriendRequests() {
                       <FriendRequestItem
                         key={request.id}
                         request={request}
-                        onRespond={updateFriendRequest}
+                        onRespond={updateIncomingFriendRequest}
                         isResponding={isLoading}
                       />
                     ))}
@@ -122,7 +124,7 @@ interface FriendRequestItemProps {
   request: FriendRequestDTO;
   onRespond: (params: {
     senderId: string;
-    newStatus: FriendRequestDTO['status'];
+    newStatus: 'ACCEPTED' | 'DECLINED';
   }) => void;
   isResponding: boolean;
 }

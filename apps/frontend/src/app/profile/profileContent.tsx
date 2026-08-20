@@ -30,7 +30,7 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
     error: profileError,
   } = useProfile(profileId);
 
-  const { sendFriendRequest, updateFriendRequest } = useFriendRequest();
+  const { sendFriendRequest, cancelOutgoingFriendRequest } = useFriendRequest();
   const { mutateAsync: removeFriend } = useMutation(
     trpc.profile.removeFriend.mutationOptions({
       onSuccess: () => {
@@ -68,7 +68,6 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
 
     try {
       await sendFriendRequest({
-        senderId: loggedInProfile?.id,
         receiverId: profileId,
       });
       console.log('Friend Request sent successfully!');
@@ -84,9 +83,8 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
       return;
     }
     try {
-      await updateFriendRequest({
-        newStatus: 'CANCELLED',
-        senderId: loggedInProfile?.id,
+      await cancelOutgoingFriendRequest({
+        receiverId: profileId,
       });
       closeModal();
     } catch (error) {
@@ -259,15 +257,10 @@ function OtherProfileButtons(props: OtherProfileButtonsProps) {
   const hasPendingIncoming =
     relationshipToViewer === 'PENDING_INCOMING_REQUEST';
 
-  const actionLabel = isFriend
-    ? 'Friends'
-    : hasPendingOutgoing
-      ? 'Request Sent'
-      : hasPendingIncoming
-        ? 'Request Pending'
-        : 'Add as Friend';
-
-  const shouldDisableAction = isFriend || hasPendingIncoming;
+  let actionLabel = 'Add as Friend';
+  if (isFriend) actionLabel = 'Friends';
+  if (hasPendingOutgoing) actionLabel = 'Request Sent';
+  if (hasPendingIncoming) actionLabel = 'Accept Request';
 
   const handleActionClick = () => {
     if (isFriend) {
@@ -280,19 +273,24 @@ function OtherProfileButtons(props: OtherProfileButtonsProps) {
       return;
     }
 
-    if (!shouldDisableAction) {
-      onSendFriendRequest();
+    if (hasPendingIncoming) {
+      // TODO: accept friend request
+      return;
     }
+
+    onSendFriendRequest();
   };
 
-  const handleMessageClick = () => {};
+  const handleMessageClick = () => {
+    // TODO: should open chat composition view
+    // open chat if there is one
+  };
 
   return (
     <div className="flex gap-5">
       <div className="relative">
         <Button
           onClick={handleActionClick}
-          disabled={shouldDisableAction}
           className={`${isFriend || hasPendingOutgoing ? 'bg-gray-400' : 'bg-brand-dark'} rounded-md h-10`}
         >
           {actionLabel}
