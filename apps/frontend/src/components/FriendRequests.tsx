@@ -3,12 +3,11 @@ import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { Button } from '@/components/button/button';
 import { useFriendRequest } from '@/hooks/friendRequest';
 import { useToggle } from '@/hooks/general';
-import { useTRPC } from '@/lib/trpc';
+import { useNavigation } from '@/utils/Navigation';
 import { FriendRequestDTO, FriendRequestStatus } from '@repo/common';
 import { Spinner } from 'react-bootstrap';
 
 export function FriendRequests() {
-  const trpc = useTRPC();
   const { status: isExpanded, toggleStatus: toggleExpanded } = useToggle();
 
   const { requests, numRequests, isLoading } = useFriendRequest(['PENDING']);
@@ -61,6 +60,7 @@ export function FriendRequests() {
 function FriendRequestItem({ request }: { request: FriendRequestDTO }) {
   const { sender } = request;
   const { updateFriendRequest, isLoading } = useFriendRequest();
+  const { navigateToProfile } = useNavigation();
 
   const handleAccept = () => {
     updateFriendRequest({
@@ -76,15 +76,24 @@ function FriendRequestItem({ request }: { request: FriendRequestDTO }) {
     });
   };
 
+  const handleNavigateToProfile = () => {
+    navigateToProfile(sender.id);
+  };
+
   return (
     <li className="p-3">
-      <div className="flex items-center gap-3">
+      <div
+        onClick={handleNavigateToProfile}
+        className="profile-container group flex items-center gap-3 cursor-pointer rounded-md p-1 -m-1 hover:bg-gray-50 transition-colors"
+      >
         <ProfileAvatar profile={sender} />
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm truncate">
+          <p className="font-medium text-sm truncate group-hover:underline">
             {sender.firstName} {sender.lastName}
           </p>
-          <p className="text-xs text-gray-500">wants to be your friend</p>
+          <p className="text-xs text-gray-500 group-hover:underline">
+            wants to be your friend
+          </p>
         </div>
       </div>
       <div className="flex gap-2 mt-2">

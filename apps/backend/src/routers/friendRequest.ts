@@ -73,11 +73,25 @@ export const friendRequestRouter = router({
         });
       }
 
-      const updatedRequest = await ctx.prisma.friendRequest.update({
-        where: { id: latestRequest.id },
-        data: { status: newStatus },
-      });
+      return await ctx.prisma.$transaction(async (tx) => {
+        const updatedRequest = await tx.friendRequest.update({
+          where: { id: latestRequest.id },
+          data: { status: newStatus },
+        });
 
-      return updatedRequest;
+        if (newStatus === FriendRequestStatus.enum.ACCEPTED) {
+          await tx.profile.update({
+            where: { id: actionerId },
+            data: { friends: { connect: { id: senderId } } },
+          });
+
+          await tx.profile.update({
+            where: { id: senderId },
+            data: { friends: { connect: { id: actionerId } } },
+          });
+        }
+
+        return updatedRequest;
+      });
     }),
 });

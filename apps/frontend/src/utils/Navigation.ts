@@ -12,8 +12,13 @@ export function useNavigation() {
     router.push(`/chat/chat?chat=${chatId}&message=${messageId}`);
   };
 
+  const navigateToProfile = (profileId: ObjectId) => {
+    router.push(`/profile?profile=${profileId}`);
+  };
+
   return {
     navigateToChat,
     navigateToMessage,
+    navigateToProfile,
   };
 }
