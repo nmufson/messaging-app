@@ -5,7 +5,7 @@ import { TRPCError } from '@trpc/server';
 import { getFriendRequests } from '@/services/friendRequest';
 
 export const friendRequestRouter = router({
-  getRequests: profileProcedure
+  list: profileProcedure
     .input(
       z.object({
         statuses: FriendRequestStatus.array().optional().default(['PENDING']),

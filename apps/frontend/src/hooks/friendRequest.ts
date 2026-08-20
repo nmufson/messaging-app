@@ -14,10 +14,10 @@ export const useFriendRequest = (params: UseFriendRequestParams = {}) => {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  const requestListQueryKey = trpc.friendRequest.getRequests.queryKey({
+  const requestListQueryKey = trpc.friendRequest.list.queryKey({
     statuses: requestStatuses,
   });
-  const requestListQueryOptions = trpc.friendRequest.getRequests.queryOptions({
+  const requestListQueryOptions = trpc.friendRequest.list.queryOptions({
     statuses: requestStatuses,
   });
 
@@ -104,7 +104,7 @@ export const useFriendRequest = (params: UseFriendRequestParams = {}) => {
   return {
     sendFriendRequest,
     updateFriendRequest,
-    requests,
+    requests: requests ?? [],
     numRequests,
     isLoading: isSending || isUpdating,
     sendError,
