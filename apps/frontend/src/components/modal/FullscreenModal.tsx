@@ -4,12 +4,12 @@ import { ReactNode } from 'react';
 interface FullscreenModalProps {
   children: ReactNode;
   className?: string;
-  title?: string;
+  header?: string;
   showHeader?: boolean;
 }
 
 export function FullscreenModal(props: FullscreenModalProps) {
-  const { children, className, title, showHeader = true } = props;
+  const { children, className, header, showHeader = true } = props;
   const { showModal, closeModal } = useModalContext();
 
   if (!showModal) return null;
@@ -24,7 +24,7 @@ export function FullscreenModal(props: FullscreenModalProps) {
           >
             <i className="bi bi-caret-left-fill text-xl" />
           </button>
-          {title && <p className="font-semibold text-lg">{title}</p>}
+          {header && <p className="font-semibold text-lg">{header}</p>}
         </div>
       )}
       <div

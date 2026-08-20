@@ -190,13 +190,13 @@ export function ChatContent(props: ChatContentProps) {
 
     if (type === 'GROUP') {
       launchModal(
-        <FullscreenModal title="Group Info">
+        <FullscreenModal header="Group Info">
           <GroupChatInfo chatId={chat.id} onScrollToBottom={scrollToBottom} />
         </FullscreenModal>
       );
     } else if (type === 'DIRECT' && otherParticipantProfiles[0]) {
       launchModal(
-        <FullscreenModal title="Chat">
+        <FullscreenModal header="Chat">
           <ProfileContent profileId={otherParticipantProfiles[0].id} />
         </FullscreenModal>
       );

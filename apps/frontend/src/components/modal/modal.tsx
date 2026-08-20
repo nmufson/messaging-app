@@ -14,7 +14,7 @@ export function Modal(props: ModalProps) {
   if (!showModal) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="modal fixed inset-0 z-50 flex items-center justify-center">
       <div
         className="absolute inset-0 bg-black bg-opacity-50"
         onClick={closeModal}

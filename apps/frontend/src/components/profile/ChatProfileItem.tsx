@@ -1,13 +1,13 @@
-import { ListProfileDTO } from '@repo/common';
 import { ProfilePreview } from '@/components/profile/ProfilePreview';
 import { MouseEvent } from 'react';
 import { useModalContext } from '@/context/ModalContext';
 import { ProfileContent } from '@/app/profile/profileContent';
 import { FullscreenModal } from '@/components/modal/FullscreenModal';
-import { SelectedProfile } from '@/app/chats/ComposeMessageModal';
+import { SelectedProfile } from '@/types/profile';
+import { BaseProfileDTO } from '@repo/common';
 
 interface ChatProfileItemProps {
-  profile: ListProfileDTO;
+  profile: BaseProfileDTO;
   onClearSelections: () => void;
   addSelectedProfile: (profile: SelectedProfile) => void;
 }
@@ -28,7 +28,7 @@ export function ChatProfileItem(props: ChatProfileItemProps) {
   const handleOpenProfileModal = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     launchModal(
-      <FullscreenModal title="New Message">
+      <FullscreenModal header="New Message">
         <ProfileContent profileId={profile.id} />
       </FullscreenModal>
     );

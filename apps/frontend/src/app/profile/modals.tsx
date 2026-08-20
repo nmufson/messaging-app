@@ -2,6 +2,7 @@
 import { Button, CancelButton } from '@/components/button/button';
 import { TextFieldGroup } from '@/components/FieldGroup';
 import { ImageUpload } from '@/components/ImageUpload';
+import { FullscreenModal } from '@/components/modal/FullscreenModal';
 import { Modal, ModalActions } from '@/components/modal/Modal';
 import { useModalContext } from '@/context/ModalContext';
 import { useToast } from '@/context/Toast/ToastContext';
@@ -27,7 +28,7 @@ export function UpdateProfileModal({ profile }: { profile: ProfilePageDTO }) {
     [profile]
   );
 
-  const { control, handleSubmit, formState, getValues } = useForm({
+  const { control, handleSubmit, formState } = useForm({
     resolver: zodResolver(
       ProfileDTO.omit({ id: true, createdAt: true, updatedAt: true })
     ),
@@ -82,8 +83,11 @@ export function UpdateProfileModal({ profile }: { profile: ProfilePageDTO }) {
   };
 
   return (
-    <Modal header="Update Profile">
-      <form onSubmit={handleSubmit(onSubmit)}>
+    <FullscreenModal header="Update Profile">
+      <form
+        className="flex flex-col p-4 justify-center items-center"
+        onSubmit={handleSubmit(onSubmit)}
+      >
         <div>
           <TextFieldGroup
             type="text"
@@ -131,9 +135,11 @@ export function UpdateProfileModal({ profile }: { profile: ProfilePageDTO }) {
             helperText="Max 250 characters"
           />
         </div>
-        <button disabled={isPending}>Done</button>
+        <Button type="submit" disabled={isPending}>
+          Save
+        </Button>
       </form>
-    </Modal>
+    </FullscreenModal>
   );
 }
 

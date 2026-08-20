@@ -123,6 +123,7 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
     firstName,
     lastName,
     avatarUrl,
+    headerUrl,
     title,
     bio,
     createdAt,
@@ -133,7 +134,7 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
   } = profile;
 
   const formattedJoinDate = `Joined ${formatDisplayDate(createdAt)}`;
-  let usersHeader;
+
   const displayName = `${firstName} ${lastName}`;
 
   return (
@@ -142,19 +143,11 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
       <div className="relative h-50 w-full">
         <Link
           href="/chats"
-          className="no-underline text-inherit absolute top-3 left-2"
+          className="no-underline text-inherit absolute top-3 left-2 z-10"
         >
           <i className="bi bi-caret-left-fill text-3xl" />
         </Link>
-        {usersHeader ? (
-          <img
-            src={usersHeader}
-            alt="Header"
-            className="w-full h-40 md:h-56 object-cover opacity-80"
-          />
-        ) : (
-          <div className="w-full h-40 md:h-56 bg-gradient-to-r from-brand to-brand-light" />
-        )}
+        <ProfileHeader headerUrl={headerUrl} />
         <div className="absolute left-1/2 top-60/100 -translate-x-1/2 -translate-y-1/2 z-1">
           <img
             src={avatarUrl ?? '/default.png'}
@@ -330,5 +323,21 @@ function OtherProfileButtons(props: OtherProfileButtonsProps) {
         </Button>
       )}
     </div>
+  );
+}
+
+function ProfileHeader({ headerUrl }: { headerUrl: string }) {
+  if (headerUrl)
+    return (
+      <img
+        src={headerUrl}
+        alt="Header"
+        className="w-full h-40 md:h-56 object-cover opacity-80"
+      />
+    );
+
+  // sample gradient background
+  return (
+    <div className="w-full h-40 md:h-56 bg-gradient-to-r from-brand to-brand-light" />
   );
 }
