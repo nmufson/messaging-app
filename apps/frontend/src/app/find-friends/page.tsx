@@ -2,6 +2,7 @@
 import { ProfilePreview } from '@/components/profile/ProfilePreview';
 import { SearchInput } from '@/components/SearchInput';
 import { useAuth } from '@/context/AuthContext';
+import { useNavigation } from '@/utils/Navigation';
 import { useFriendRequest } from '@/hooks/friendRequest';
 import { useInput } from '@/hooks/general';
 import { useTRPC } from '@/lib/trpc';
@@ -12,9 +13,8 @@ import { Spinner } from 'react-bootstrap';
 
 export default function FindFriends() {
   const trpc = useTRPC();
-  const { profile } = useAuth();
   const { value: searchInput, onChange: onSearchInputChange } = useInput();
-  const { sendFriendRequest, isLoading: isSendingRequest } = useFriendRequest();
+  const { navigateToProfile } = useNavigation();
 
   const {
     data: nonFriends,
@@ -25,22 +25,6 @@ export default function FindFriends() {
       searchInput ? { searchInput } : skipToken
     )
   );
-
-  const addFriendButton = (profileId: ObjectId) => (
-    <button
-      onClick={() => handleAddFriend(profileId)}
-      disabled={isSendingRequest}
-      className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
-    >
-      <i className="bi bi-person-plus mr-1" />
-      Add
-    </button>
-  );
-
-  const handleAddFriend = (receiverId: ObjectId) => {
-    if (!profile) return;
-    sendFriendRequest({ receiverId });
-  };
 
   return (
     <div className="p-4">
@@ -80,7 +64,7 @@ export default function FindFriends() {
                 <ProfilePreview
                   profile={profile}
                   showPresence
-                  rightContent={addFriendButton(profile.id)}
+                  onClick={() => navigateToProfile(profile.id)}
                 />
               </li>
             ))}

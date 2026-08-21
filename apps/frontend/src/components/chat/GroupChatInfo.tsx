@@ -24,6 +24,7 @@ import { ProfilePreview } from '../profile/ProfilePreview';
 import { Contacts } from '../Contacts';
 import { FullscreenModal } from '../modal/FullscreenModal';
 import { getParticipantProfiles } from '@/utils/general';
+import { useNavigation } from '@/utils/Navigation';
 
 interface PhotoModalContentProps {
   control: Control<Omit<UpdateChatInput, 'id'>>;
@@ -71,6 +72,7 @@ export function GroupChatInfo({
   } = useToggle();
   const { launchModal, closeModal } = useModalContext();
   const { profile } = useAuth();
+  const { navigateToProfile } = useNavigation();
 
   const {
     chat,
@@ -262,7 +264,7 @@ export function GroupChatInfo({
   };
 
   const handleProfilePreviewClick = (profileId: ObjectId) => {
-    window.location.href = `/profile?profileId=${profileId}`;
+    navigateToProfile(profileId);
   };
 
   return (
