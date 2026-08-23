@@ -1,4 +1,4 @@
-import { SelectedProfile } from '@/app/chats/ComposeMessageModal';
+import { SelectedProfile } from '@/types/profile';
 import { ProfileContent } from '@/app/profile/profileContent';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
@@ -27,6 +27,7 @@ interface ChatContentProps {
   profiles?: SelectedProfile[];
   inModalView?: boolean;
   isComposeMessageView?: boolean;
+  shouldFocusChatInput?: boolean;
 }
 
 export function ChatContent(props: ChatContentProps) {
@@ -34,6 +35,7 @@ export function ChatContent(props: ChatContentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messageToViewRef = useRef<HTMLDivElement>(null);
+  const messageInputRef = useRef<HTMLInputElement>(null);
   const pathname = usePathname();
   const { navigateToChat } = useNavigation();
   const { launchModal } = useModalContext();
@@ -45,6 +47,7 @@ export function ChatContent(props: ChatContentProps) {
     profiles,
     inModalView = false,
     isComposeMessageView = false,
+    shouldFocusChatInput = false,
   } = props;
   console.log(profiles);
   const { profile } = useAuth();
@@ -120,6 +123,18 @@ export function ChatContent(props: ChatContentProps) {
       return () => window.cancelAnimationFrame(frameId);
     }
   }, [messageToView, scrollToBottom, allActivities.length]);
+
+  useEffect(() => {
+    if (!shouldFocusChatInput || isLoading) {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      messageInputRef.current?.focus();
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [shouldFocusChatInput, isLoading, chatId]);
 
   const handleSubmitMessage = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -279,6 +294,7 @@ export function ChatContent(props: ChatContentProps) {
           <i className="bi bi-image text-3xl" />
         </div>
         <input
+          ref={messageInputRef}
           type="text"
           name="message"
           autoComplete="off"

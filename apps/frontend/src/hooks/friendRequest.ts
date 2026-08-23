@@ -63,7 +63,7 @@ export const useFriendRequest = (params: UseFriendRequestParams = {}) => {
 
         const nextRelationship: RelationshipToViewer =
           data.status === FriendRequestStatus.enum.ACCEPTED ? 'FRIEND' : 'NONE';
-
+        console.log('nextRelationship', nextRelationship);
         queryClient.setQueryData(senderProfileQueryKey, (old) =>
           old
             ? {

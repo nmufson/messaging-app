@@ -11,7 +11,13 @@ import { SelectedProfile } from '@/types/profile';
 import { BaseProfileDTO, ObjectId } from '@repo/common';
 import { useMemo } from 'react';
 
-export function ComposeMessageModal() {
+interface ComposeMessageModalProps {
+  initialSelectedProfiles?: SelectedProfile[];
+  shouldFocusChatInput?: boolean;
+}
+
+export function ComposeMessageModal(props: ComposeMessageModalProps) {
+  const { initialSelectedProfiles = [], shouldFocusChatInput = false } = props;
   const { closeModal } = useModalContext();
   const {
     value: searchNameInput,
@@ -24,7 +30,7 @@ export function ComposeMessageModal() {
     add: addSelectedProfile,
     remove: removeSelectedProfile,
     clear: clearSelectedProfiles,
-  } = useSelectedValues<SelectedProfile>([]);
+  } = useSelectedValues<SelectedProfile>(initialSelectedProfiles);
   const { value: selectedGroupChat, onChange: onSelectedGroupChatChange } =
     useSelectedValue<ObjectId | null>(null);
   const {
@@ -128,6 +134,7 @@ export function ComposeMessageModal() {
           profiles={selectedProfiles}
           inModalView={true}
           isComposeMessageView={true}
+          shouldFocusChatInput={shouldFocusChatInput}
         />
       )}
     </div>

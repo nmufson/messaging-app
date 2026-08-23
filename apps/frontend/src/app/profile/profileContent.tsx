@@ -5,11 +5,17 @@ import { useModalContext } from '@/context/ModalContext';
 import { useFriendRequest } from '@/hooks/friendRequest';
 import { useProfile } from '@/hooks/profile';
 import { useTRPC } from '@/lib/trpc';
+import { FullscreenModal } from '@/components/modal/FullscreenModal';
 import { formatDisplayDate } from '@/utils';
-import { ObjectId, RelationshipToViewer } from '@repo/common';
+import {
+  FriendRequestStatus,
+  ObjectId,
+  RelationshipToViewer,
+} from '@repo/common';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useState } from 'react';
+import { ComposeMessageModal } from '../chats/ComposeMessageModal';
 import {
   CancelRequestModal,
   RemoveFriendModal,
@@ -30,7 +36,11 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
     error: profileError,
   } = useProfile(profileId);
 
-  const { sendFriendRequest, cancelOutgoingFriendRequest } = useFriendRequest();
+  const {
+    sendFriendRequest,
+    updateIncomingFriendRequest,
+    cancelOutgoingFriendRequest,
+  } = useFriendRequest();
   const { mutateAsync: removeFriend } = useMutation(
     trpc.profile.removeFriend.mutationOptions({
       onSuccess: () => {
@@ -98,6 +108,30 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
     );
   };
 
+  const handleAcceptIncomingFriendRequest = () => {
+    if (!loggedInProfile || !profileId) {
+      console.error('Sender or receiver of friend request missing');
+      return;
+    }
+
+    updateIncomingFriendRequest({
+      senderId: profileId,
+      newStatus: FriendRequestStatus.enum.ACCEPTED,
+    });
+  };
+
+  const handleDeclineIncomingFriendRequest = () => {
+    if (!loggedInProfile || !profileId) {
+      console.error('Sender or receiver of friend request missing');
+      return;
+    }
+
+    updateIncomingFriendRequest({
+      senderId: profileId,
+      newStatus: FriendRequestStatus.enum.DECLINED,
+    });
+  };
+
   const handleUpdateProfileClick = () => {
     launchModal(<UpdateProfileModal profile={profile} />);
   };
@@ -114,6 +148,24 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
   const handleOpenRemoveFriendModal = () => {
     launchModal(
       <RemoveFriendModal onConfirmRemoveFriend={handleRemoveFriend} />
+    );
+  };
+
+  const handleOpenComposeMessageModal = () => {
+    const initialSelectedProfiles = [
+      {
+        id: profile.id,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+      },
+    ];
+    launchModal(
+      <FullscreenModal showHeader={false}>
+        <ComposeMessageModal
+          initialSelectedProfiles={initialSelectedProfiles}
+          shouldFocusChatInput={true}
+        />
+      </FullscreenModal>
     );
   };
 
@@ -176,7 +228,10 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
               relationshipToViewer={relationshipToViewer}
               onSendFriendRequest={handleSendFriendRequest}
               onCancelFriendRequest={handleOpenCancelFriendRequestModal}
+              onAcceptIncomingRequest={handleAcceptIncomingFriendRequest}
+              onDeclineIncomingRequest={handleDeclineIncomingFriendRequest}
               onRemoveFriend={handleOpenRemoveFriendModal}
+              onMessage={handleOpenComposeMessageModal}
             />
           )}
         </div>
@@ -239,7 +294,10 @@ interface OtherProfileButtonsProps {
   relationshipToViewer: RelationshipToViewer;
   onSendFriendRequest: () => void;
   onCancelFriendRequest: () => void;
+  onAcceptIncomingRequest: () => void;
+  onDeclineIncomingRequest: () => void;
   onRemoveFriend: () => void;
+  onMessage: () => void;
 }
 
 function OtherProfileButtons(props: OtherProfileButtonsProps) {
@@ -247,7 +305,10 @@ function OtherProfileButtons(props: OtherProfileButtonsProps) {
     relationshipToViewer,
     onSendFriendRequest,
     onCancelFriendRequest,
+    onAcceptIncomingRequest,
+    onDeclineIncomingRequest,
     onRemoveFriend,
+    onMessage,
   } = props;
   const [isFriendMenuOpen, setIsFriendMenuOpen] = useState(false);
 
@@ -260,7 +321,6 @@ function OtherProfileButtons(props: OtherProfileButtonsProps) {
   let actionLabel = 'Add as Friend';
   if (isFriend) actionLabel = 'Friends';
   if (hasPendingOutgoing) actionLabel = 'Request Sent';
-  if (hasPendingIncoming) actionLabel = 'Accept Request';
 
   const handleActionClick = () => {
     if (isFriend) {
@@ -273,18 +333,17 @@ function OtherProfileButtons(props: OtherProfileButtonsProps) {
       return;
     }
 
-    if (hasPendingIncoming) {
-      // TODO: accept friend request
-      return;
-    }
-
     onSendFriendRequest();
   };
 
-  const handleMessageClick = () => {
-    // TODO: should open chat composition view
-    // open chat if there is one
-  };
+  if (hasPendingIncoming) {
+    return (
+      <PendingIncomingRequestActions
+        onAcceptIncomingRequest={onAcceptIncomingRequest}
+        onDeclineIncomingRequest={onDeclineIncomingRequest}
+      />
+    );
+  }
 
   return (
     <div className="flex gap-5">
@@ -314,7 +373,7 @@ function OtherProfileButtons(props: OtherProfileButtonsProps) {
 
       {isFriend && (
         <Button
-          onClick={() => {}}
+          onClick={onMessage}
           className="w-30 h-10 rounded-md border border-brand-light text-brand-light bg-white"
         >
           Message
@@ -337,5 +396,39 @@ function ProfileHeader({ headerUrl }: { headerUrl: string }) {
   // sample gradient background
   return (
     <div className="w-full h-40 md:h-56 bg-gradient-to-r from-brand to-brand-light" />
+  );
+}
+
+interface PendingIncomingRequestActionsProps {
+  onAcceptIncomingRequest: () => void;
+  onDeclineIncomingRequest: () => void;
+}
+
+function PendingIncomingRequestActions(
+  props: PendingIncomingRequestActionsProps
+) {
+  const { onAcceptIncomingRequest, onDeclineIncomingRequest } = props;
+
+  return (
+    <div className="w-full max-w-sm rounded-md border border-brand-light/40 bg-white p-3 shadow-sm">
+      <p className="mb-3 text-center text-sm font-semibold text-brand-dark">
+        Friend Request Received
+      </p>
+
+      <div className="flex items-center justify-center gap-3">
+        <Button
+          onClick={onAcceptIncomingRequest}
+          className="h-10 rounded-md bg-brand-dark"
+        >
+          Accept
+        </Button>
+        <Button
+          onClick={onDeclineIncomingRequest}
+          className="h-10 rounded-md border border-gray-300 bg-white text-gray-700"
+        >
+          Decline
+        </Button>
+      </div>
+    </div>
   );
 }
