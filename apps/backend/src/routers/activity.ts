@@ -19,7 +19,7 @@ import { eventEmitter } from '../lib/eventBus';
 import { profileProcedure, router } from '../trpc';
 
 export const activityRouter = router({
-  getActivities: profileProcedure
+  list: profileProcedure
     .input(
       z.object({
         chatId: ObjectId,

@@ -194,7 +194,7 @@ export function useChatInfo(params: ChatInfoParams) {
   });
   const findChatQueryKey = trpc.chat.findChat.queryKey({ chatId });
   const activitiesQueryKey =
-    trpc.activity.getActivities.infiniteQueryKey(activitiesQueryInput);
+    trpc.activity.list.infiniteQueryKey(activitiesQueryInput);
 
   const { data: chat, isLoading } = useQuery(
     trpc.chat.info.queryOptions({ chatId })

@@ -7,7 +7,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useSubscription } from '@trpc/tanstack-react-query';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 interface SendMessageParams {
   senderId: ObjectId;
@@ -40,7 +40,13 @@ export function useChatActivities(
   }, [chatId, sortDirection]);
 
   const activitiesQueryKey =
-    trpc.activity.getActivities.infiniteQueryKey(activitiesQuery);
+    trpc.activity.list.infiniteQueryKey(activitiesQuery);
+
+  const findChatQueryKey = chatId
+    ? trpc.chat.findChat.queryKey({ chatId })
+    : null;
+
+  const chatInfoQueryKey = chatId ? trpc.chat.info.queryKey({ chatId }) : null;
 
   const {
     data: activityData,
@@ -49,7 +55,7 @@ export function useChatActivities(
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery(
-    trpc.activity.getActivities.infiniteQueryOptions(
+    trpc.activity.list.infiniteQueryOptions(
       chatId
         ? {
             chatId,
@@ -105,6 +111,26 @@ export function useChatActivities(
     })
   );
 
+  const { mutate: markChatAsRead } = useMutation(
+    trpc.chat.markRead.mutationOptions({
+      onSuccess: async () => {
+        if (!chatId) {
+          return;
+        }
+
+        await queryClient.invalidateQueries({ queryKey: chatListQueryKey });
+
+        if (findChatQueryKey) {
+          await queryClient.invalidateQueries({ queryKey: findChatQueryKey });
+        }
+
+        if (chatInfoQueryKey) {
+          await queryClient.invalidateQueries({ queryKey: chatInfoQueryKey });
+        }
+      },
+    })
+  );
+
   const allActivities = useMemo(() => {
     return (
       activityData?.pages
@@ -113,6 +139,14 @@ export function useChatActivities(
         .flatMap((page) => page.activities) ?? []
     );
   }, [activityData]);
+
+  useEffect(() => {
+    if (!chatId || !activityData) {
+      return;
+    }
+
+    markChatAsRead({ chatId });
+  }, [activityData, chatId, markChatAsRead]);
 
   const onNewActivityQuery = useMemo(() => {
     if (!chatId) {

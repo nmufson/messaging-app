@@ -148,7 +148,6 @@ interface GetChatParams {
   chatId?: ObjectId;
   participantProfileIds?: ObjectId[];
 }
-
 export async function getChat(
   prisma: PrismaClient,
   params: GetChatParams
@@ -229,6 +228,31 @@ export async function getChat(
   }
 
   return ChatInfoDTO.parse(chat);
+}
+
+interface MarkChatAsReadParams {
+  chatId: ObjectId;
+  profileId: ObjectId;
+}
+
+export async function markChatAsRead(
+  prisma: PrismaClient,
+  params: MarkChatAsReadParams
+): Promise<void> {
+  const { chatId, profileId } = params;
+
+  await prisma.chatParticipant.update({
+    where: {
+      chatId_profileId: {
+        chatId,
+        profileId,
+      },
+    },
+    data: {
+      unreadActivities: 0,
+      lastViewedAt: new Date(),
+    },
+  });
 }
 
 export const CHAT_INFO_SELECT = {

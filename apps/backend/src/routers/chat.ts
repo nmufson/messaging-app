@@ -1,4 +1,4 @@
-import { getChat, getPotentialChats } from '@/services/chat';
+import { getChat, getPotentialChats, markChatAsRead } from '@/services/chat';
 import { getMergedActivities } from '@/services/activity';
 import {
   BaseProfileDTO,
@@ -8,6 +8,7 @@ import {
   ObjectId,
   z,
 } from '@repo/common';
+import { Prisma } from '@repo/db';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
 import { eventEmitter } from '../lib/eventBus';
@@ -78,6 +79,32 @@ export const chatRouter = router({
         });
       }
       return chat;
+    }),
+
+  markRead: profileProcedure
+    .input(
+      z.object({
+        chatId: ObjectId,
+      })
+    )
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const { user, prisma } = ctx;
+      const { chatId } = input;
+
+      try {
+        await markChatAsRead(prisma, {
+          chatId,
+          profileId: user.profile.id,
+        });
+      } catch (error) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Chat not found',
+        });
+      }
+
+      return { success: true };
     }),
 
   onNewChat: profileProcedure.subscription(async function* ({ ctx, signal }) {
