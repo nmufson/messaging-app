@@ -112,7 +112,6 @@ export const ProfilePageDTO = z.object({
 });
 export type ProfilePageDTO = z.infer<typeof ProfilePageDTO>;
 
-// TODO: add isOnline and lastOnline to these and remove IProfileWithOnline
 export const IBaseProfile = z.object({
   id: ObjectId,
   firstName: z.string(),

@@ -284,7 +284,7 @@ export const chatRouter = router({
       return { profiles, groupChats };
     }),
 
-  getInfo: profileProcedure
+  info: profileProcedure
     .input(
       z.object({
         chatId: ObjectId,
@@ -305,6 +305,11 @@ export const chatRouter = router({
           updatedAt: true,
           creatorId: true,
           participants: {
+            orderBy: {
+              profile: {
+                isOnline: 'desc',
+              },
+            },
             select: {
               lastViewedAt: true,
               unreadActivities: true,
@@ -314,6 +319,8 @@ export const chatRouter = router({
                   firstName: true,
                   lastName: true,
                   avatarUrl: true,
+                  isOnline: true,
+                  lastOnline: true,
                 },
               },
             },

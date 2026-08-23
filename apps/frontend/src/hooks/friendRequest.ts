@@ -9,7 +9,7 @@ interface UseFriendRequestParams {
 }
 
 export const useFriendRequest = (params: UseFriendRequestParams = {}) => {
-  const { requestStatuses } = params;
+  const { requestStatuses = ['PENDING', 'ACCEPTED', 'DECLINED'] } = params;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { addToast } = useToast();
@@ -63,7 +63,7 @@ export const useFriendRequest = (params: UseFriendRequestParams = {}) => {
 
         const nextRelationship: RelationshipToViewer =
           data.status === FriendRequestStatus.enum.ACCEPTED ? 'FRIEND' : 'NONE';
-        console.log('nextRelationship', nextRelationship);
+
         queryClient.setQueryData(senderProfileQueryKey, (old) =>
           old
             ? {
