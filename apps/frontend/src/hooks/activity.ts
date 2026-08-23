@@ -25,6 +25,7 @@ export function useChatActivities(
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { sortDirection = 'asc' } = options || {};
+  const chatListQueryKey = trpc.chat.list.queryKey({});
 
   const activitiesQuery = useMemo(() => {
     if (chatId) {
@@ -86,6 +87,8 @@ export function useChatActivities(
 
           return { ...oldData, pages: newPages };
         });
+
+        queryClient.invalidateQueries({ queryKey: chatListQueryKey });
       },
     })
   );
@@ -94,7 +97,13 @@ export function useChatActivities(
     mutate: sendMessageToNewChat,
     isPending: isSendingToNewChat,
     error: sendToNewChatError,
-  } = useMutation(trpc.message.sendToNewChat.mutationOptions());
+  } = useMutation(
+    trpc.message.sendToNewChat.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: chatListQueryKey });
+      },
+    })
+  );
 
   const allActivities = useMemo(() => {
     return (

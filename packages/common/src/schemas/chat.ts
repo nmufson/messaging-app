@@ -35,6 +35,7 @@ export type ChatParticipantDTO = z.infer<typeof ChatParticipantDTO>;
 export const ChatDTO = z.object({
   id: ObjectId,
   type: ChatType,
+  lastActivityAt: DateTimeSchema,
   createdAt: DateTimeSchema,
   updatedAt: DateTimeSchema.nullable(),
   participants: ChatParticipantDTO.array(),

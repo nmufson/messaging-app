@@ -21,13 +21,13 @@ export function useChatList() {
   const { profile } = useAuth();
   const loggedInProfileId = profile?.id;
 
-  const chatListQueryKey = trpc.chat.getList.queryKey({});
+  const chatListQueryKey = trpc.chat.list.queryKey({});
 
   const {
     data: chats,
     isLoading,
     error,
-  } = useQuery(trpc.chat.getList.queryOptions({}));
+  } = useQuery(trpc.chat.list.queryOptions({}));
 
   useSubscription(
     trpc.activity.onNewActivityInChatList.subscriptionOptions(
@@ -40,34 +40,46 @@ export function useChatList() {
             if (!oldData) return oldData;
 
             const activityChatId = newActivity.chatId;
+            const activityChatIndex = oldData.findIndex(
+              (chat) => chat.id === activityChatId
+            );
 
-            return oldData.map((chat) => {
-              if (chat.id === activityChatId) {
-                const updatedParticipants = chat.participants.map(
-                  (participant) => {
-                    const isActivityCreator = checkIsActivityCreator(
-                      participant.profile.id,
-                      newActivity
-                    );
+            if (activityChatIndex === -1) {
+              return oldData;
+            }
 
-                    if (isActivityCreator) {
-                      // don't increment unread count for activity creator
-                      return participant;
-                    }
-                    return {
-                      ...participant,
-                      unreadActivities: participant.unreadActivities + 1,
-                    };
-                  }
+            const activityChat = oldData[activityChatIndex];
+
+            const updatedParticipants = activityChat.participants.map(
+              (participant) => {
+                const isActivityCreator = checkIsActivityCreator(
+                  participant.profile.id,
+                  newActivity
                 );
+
+                if (isActivityCreator) {
+                  // don't increment unread count for activity creator
+                  return participant;
+                }
+
                 return {
-                  ...chat,
-                  activities: [...chat.activities, newActivity],
-                  participants: updatedParticipants,
+                  ...participant,
+                  unreadActivities: participant.unreadActivities + 1,
                 };
               }
-              return chat;
-            });
+            );
+
+            const updatedActivityChat = {
+              ...activityChat,
+              activities: [newActivity, ...activityChat.activities],
+              participants: updatedParticipants,
+            };
+
+            const chatsWithoutUpdatedChat = oldData.filter(
+              (chat) => chat.id !== activityChatId
+            );
+
+            return [updatedActivityChat, ...chatsWithoutUpdatedChat];
           });
         },
       }

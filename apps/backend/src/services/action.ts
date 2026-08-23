@@ -44,6 +44,13 @@ export async function createAction(prisma: PrismaClient, data: ActionData) {
     },
   });
 
+  await prisma.chat.update({
+    where: { id: chatId },
+    data: {
+      lastActivityAt: newAction.createdAt,
+    },
+  });
+
   await incrementUnreadActivityCount(prisma, chatId, actorId);
 
   const newActionActivity = tagActivity(newAction, 'action');

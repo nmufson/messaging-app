@@ -73,6 +73,13 @@ export async function sendMessage(
     },
   });
 
+  await prisma.chat.update({
+    where: { id: chatId },
+    data: {
+      lastActivityAt: newMessage.createdAt,
+    },
+  });
+
   await incrementUnreadActivityCount(prisma, chatId, senderId);
 
   const newMessageActivity = tagActivity(newMessage, 'message');

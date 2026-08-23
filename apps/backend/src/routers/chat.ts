@@ -94,7 +94,7 @@ export const chatRouter = router({
       yield tracked(newChat.id, newChat);
     }
   }),
-  getList: profileProcedure
+  list: profileProcedure
     .input(
       z.object({
         limit: z.number().default(100),
@@ -116,7 +116,7 @@ export const chatRouter = router({
         },
         // TODO: can use unit pagination w cursor here
         take: limit,
-        orderBy: { updatedAt: 'desc' },
+        orderBy: { lastActivityAt: 'desc' },
         include: {
           messages: {
             orderBy: { createdAt: 'desc' },
@@ -218,7 +218,7 @@ export const chatRouter = router({
       logger.info('Requesting all chats');
 
       const chats = await ctx.prisma.chat.findMany({
-        orderBy: { updatedAt: 'desc' },
+        orderBy: { lastActivityAt: 'desc' },
         include: {
           messages: {
             orderBy: { createdAt: 'desc' },
@@ -301,6 +301,7 @@ export const chatRouter = router({
           type: true,
           name: true,
           groupPictureUrl: true,
+          lastActivityAt: true,
           createdAt: true,
           updatedAt: true,
           creatorId: true,
