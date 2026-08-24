@@ -5,15 +5,12 @@ import type { Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
 
 export async function resetDatabase() {
-  // Delete in cascading order to respect foreign key constraints
-  // No transaction - let deletes complete sequentially
   await prisma.friendRequest.deleteMany();
   await prisma.message.deleteMany();
   await prisma.chatAction.deleteMany();
   await prisma.chatParticipant.deleteMany();
   await prisma.chat.deleteMany();
   await prisma.session.deleteMany();
-  // Profile has FK to User, delete both
   await prisma.profile.deleteMany();
   await prisma.user.deleteMany();
 }

@@ -36,6 +36,6 @@ export default defineConfig({
       'packages/common/src/**/*.test.ts',
       'apps/backend/src/**/*.test.ts',
     ],
-    threads: false,
+    fileParallelism: false,
   },
 });
