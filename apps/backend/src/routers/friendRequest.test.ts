@@ -32,34 +32,24 @@ describe('friendRequestRouter', () => {
   });
 
   it('creates a pending friend request', async () => {
-    const sender = await seedAuthUser({
-      withProfile: true,
-      firstName: 'Alice',
-      lastName: 'Smith',
-    });
-    const receiver = await seedAuthUser({
+    const { profile: senderProfile, contextUser: senderContextUser } =
+      await seedAuthUser({
+        withProfile: true,
+        firstName: 'Alice',
+        lastName: 'Smith',
+      });
+    const { profile: receiverProfile } = await seedAuthUser({
       withProfile: true,
       firstName: 'Bob',
       lastName: 'Johnson',
     });
 
-    // Verify profiles exist before calling router
-    const senderProfile = await prisma.profile.findUnique({
-      where: { id: sender.profile.id },
-    });
-    const receiverProfile = await prisma.profile.findUnique({
-      where: { id: receiver.profile.id },
-    });
-
-    console.log('Sender profile exists:', senderProfile);
-    console.log('Receiver profile exists:', receiverProfile);
-
     const caller = appRouter.createCaller(
-      createCallerContext({ user: sender.contextUser })
+      createCallerContext({ user: senderContextUser })
     );
 
     const result = await caller.friendRequest.sendRequest({
-      receiverId: receiver.profile!.id,
+      receiverId: receiverProfile.id,
     });
 
     expect(result.status).toBe('PENDING');
@@ -69,8 +59,8 @@ describe('friendRequestRouter', () => {
     });
 
     expect(request).toMatchObject({
-      senderId: sender.profile!.id,
-      receiverId: receiver.profile!.id,
+      senderId: senderProfile.id,
+      receiverId: receiverProfile.id,
       status: 'PENDING',
     });
   });
