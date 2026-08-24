@@ -6,11 +6,18 @@ export default function MainHeader() {
 
   return (
     <>
-      <div className="flex items-center justify-between p-4">
-        <h1 className="text-2xl font-bold">Synk</h1>
+      <div className="flex items-center justify-between border-b border-slate-200 bg-white/85 px-4 py-3 backdrop-blur-sm sm:px-5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm shadow-brand/25">
+            S
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            Synk
+          </h1>
+        </div>
         <button
           onClick={toggleSidebarOpen}
-          className="p-2 hover:bg-blue-600 rounded-lg transition-colors"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
           aria-label="Open menu"
         >
           <i className="bi bi-list text-2xl" />

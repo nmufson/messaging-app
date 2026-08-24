@@ -34,9 +34,7 @@ export default function LogIn() {
           body: 'User logged in successfully!',
           variant: 'success',
         });
-        // Set auth data immediately
         queryClient.setQueryData(trpc.auth.me.queryKey(), data);
-        // Force full reload to reconnect WebSocket with new session
         window.location.href = '/chats';
       },
       onError: (error) => {
@@ -58,31 +56,59 @@ export default function LogIn() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="bg-black-500">
-      <h1>Log In Below!</h1>
-      <div>
-        <TextFieldGroup
-          type="email"
-          label="Email"
-          name="email"
-          control={control}
-        />
-        <TextFieldGroup
-          type="password"
-          label="Password"
-          name="password"
-          control={control}
-        />
-        <div>
-          <button type="submit">Log In</button>
-          <div className="flex gap-2 items-center ">
-            <small className="text-sm">Not yet registed?</small>
-            <Link className="text-sm" href={'/signup'}>
+    <div className="flex min-h-screen items-center justify-center bg-brand-accent px-4 py-12">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-full max-w-md rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-8"
+      >
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-lg font-bold text-white shadow-sm shadow-brand/25">
+            S
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+            Welcome back
+          </h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Log in to continue messaging.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <TextFieldGroup
+            type="email"
+            label="Email"
+            name="email"
+            control={control}
+            placeholder="you@example.com"
+          />
+          <TextFieldGroup
+            type="password"
+            label="Password"
+            name="password"
+            control={control}
+            placeholder="••••••••"
+          />
+        </div>
+
+        <div className="mt-6 flex flex-col gap-4">
+          <button
+            type="submit"
+            className="w-full rounded-xl bg-brand px-4 py-3 font-semibold text-white shadow-sm shadow-brand/30 transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-brand/30"
+          >
+            {isPending ? 'Logging in...' : 'Log In'}
+          </button>
+
+          <div className="flex items-center justify-center gap-1.5 text-sm">
+            <span className="text-slate-600">Not yet registered?</span>
+            <Link
+              className="font-semibold text-brand transition hover:text-blue-600 hover:underline"
+              href={'/signup'}
+            >
               Sign Up
             </Link>
           </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }

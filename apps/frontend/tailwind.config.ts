@@ -8,10 +8,13 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          DEFAULT: 'var(--color-brand-DEFAULT)',
+          DEFAULT: 'var(--color-brand)',
           dark: 'var(--color-brand-dark)',
           light: 'var(--color-brand-light)',
           accent: 'var(--color-brand-accent)',
+          neutral: 'var(--color-brand-neutral)',
+          surface: 'var(--color-brand-surface)',
+          success: 'var(--color-brand-success)',
         },
         grey: {
           50: 'var(--color-grey-50)',

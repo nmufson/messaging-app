@@ -54,25 +54,30 @@ export function ChatPreview({ chat }: { chat: ChatDTO }) {
   const chatLink = `/chat/chat?chat=${chatId}`;
 
   return (
-    <Link href={chatLink}>
-      <div className="chat-preview-container flex items-center cursor-pointer">
-        <div className="rounded-full w-10  overflow-hidden flex items-center justify-center bg-gray-200 mr-3">
+    <Link
+      href={chatLink}
+      className="block transition-colors hover:bg-brand-light/25"
+    >
+      <div className="chat-preview-container flex cursor-pointer items-center px-3 py-3 sm:px-4">
+        <div className="mr-3 flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-slate-200 ring-2 ring-white">
           {displayPicture}
         </div>
-        <div className="flex flex-col w-full">
-          <div className="flex justify-between">
-            <h6>{formattedDisplayName}</h6>
-            <small>{displayTime}</small>
+        <div className="flex w-full flex-col">
+          <div className="flex items-center justify-between gap-3">
+            <h6 className="text-sm font-semibold text-slate-900">
+              {formattedDisplayName}
+            </h6>
+            <small className="text-[11px] text-slate-500">{displayTime}</small>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="mt-1 flex items-center gap-2">
             {unreadActivities > 0 && (
-              <div className="flex items-center justify-center bg-blue-600 text-white rounded-full min-w-5 h-5 px-1.5">
-                <span className="text-xs font-semibold">
-                  {unreadActivities}
-                </span>
+              <div className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[10px] font-semibold text-white">
+                <span>{unreadActivities}</span>
               </div>
             )}
-            <small>{activityContentDisplay}</small>
+            <small className="truncate text-xs text-slate-600">
+              {activityContentDisplay}
+            </small>
           </div>
         </div>
       </div>

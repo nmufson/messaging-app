@@ -7,24 +7,34 @@ import MainHeader from '@/components/mainHeader/mainHeader';
 export default function ChatList() {
   const { chats, isLoading, error } = useChatList();
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  if (isLoading)
+    return (
+      <div className="min-h-screen bg-brand-accent p-6 text-slate-700">
+        Loading...
+      </div>
+    );
+  if (error)
+    return (
+      <div className="min-h-screen bg-brand-accent p-6 text-slate-700">
+        Error: {error.message}
+      </div>
+    );
 
   return (
-    <div className="min-h-screen bg-blue-500 flex justify-center">
-      <div className="w-full max-w-2xl min-h-screen flex flex-col">
+    <div className="min-h-screen bg-brand-accent px-3 py-3 sm:px-4 md:px-6">
+      <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white/80 shadow-[0_22px_70px_rgba(15,23,42,0.08)] backdrop-blur-sm">
         <MainHeader />
-        <div className="px-4 pb-3">
+        <div className="px-3 pb-3 sm:px-4">
           <MessageSearchBar />
         </div>
 
-        <main className="flex-1 bg-white">
+        <main className="flex-1 bg-slate-50/80">
           {!chats || chats.length === 0 ? (
-            <div className="flex items-center justify-center py-12">
+            <div className="flex items-center justify-center py-12 text-sm text-slate-600">
               <div>No chats yet</div>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-slate-200">
               {chats.map((chat) => (
                 <ChatPreview key={chat.id} chat={chat} />
               ))}

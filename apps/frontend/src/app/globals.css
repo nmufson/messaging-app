@@ -6,31 +6,34 @@
 @tailwind utilities;
 
 @theme {
-  /* Brand */
-  --color-brand-DEFAULT: #007ea7; /* Main blue */
-  --color-brand-dark: #003459; /* Deep navy */
-  --color-brand-light: #00a8e8; /* Bright blue accent */
-  --color-brand-accent: #00171f; /* Almost black */
+  /* Brand palette */
+  --color-brand: #2563eb; /* Electric Blue */
+  --color-brand-dark: #0f172a; /* Deep Charcoal */
+  --color-brand-light: #dbeafe; /* Soft blue glow */
+  --color-brand-accent: #f8fafc; /* Crisp off-white */
+  --color-brand-neutral: #f1f5f9; /* Received bubble / neutral surface */
+  --color-brand-surface: #f8fafc; /* Main background */
+  --color-brand-success: #10b981; /* Online indicator */
 
   /* Semantic */
-  --color-success-500: #16a34a;
-  --color-warning-500: #eab308;
+  --color-success-500: #10b981;
+  --color-warning-500: #f59e0b;
   --color-error-500: #dc2626;
 
-  --color-accent-500: #14b8a6;
+  --color-accent-500: #2563eb;
 
   /* Greys */
-  --color-grey-50: #f9fafb;
-  --color-grey-100: #f3f4f6;
-  --color-grey-150: #eceef0;
-  --color-grey-200: #e5e7eb;
+  --color-grey-50: #f8fafc;
+  --color-grey-100: #f1f5f9;
+  --color-grey-150: #e2e8f0;
+  --color-grey-200: #cbd5e1;
 }
 
 @layer base {
   body {
-    background-color: var(--color-grey-150);
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
     font-family: 'Nunito', sans-serif;
-    @apply text-gray-900 text-base leading-relaxed;
+    @apply text-slate-900 text-base leading-relaxed;
   }
 
   h1,
@@ -40,7 +43,7 @@
   h5,
   h6 {
     font-family: 'Rubik', sans-serif;
-    @apply font-bold;
+    @apply font-bold text-slate-900;
   }
 
   h1 {
@@ -63,7 +66,11 @@
   }
 
   a {
-    @apply text-brand-light hover:text-brand-dark transition-colors;
+    @apply text-brand hover:text-brand-dark transition-colors;
+  }
+
+  ::selection {
+    background: rgba(37, 99, 235, 0.18);
   }
 
   button {
