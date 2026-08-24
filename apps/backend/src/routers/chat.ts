@@ -101,6 +101,7 @@ export const chatRouter = router({
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Chat not found',
+          cause: error,
         });
       }
 

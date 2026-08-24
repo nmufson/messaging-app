@@ -54,7 +54,7 @@ export const useFriendRequest = (params: UseFriendRequestParams = {}) => {
     isPending: isUpdating,
     error: updateError,
   } = useMutation(
-    trpc.friendRequest.updateIncoming.mutationOptions({
+    trpc.friendRequest.respondToIncoming.mutationOptions({
       onSuccess: (data, variables) => {
         // Update cache for sender's profile to reflect change on their profile view
         const senderProfileQueryKey = trpc.profile.byId.queryKey({
@@ -106,7 +106,7 @@ export const useFriendRequest = (params: UseFriendRequestParams = {}) => {
     isPending: isCancelling,
     error: cancelError,
   } = useMutation(
-    trpc.friendRequest.updateOutgoing.mutationOptions({
+    trpc.friendRequest.cancelOutgoing.mutationOptions({
       onSuccess: (_data, variables) => {
         const receiverProfileQueryKey = trpc.profile.byId.queryKey({
           profileId: variables.receiverId,

@@ -40,6 +40,13 @@ export const friendRequestRouter = router({
       const senderId = ctx.user.profile.id;
       const { receiverId } = input;
 
+      if (!senderId) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'Profile required',
+        });
+      }
+
       if (senderId === receiverId) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
@@ -47,7 +54,7 @@ export const friendRequestRouter = router({
         });
       }
 
-      const newRequest = ctx.prisma.friendRequest.create({
+      const newRequest = await ctx.prisma.friendRequest.create({
         data: {
           senderId,
           receiverId,
@@ -57,7 +64,7 @@ export const friendRequestRouter = router({
 
       return newRequest;
     }),
-  updateIncoming: profileProcedure
+  respondToIncoming: profileProcedure
     .input(
       z.object({
         newStatus: incomingUpdateStatus,
@@ -121,7 +128,7 @@ export const friendRequestRouter = router({
       });
     }),
 
-  updateOutgoing: profileProcedure
+  cancelOutgoing: profileProcedure
     .input(
       z.object({
         receiverId: ObjectId,

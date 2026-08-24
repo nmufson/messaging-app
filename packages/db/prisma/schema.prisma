@@ -51,7 +51,7 @@ model Profile {
   targetedActions             ChatAction[]      @relation("TargetProfile")
 
   userId                      String            @unique
-  user                        User              @relation(fields: [userId], references: [id])
+  user                        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt                   DateTime          @default(now())
   updatedAt                   DateTime?
@@ -68,9 +68,9 @@ model FriendRequest {
   id          String                @id @default(uuid())
   status      FriendRequestStatus   @default(PENDING)
   senderId    String
-  sender      Profile               @relation("SentRequests", fields: [senderId], references: [id])
+  sender      Profile               @relation("SentRequests", fields: [senderId], references: [id], onDelete: Cascade)
   receiverId  String
-  receiver    Profile               @relation("ReceivedRequests", fields: [receiverId], references: [id])
+  receiver    Profile               @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime              @default(now())
   updatedAt   DateTime?            

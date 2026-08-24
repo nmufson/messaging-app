@@ -15,7 +15,9 @@
     "dev-frontend": "npm --workspace=apps/frontend run dev",
     "dev-backend": "npm --workspace=apps/backend run dev",
     "dev-common": "npm --workspace=packages/common run dev",
-    "dev-db": "npm --workspace=packages/db run dev"
+    "dev-db": "npm --workspace=packages/db run dev",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "lodash": "^4.17.21",
@@ -30,6 +32,7 @@
     "@types/luxon": "^3.7.1",
     "@types/node": "^20",
     "@types/qs": "^6.14.0",
+    "@types/supertest": "^7.2.1",
     "@typescript-eslint/eslint-plugin": "^8.46.4",
     "@typescript-eslint/parser": "^8.46.4",
     "concurrently": "^9.0.0",
@@ -39,6 +42,8 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^16.5.0",
     "prettier": "^3.6.2",
-    "typescript": "^5"
+    "supertest": "^7.2.2",
+    "typescript": "^5",
+    "vitest": "^4.1.11"
   }
 }
