@@ -22,7 +22,7 @@ export default function ChatList() {
 
   return (
     <div className="min-h-screen bg-brand-accent px-3 py-3 sm:px-4 md:px-6">
-      <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white/80 shadow-[0_22px_70px_rgba(15,23,42,0.08)] backdrop-blur-sm">
+      <div className="mx-auto flex min-h-[96vh] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white/80 shadow-[0_22px_70px_rgba(15,23,42,0.08)] backdrop-blur-sm">
         <MainHeader />
         <div className="px-3 pb-3 sm:px-4">
           <MessageSearchBar />

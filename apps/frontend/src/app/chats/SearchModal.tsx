@@ -3,7 +3,6 @@ import { ProfileAvatar } from '@/components/ProfileAvatar';
 import { SearchInput } from '@/components/SearchInput';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
-import { ChatContent } from '@/components/chat/ChatContent';
 import { useChat, usePotentialChats } from '@/hooks/chat';
 import { useMessages } from '@/hooks/messages';
 import { formatDisplayDate, getChatDisplayName } from '@/utils';
@@ -31,6 +30,7 @@ export function SearchModal() {
   const { profiles, groupChats } = usePotentialChats({
     searchInput: searchInput,
     requireInput: false,
+    includeOnlyExistingChats: true,
   });
 
   const { chat: existingDirectChat, isLoading: isCheckingDirectChat } = useChat(
@@ -44,19 +44,16 @@ export function SearchModal() {
   useEffect(() => {
     if (selectedProfile && !isCheckingDirectChat && existingDirectChat) {
       navigateToChat(existingDirectChat.id);
-      closeModal();
     }
   }, [
     selectedProfile,
     isCheckingDirectChat,
     existingDirectChat,
     navigateToChat,
-    closeModal,
   ]);
 
   const handleSelectGroupChat = (chatId: ObjectId) => {
     navigateToChat(chatId);
-    closeModal();
   };
 
   const handleSelectProfile = (profile: BaseProfileDTO) => {
@@ -75,7 +72,7 @@ export function SearchModal() {
   const { textMessages, photoMessages } = useMessages({ searchInput });
 
   return (
-    <div className="search-modal space-y-5 px-2 pb-2 sm:px-1">
+    <div className="search-modal space-y-5 py-2 px-2 sm:px-1">
       <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
         <SearchInput
           value={searchInput}
@@ -84,13 +81,13 @@ export function SearchModal() {
         />
         <button
           type="button"
-          className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+          className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
           onClick={closeModal}
         >
           Cancel
         </button>
       </div>
-      <div className="grid max-h-[400px] grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3 md:grid-cols-5">
+      <div className="grid max-h-[200px] grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3 md:grid-cols-5">
         {combinedList.slice(0, 10).map((item) => {
           const parsedChat = ChatListItemDTO.safeParse(item);
           const parsedProfile = BaseProfileDTO.safeParse(item);
@@ -125,8 +122,9 @@ export function SearchModal() {
             <TextMessagePreview
               key={text.id}
               textMessage={text}
-              onNavigateToMessage={navigateToMessage}
-              closeModal={closeModal}
+              onNavigateToMessage={() => {
+                navigateToMessage(text.chat.id, text.id);
+              }}
             />
           ))}
         </div>
@@ -140,45 +138,29 @@ export function SearchModal() {
             <PhotoMessagePreview
               key={message.id}
               photoMessage={message}
-              onNavigateToMessage={navigateToMessage}
-              closeModal={closeModal}
+              onNavigateToMessage={() => {
+                navigateToMessage(message.chatId, message.id);
+              }}
             />
           ))}
         </div>
       </div>
-      {/* Allow composing message before chat is created */}
-      {selectedProfile && !isCheckingDirectChat && !existingDirectChat && (
-        <div className="mt-2 border-t border-slate-200 pt-4">
-          <ChatContent
-            chatId={null}
-            profiles={[selectedProfile]}
-            inModalView={true}
-            isComposeMessageView={true}
-          />
-        </div>
-      )}
     </div>
   );
 }
 
 interface PhotoMessagePreviewProps {
   photoMessage: PhotoMessageSearchResultDTO;
-  onNavigateToMessage: (chatId: ObjectId, messageId: ObjectId) => void;
-  closeModal: () => void;
+  onNavigateToMessage: () => void;
 }
 
 function PhotoMessagePreview(props: PhotoMessagePreviewProps) {
-  const { photoMessage, onNavigateToMessage, closeModal } = props;
-  const { imageUrl, sender, chatId, id: messageId } = photoMessage;
-
-  const handleNavigateToMessage = () => {
-    onNavigateToMessage(chatId, messageId);
-    closeModal();
-  };
+  const { photoMessage, onNavigateToMessage } = props;
+  const { imageUrl, sender } = photoMessage;
 
   return (
     <div
-      onClick={handleNavigateToMessage}
+      onClick={onNavigateToMessage}
       className="relative aspect-square w-36 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
       <img src={imageUrl} className="h-full w-full object-cover" />
@@ -191,12 +173,11 @@ function PhotoMessagePreview(props: PhotoMessagePreviewProps) {
 
 interface TextMessagePreviewProps {
   textMessage: TextMessageSearchResultDTO;
-  onNavigateToMessage: (chatId: ObjectId, messageId: ObjectId) => void;
-  closeModal: () => void;
+  onNavigateToMessage: () => void;
 }
 
 function TextMessagePreview(props: TextMessagePreviewProps) {
-  const { textMessage, onNavigateToMessage, closeModal } = props;
+  const { textMessage, onNavigateToMessage } = props;
   const { profile } = useAuth();
 
   const { sender, createdAt, chat } = textMessage;
@@ -213,11 +194,6 @@ function TextMessagePreview(props: TextMessagePreviewProps) {
     profileId: profile?.id,
     truncate: 50,
   });
-
-  const handleNavigateToMessage = () => {
-    onNavigateToMessage(chat.id, textMessage.id);
-    closeModal();
-  };
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
@@ -237,11 +213,11 @@ function TextMessagePreview(props: TextMessagePreviewProps) {
           message={textMessage}
           showName={false}
           showTime={false}
-          onClick={handleNavigateToMessage}
+          onClick={onNavigateToMessage}
         />
         <button
           type="button"
-          onClick={handleNavigateToMessage}
+          onClick={onNavigateToMessage}
           className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:border-brand hover:bg-brand hover:text-white"
         >
           <i className="bi bi-caret-right-fill text-base" />

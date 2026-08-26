@@ -141,11 +141,17 @@ interface PotentialChatsParams {
   searchInput: string;
   requireInput?: boolean;
   selectedProfiles?: ObjectId[];
+  includeOnlyExistingChats?: boolean;
 }
 
 export function usePotentialChats(params: PotentialChatsParams) {
   const trpc = useTRPC();
-  const { searchInput, requireInput, selectedProfiles } = params;
+  const {
+    searchInput,
+    requireInput,
+    selectedProfiles,
+    includeOnlyExistingChats,
+  } = params;
 
   // TODO: implement debounce for search input
   const searchNames = searchInput
@@ -161,6 +167,7 @@ export function usePotentialChats(params: PotentialChatsParams) {
       searchNames,
       requireInput,
       selectedProfiles,
+      includeOnlyExistingChats,
     })
   );
 

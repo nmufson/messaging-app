@@ -66,7 +66,123 @@ interface GetPotentialChatsParams {
   searchNames: string[];
   selectedProfiles?: ObjectId[];
   requireInput?: boolean;
+  includeOnlyExistingChats?: boolean;
   limit?: number;
+}
+
+interface ProfileExclusionConditionParams {
+  selectedProfiles?: ObjectId[];
+}
+
+interface ProfileSearchConditionParams {
+  searchNames: string[];
+}
+
+interface ExistingDirectChatConditionParams {
+  includeOnlyExistingChats?: boolean;
+  profileId: ObjectId;
+}
+
+function getProfileExclusionCondition(params: ProfileExclusionConditionParams) {
+  const { selectedProfiles } = params;
+
+  if (!selectedProfiles || selectedProfiles.length === 0) {
+    return {};
+  }
+
+  return {
+    id: { notIn: selectedProfiles },
+  };
+}
+
+function getProfileSearchCondition(params: ProfileSearchConditionParams) {
+  const { searchNames } = params;
+
+  if (searchNames.length === 0) {
+    return {};
+  }
+
+  return {
+    OR: searchNames.flatMap((searchName) => [
+      {
+        firstName: { contains: searchName, mode: 'insensitive' as const },
+      },
+      {
+        lastName: { contains: searchName, mode: 'insensitive' as const },
+      },
+    ]),
+  };
+}
+
+function getGroupChatSearchCondition(params: ProfileSearchConditionParams) {
+  const { searchNames } = params;
+
+  if (searchNames.length === 0) {
+    return {};
+  }
+
+  return {
+    OR: [
+      ...searchNames.map((searchName) => ({
+        name: { contains: searchName, mode: 'insensitive' as const },
+      })),
+      {
+        participants: {
+          some: {
+            profile: {
+              OR: searchNames.flatMap((name) => [
+                {
+                  firstName: {
+                    contains: name,
+                    mode: 'insensitive' as const,
+                  },
+                },
+                {
+                  lastName: {
+                    contains: name,
+                    mode: 'insensitive' as const,
+                  },
+                },
+              ]),
+            },
+          },
+        },
+      },
+    ],
+  };
+}
+
+function getExistingDirectChatCondition(
+  params: ExistingDirectChatConditionParams
+) {
+  const { includeOnlyExistingChats, profileId } = params;
+
+  if (!includeOnlyExistingChats) {
+    return {};
+  }
+
+  return {
+    chatMemberships: {
+      some: {
+        chat: {
+          type: ChatType.enum.DIRECT,
+          participants: {
+            some: {
+              profileId,
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
+function getFriendsCondition(profileId: ObjectId) {
+  return {
+    friends: {
+      some: { id: profileId },
+    },
+  };
 }
 
 // Returns profiles and existing group chats for user to begin chat
@@ -78,43 +194,34 @@ export async function getPotentialChats(
   profiles: IBaseProfile[];
   groupChats: IChatListItem[];
 }> {
-  const { searchNames, selectedProfiles, profileId, limit, requireInput } =
-    params;
+  const {
+    searchNames,
+    selectedProfiles,
+    profileId,
+    limit,
+    requireInput,
+    includeOnlyExistingChats,
+  } = params;
 
   if (requireInput && searchNames.length === 0)
     return { profiles: [], groupChats: [] };
 
-  // exclusion condition for profiles already selected
-  const exclusionCondition =
-    selectedProfiles && selectedProfiles.length > 0
-      ? { id: { notIn: selectedProfiles } }
-      : {};
-
-  const profileSearchCondition =
-    searchNames.length > 0
-      ? {
-          OR: searchNames.flatMap((searchName) => [
-            {
-              firstName: { contains: searchName, mode: 'insensitive' as const },
-            },
-            {
-              lastName: { contains: searchName, mode: 'insensitive' as const },
-            },
-          ]),
-        }
-      : {};
-
-  const friendsCondition = {
-    friends: {
-      some: { id: profileId },
-    },
-  };
+  const exclusionCondition = getProfileExclusionCondition({
+    selectedProfiles,
+  });
+  const profileSearchCondition = getProfileSearchCondition({ searchNames });
+  const friendsCondition = getFriendsCondition(profileId);
+  const existingDirectChatCondition = getExistingDirectChatCondition({
+    includeOnlyExistingChats,
+    profileId,
+  });
 
   const profiles = await prisma.profile.findMany({
     where: {
       ...friendsCondition,
       ...profileSearchCondition,
       ...exclusionCondition,
+      ...existingDirectChatCondition,
     },
     select: {
       id: true,
@@ -125,38 +232,9 @@ export async function getPotentialChats(
     take: limit ?? 10,
   });
 
-  const groupChatSearchCondition =
-    searchNames.length > 0
-      ? {
-          OR: [
-            ...searchNames.map((searchName) => ({
-              name: { contains: searchName, mode: 'insensitive' as const },
-            })),
-            {
-              participants: {
-                some: {
-                  profile: {
-                    OR: searchNames.flatMap((name) => [
-                      {
-                        firstName: {
-                          contains: name,
-                          mode: 'insensitive' as const,
-                        },
-                      },
-                      {
-                        lastName: {
-                          contains: name,
-                          mode: 'insensitive' as const,
-                        },
-                      },
-                    ]),
-                  },
-                },
-              },
-            },
-          ],
-        }
-      : {};
+  const groupChatSearchCondition = getGroupChatSearchCondition({
+    searchNames,
+  });
 
   let groupChats: IChatListItem[] = [];
   if (!selectedProfiles || selectedProfiles.length === 0) {
