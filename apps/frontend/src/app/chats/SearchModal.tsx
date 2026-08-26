@@ -17,7 +17,7 @@ import {
 
 import { MessageBubble } from '../chat/[slug]/MessageBubble';
 import { useInput, useSelectedValue } from '@/hooks/general';
-import { useEffect } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { SelectedProfile } from '@/types/profile';
 
 export function SearchModal() {
@@ -73,7 +73,7 @@ export function SearchModal() {
 
   return (
     <div className="search-modal space-y-5 py-2 px-2 sm:px-1">
-      <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
+      <div className="top-container flex items-center mb-0 justify-between gap-3 border-b border-slate-200 pb-3">
         <SearchInput
           value={searchInput}
           onChange={onChangeSearchInput}
@@ -87,8 +87,8 @@ export function SearchModal() {
           Cancel
         </button>
       </div>
-      <div className="grid max-h-[200px] grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3 md:grid-cols-5">
-        {combinedList.slice(0, 10).map((item) => {
+      <div className="grid max-h-[230px] grid-cols-3 gap-3 overflow-y-hidden border-b border-slate-200 py-2 mb-4">
+        {combinedList.slice(0, 6).map((item) => {
           const parsedChat = ChatListItemDTO.safeParse(item);
           const parsedProfile = BaseProfileDTO.safeParse(item);
 
@@ -133,7 +133,7 @@ export function SearchModal() {
         <h5 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
           Photos
         </h5>
-        <div className="flex flex-wrap gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+        <div className="grid max-h-[230px] grid-cols-2 gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
           {photoMessages?.map((message) => (
             <PhotoMessagePreview
               key={message.id}
@@ -161,7 +161,7 @@ function PhotoMessagePreview(props: PhotoMessagePreviewProps) {
   return (
     <div
       onClick={onNavigateToMessage}
-      className="relative aspect-square w-36 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="relative aspect-square w-34 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
       <img src={imageUrl} className="h-full w-full object-cover" />
       <div className="absolute right-2 top-2 rounded-full bg-white/90 p-0.5 shadow-sm backdrop-blur-sm">
@@ -232,21 +232,40 @@ interface ProfileSearchItemProps {
   onSelectProfile: (profile: BaseProfileDTO) => void;
 }
 
+interface SearchListItemProps {
+  onClick: () => void;
+  displayName: string;
+  children: ReactNode;
+}
+
+function SearchListItem(props: SearchListItemProps) {
+  const { onClick, displayName, children } = props;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="search-list-item flex w-full flex-col items-center justify-center rounded-2xl border border-transparent bg-white p-2 text-center whitespace-normal shadow-sm transition hover:border-slate-200 hover:bg-brand-neutral"
+    >
+      {children}
+      <span className="mt-2 text-[11px] font-medium leading-tight text-slate-700">
+        {displayName}
+      </span>
+    </button>
+  );
+}
+
 function ProfileSearchItem(props: ProfileSearchItemProps) {
   const { profile, onSelectProfile } = props;
   const displayName = `${profile.firstName} ${profile.lastName}`;
 
   return (
-    <button
-      type="button"
+    <SearchListItem
       onClick={() => onSelectProfile(profile)}
-      className="profile-search-item flex w-full flex-col items-center rounded-2xl border border-transparent bg-white p-2 text-center whitespace-normal shadow-sm transition hover:border-slate-200 hover:bg-brand-neutral"
+      displayName={displayName}
     >
       <ProfileAvatar profile={profile} />
-      <span className="mt-2 text-[11px] font-medium leading-tight text-slate-700">
-        {displayName}
-      </span>
-    </button>
+    </SearchListItem>
   );
 }
 
@@ -266,18 +285,14 @@ function GroupChatSearchItem(props: GroupChatSearchItemProps) {
   });
 
   return (
-    <button
-      type="button"
+    <SearchListItem
       onClick={() => onSelectChat(groupChat.id)}
-      className="gc-search-item flex w-full flex-col items-center rounded-2xl border border-transparent bg-white p-2 text-center whitespace-normal shadow-sm transition hover:border-slate-200 hover:bg-brand-neutral"
+      displayName={displayName}
     >
       <GroupPhoto
         groupPictureUrl={groupChat.groupPictureUrl}
         participantProfiles={participantProfiles}
       />
-      <span className="mt-2 text-[11px] font-medium leading-tight text-slate-700">
-        {displayName}
-      </span>
-    </button>
+    </SearchListItem>
   );
 }

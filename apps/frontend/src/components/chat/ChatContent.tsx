@@ -1,5 +1,5 @@
 import { SelectedProfile } from '@/types/profile';
-import { ProfileContent } from '@/app/profile/profileContent';
+import { ProfileContent } from '@/app/profile/ProfileContent';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
 import { useChat } from '@/hooks/chat';
@@ -212,7 +212,10 @@ export function ChatContent(props: ChatContentProps) {
     } else if (type === 'DIRECT' && otherParticipantProfiles[0]) {
       launchModal(
         <FullscreenModal header="Chat">
-          <ProfileContent profileId={otherParticipantProfiles[0].id} />
+          <ProfileContent
+            profileId={otherParticipantProfiles[0].id}
+            showBackButton={false}
+          />
         </FullscreenModal>
       );
     }
@@ -265,7 +268,7 @@ export function ChatContent(props: ChatContentProps) {
               </OverlayTrigger>
             )}
           </div>
-          {/* have this button go to user profile if its direct chat, if group go to group info */}
+          {/* opens modal for user profile if in direct chat, or group info if in group chat */}
           <i className="bi bi-info-circle text-2xl" onClick={handleInfoClick} />
         </div>
       )}

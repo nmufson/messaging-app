@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryState } from 'nuqs';
-import { ProfileContent } from './profileContent';
+import { ProfileContent } from './ProfileContent';
 
 export default function Profile() {
   const [profileId, setProfileId] = useQueryState('profile');

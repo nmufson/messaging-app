@@ -22,7 +22,13 @@ import {
   UpdateProfileModal,
 } from './modals';
 
-export function ProfileContent({ profileId }: { profileId: ObjectId }) {
+interface ProfileContentProps {
+  profileId: ObjectId;
+  showBackButton?: boolean;
+}
+
+export function ProfileContent(props: ProfileContentProps) {
+  const { profileId, showBackButton = true } = props;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { launchModal, closeModal } = useModalContext();
@@ -192,12 +198,14 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
       <div className="mx-auto flex w-full max-w-4xl flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white/85 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-sm">
         {/* header */}
         <div className="relative h-52 w-full sm:h-60">
-          <Link
-            href="/chats"
-            className="absolute left-4 top-4 z-10 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/50 bg-white/90 text-slate-800 no-underline shadow-sm transition hover:bg-white"
-          >
-            <i className="bi bi-caret-left-fill text-2xl" />
-          </Link>
+          {showBackButton && (
+            <Link
+              href="/chats"
+              className="absolute left-4 top-4 z-10 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/50 bg-white/90 text-slate-800 no-underline shadow-sm transition hover:bg-white"
+            >
+              <i className="bi bi-caret-left-fill text-2xl" />
+            </Link>
+          )}
           <ProfileHeader headerUrl={headerUrl} />
           <div className="absolute left-1/2 top-[78%] z-10 -translate-x-1/2 -translate-y-1/2">
             <img
@@ -217,9 +225,11 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
             <p className="mt-1 text-sm font-medium text-brand">{title}</p>
           </div>
 
-          <div className="mx-auto mt-6 max-w-2xl rounded-3xl border border-slate-200 bg-brand-neutral px-4 py-4 text-center text-slate-700 shadow-sm sm:px-6">
-            <p>{bio}</p>
-          </div>
+          {bio && (
+            <div className="mx-auto mt-6 max-w-2xl rounded-3xl border border-slate-200 bg-brand-neutral px-4 py-4 text-center text-slate-700 shadow-sm sm:px-6">
+              <p>{bio}</p>
+            </div>
+          )}
 
           <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
             {isOwnProfile ? (
@@ -258,7 +268,7 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
                 <small className="leading-none text-slate-500">Messages</small>
               </div>
 
-              {/* TODO: make this a large modal instead */}
+              {/* TODO: allow opening friends list in large modal */}
               <div className="flex flex-col items-center text-center px-3 py-2 sm:px-6">
                 <strong className="text-lg leading-none text-brand">
                   {numOfFriends}
@@ -283,7 +293,7 @@ function OwnProfileButtons({
   onUpdateProfileClick: () => void;
 }) {
   return (
-    <div className="w-full max-w-xs sm:w-auto">
+    <div className="own-profile-buttons w-full max-w-xs sm:w-auto">
       <button
         onClick={onUpdateProfileClick}
         className="h-11 w-full rounded-xl bg-brand px-6 font-semibold text-white shadow-sm shadow-brand/25 transition hover:bg-blue-600 sm:w-44"
@@ -350,30 +360,28 @@ function OtherProfileButtons(props: OtherProfileButtonsProps) {
   }
 
   return (
-    <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
-      <div className="relative">
-        <Button
-          onClick={handleActionClick}
-          className={`${isFriend || hasPendingOutgoing ? 'bg-slate-400' : 'bg-brand'} h-11 rounded-xl px-5 font-semibold text-white shadow-sm shadow-brand/20 transition hover:bg-blue-600`}
-        >
-          {actionLabel}
-        </Button>
+    <div className="other-profile-buttons flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
+      <Button
+        onClick={handleActionClick}
+        className={`${isFriend || hasPendingOutgoing ? 'bg-slate-400' : 'bg-brand'} h-11 rounded-xl px-5 font-semibold text-white shadow-sm shadow-brand/20 transition hover:bg-blue-600`}
+      >
+        {actionLabel}
+      </Button>
 
-        {isFriend && isFriendMenuOpen && (
-          <div className="absolute z-20 mt-2 min-w-[170px] rounded-2xl border border-slate-200 bg-white p-1 shadow-[0_14px_40px_rgba(15,23,42,0.12)]">
-            <button
-              type="button"
-              onClick={() => {
-                setIsFriendMenuOpen(false);
-                onRemoveFriend();
-              }}
-              className="block w-full rounded-xl px-4 py-2 text-left text-sm text-red-600 transition hover:bg-red-50"
-            >
-              Remove Friend
-            </button>
-          </div>
-        )}
-      </div>
+      {isFriend && isFriendMenuOpen && (
+        <div className="absolute z-20 mt-2 min-w-[170px] rounded-2xl border border-slate-200 bg-white p-1 shadow-[0_14px_40px_rgba(15,23,42,0.12)]">
+          <button
+            type="button"
+            onClick={() => {
+              setIsFriendMenuOpen(false);
+              onRemoveFriend();
+            }}
+            className="block w-full rounded-xl px-4 py-2 text-left text-sm text-red-600 transition hover:bg-red-50"
+          >
+            Remove Friend
+          </button>
+        </div>
+      )}
 
       {isFriend && (
         <Button
