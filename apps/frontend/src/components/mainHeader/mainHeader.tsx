@@ -8,10 +8,7 @@ export default function MainHeader() {
     <>
       <div className="flex items-center justify-between border-b border-slate-200 bg-white/85 px-4 py-3 backdrop-blur-sm sm:px-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm shadow-brand/25">
-            S
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-extrabold tracking-[-0.04em] text-blue-600">
             Synk
           </h1>
         </div>

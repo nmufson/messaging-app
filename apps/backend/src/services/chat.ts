@@ -8,6 +8,59 @@ import {
 } from '@repo/common';
 import { PrismaClient } from '@repo/db';
 
+export const CHAT_INFO_SELECT = {
+  id: true,
+  type: true,
+  name: true,
+  groupPictureUrl: true,
+  lastActivityAt: true,
+  createdAt: true,
+  updatedAt: true,
+  creatorId: true,
+  actions: {
+    take: 100,
+    orderBy: { createdAt: 'asc' } as const,
+    select: {
+      id: true,
+      chatId: true,
+      actionType: true,
+      actorId: true,
+      targetId: true,
+      createdAt: true,
+      actor: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          avatarUrl: true,
+        },
+      },
+      target: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          avatarUrl: true,
+        },
+      },
+    },
+  },
+  participants: {
+    select: {
+      lastViewedAt: true,
+      unreadActivities: true,
+      profile: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          avatarUrl: true,
+        },
+      },
+    },
+  },
+} as const;
+
 interface GetPotentialChatsParams {
   profileId: ObjectId;
   searchNames: string[];
@@ -254,56 +307,3 @@ export async function markChatAsRead(
     },
   });
 }
-
-export const CHAT_INFO_SELECT = {
-  id: true,
-  type: true,
-  name: true,
-  groupPictureUrl: true,
-  lastActivityAt: true,
-  createdAt: true,
-  updatedAt: true,
-  creatorId: true,
-  actions: {
-    take: 100,
-    orderBy: { createdAt: 'asc' } as const,
-    select: {
-      id: true,
-      chatId: true,
-      actionType: true,
-      actorId: true,
-      targetId: true,
-      createdAt: true,
-      actor: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          avatarUrl: true,
-        },
-      },
-      target: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          avatarUrl: true,
-        },
-      },
-    },
-  },
-  participants: {
-    select: {
-      lastViewedAt: true,
-      unreadActivities: true,
-      profile: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          avatarUrl: true,
-        },
-      },
-    },
-  },
-} as const;

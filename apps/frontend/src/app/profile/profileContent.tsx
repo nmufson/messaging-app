@@ -188,85 +188,89 @@ export function ProfileContent({ profileId }: { profileId: ObjectId }) {
   const displayName = `${firstName} ${lastName}`;
 
   return (
-    <div className="flex flex-col items-center">
-      {/* header */}
-      <div className="relative h-50 w-full">
-        <Link
-          href="/chats"
-          className="no-underline text-inherit absolute top-3 left-2 z-10"
-        >
-          <i className="bi bi-caret-left-fill text-3xl" />
-        </Link>
-        <ProfileHeader headerUrl={headerUrl} />
-        <div className="absolute left-1/2 top-60/100 -translate-x-1/2 -translate-y-1/2 z-1">
-          <img
-            src={avatarUrl ?? '/default.png'}
-            alt="Profile"
-            className="w-33 h-33 rounded-full border-4 border-brand-light shadow-lg object-cover"
-          />
-        </div>
-      </div>
-
-      {/* content */}
-      <div className="px-4">
-        <div className="flex flex-col items-center">
-          <h1 className="text-3xl text-brand-dark">{displayName}</h1>
-          <p className="text-sm text-brand-accent">{title}</p>
-        </div>
-
-        <div className="flex justify-center text-center my-5">
-          <p>{bio}</p>
-        </div>
-
-        <div className="flex gap-5 justify-center">
-          {isOwnProfile ? (
-            <OwnProfileButtons
-              onUpdateProfileClick={handleUpdateProfileClick}
+    <div className="min-h-screen bg-brand-accent px-3 py-3 sm:px-4 lg:px-6">
+      <div className="mx-auto flex w-full max-w-4xl flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white/85 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-sm">
+        {/* header */}
+        <div className="relative h-52 w-full sm:h-60">
+          <Link
+            href="/chats"
+            className="absolute left-4 top-4 z-10 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/50 bg-white/90 text-slate-800 no-underline shadow-sm transition hover:bg-white"
+          >
+            <i className="bi bi-caret-left-fill text-2xl" />
+          </Link>
+          <ProfileHeader headerUrl={headerUrl} />
+          <div className="absolute left-1/2 top-[78%] z-10 -translate-x-1/2 -translate-y-1/2">
+            <img
+              src={avatarUrl ?? '/default.png'}
+              alt="Profile"
+              className="h-32 w-32 rounded-full border-4 border-white object-cover shadow-[0_16px_35px_rgba(15,23,42,0.18)] sm:h-36 sm:w-36"
             />
-          ) : (
-            <OtherProfileButtons
-              relationshipToViewer={relationshipToViewer}
-              onSendFriendRequest={handleSendFriendRequest}
-              onCancelFriendRequest={handleOpenCancelFriendRequestModal}
-              onAcceptIncomingRequest={handleAcceptIncomingFriendRequest}
-              onDeclineIncomingRequest={handleDeclineIncomingFriendRequest}
-              onRemoveFriend={handleOpenRemoveFriendModal}
-              onMessage={handleOpenComposeMessageModal}
-            />
-          )}
-        </div>
-
-        <div className="my-5 px-3 pt-1 pb-2 rounded-lg bg-white">
-          <div className="mb-3">
-            <h3 className="text-brand-dark">Activity</h3>
-          </div>
-          <div className="flex items-center justify-center divide-x divide-brand-light">
-            <div className="flex flex-col items-center text-center px-6">
-              <strong className="text-lg leading-none text-brand">
-                {numOfChats}
-              </strong>
-              <small className="leading-none text-gray-500">Chats</small>
-            </div>
-
-            <div className="flex flex-col items-center text-center px-6">
-              <strong className="text-lg leading-none text-brand">
-                {numOfMessages}
-              </strong>
-              <small className="leading-none text-gray-500">Messages</small>
-            </div>
-
-            {/* TODO: make this a large modal instead */}
-            <div className="flex flex-col items-center text-center px-6">
-              <strong className="text-lg leading-none text-brand">
-                {numOfFriends}
-              </strong>
-              <small className="leading-none text-gray-500">Friends</small>
-            </div>
           </div>
         </div>
 
-        <div className="flex justify-center">
-          <small>{formattedJoinDate}</small>
+        {/* content */}
+        <div className="px-4 pb-8 pt-20 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center text-center">
+            <h1 className="text-3xl text-brand-dark sm:text-4xl">
+              {displayName}
+            </h1>
+            <p className="mt-1 text-sm font-medium text-brand">{title}</p>
+          </div>
+
+          <div className="mx-auto mt-6 max-w-2xl rounded-3xl border border-slate-200 bg-brand-neutral px-4 py-4 text-center text-slate-700 shadow-sm sm:px-6">
+            <p>{bio}</p>
+          </div>
+
+          <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            {isOwnProfile ? (
+              <OwnProfileButtons
+                onUpdateProfileClick={handleUpdateProfileClick}
+              />
+            ) : (
+              <OtherProfileButtons
+                relationshipToViewer={relationshipToViewer}
+                onSendFriendRequest={handleSendFriendRequest}
+                onCancelFriendRequest={handleOpenCancelFriendRequestModal}
+                onAcceptIncomingRequest={handleAcceptIncomingFriendRequest}
+                onDeclineIncomingRequest={handleDeclineIncomingFriendRequest}
+                onRemoveFriend={handleOpenRemoveFriendModal}
+                onMessage={handleOpenComposeMessageModal}
+              />
+            )}
+          </div>
+
+          <div className="mx-auto mt-6 max-w-3xl rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+            <div className="mb-4">
+              <h3 className="text-brand-dark">Activity</h3>
+            </div>
+            <div className="grid grid-cols-3 divide-x divide-slate-200">
+              <div className="flex flex-col items-center text-center px-3 py-2 sm:px-6">
+                <strong className="text-lg leading-none text-brand">
+                  {numOfChats}
+                </strong>
+                <small className="leading-none text-slate-500">Chats</small>
+              </div>
+
+              <div className="flex flex-col items-center text-center px-3 py-2 sm:px-6">
+                <strong className="text-lg leading-none text-brand">
+                  {numOfMessages}
+                </strong>
+                <small className="leading-none text-slate-500">Messages</small>
+              </div>
+
+              {/* TODO: make this a large modal instead */}
+              <div className="flex flex-col items-center text-center px-3 py-2 sm:px-6">
+                <strong className="text-lg leading-none text-brand">
+                  {numOfFriends}
+                </strong>
+                <small className="leading-none text-slate-500">Friends</small>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 text-center">
+            <small className="text-slate-500">{formattedJoinDate}</small>
+          </div>
         </div>
       </div>
     </div>
@@ -279,10 +283,10 @@ function OwnProfileButtons({
   onUpdateProfileClick: () => void;
 }) {
   return (
-    <div>
+    <div className="w-full max-w-xs sm:w-auto">
       <button
         onClick={onUpdateProfileClick}
-        className="w-40 h-10 rounded-md text-white bg-brand-dark"
+        className="h-11 w-full rounded-xl bg-brand px-6 font-semibold text-white shadow-sm shadow-brand/25 transition hover:bg-blue-600 sm:w-44"
       >
         Update Profile
       </button>
@@ -346,24 +350,24 @@ function OtherProfileButtons(props: OtherProfileButtonsProps) {
   }
 
   return (
-    <div className="flex gap-5">
+    <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
       <div className="relative">
         <Button
           onClick={handleActionClick}
-          className={`${isFriend || hasPendingOutgoing ? 'bg-gray-400' : 'bg-brand-dark'} rounded-md h-10`}
+          className={`${isFriend || hasPendingOutgoing ? 'bg-slate-400' : 'bg-brand'} h-11 rounded-xl px-5 font-semibold text-white shadow-sm shadow-brand/20 transition hover:bg-blue-600`}
         >
           {actionLabel}
         </Button>
 
         {isFriend && isFriendMenuOpen && (
-          <div className="absolute z-20 mt-2 min-w-[150px] rounded-md border border-gray-200 bg-white shadow-lg">
+          <div className="absolute z-20 mt-2 min-w-[170px] rounded-2xl border border-slate-200 bg-white p-1 shadow-[0_14px_40px_rgba(15,23,42,0.12)]">
             <button
               type="button"
               onClick={() => {
                 setIsFriendMenuOpen(false);
                 onRemoveFriend();
               }}
-              className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50"
+              className="block w-full rounded-xl px-4 py-2 text-left text-sm text-red-600 transition hover:bg-red-50"
             >
               Remove Friend
             </button>
@@ -374,7 +378,7 @@ function OtherProfileButtons(props: OtherProfileButtonsProps) {
       {isFriend && (
         <Button
           onClick={onMessage}
-          className="w-30 h-10 rounded-md border border-brand-light text-brand-light bg-white"
+          className="h-11 rounded-xl border border-slate-200 bg-white px-5 font-semibold text-brand transition hover:border-brand hover:bg-brand-neutral"
         >
           Message
         </Button>
@@ -389,13 +393,13 @@ function ProfileHeader({ headerUrl }: { headerUrl: string }) {
       <img
         src={headerUrl}
         alt="Header"
-        className="w-full h-40 md:h-56 object-cover opacity-80"
+        className="h-full w-full object-cover opacity-90"
       />
     );
 
   // sample gradient background
   return (
-    <div className="w-full h-40 md:h-56 bg-gradient-to-r from-brand to-brand-light" />
+    <div className="h-full w-full bg-gradient-to-br from-brand via-blue-500 to-sky-300" />
   );
 }
 
@@ -410,21 +414,21 @@ function PendingIncomingRequestActions(
   const { onAcceptIncomingRequest, onDeclineIncomingRequest } = props;
 
   return (
-    <div className="w-full max-w-sm rounded-md border border-brand-light/40 bg-white p-3 shadow-sm">
-      <p className="mb-3 text-center text-sm font-semibold text-brand-dark">
+    <div className="w-full max-w-sm rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="mb-3 text-center text-sm font-semibold text-slate-900">
         Friend Request Received
       </p>
 
       <div className="flex items-center justify-center gap-3">
         <Button
           onClick={onAcceptIncomingRequest}
-          className="h-10 rounded-md bg-brand-dark"
+          className="h-11 rounded-xl bg-brand px-5 font-semibold text-white shadow-sm shadow-brand/20 transition hover:bg-blue-600"
         >
           Accept
         </Button>
         <Button
           onClick={onDeclineIncomingRequest}
-          className="h-10 rounded-md border border-gray-300 bg-white text-gray-700"
+          className="h-11 rounded-xl border border-slate-200 bg-white px-5 font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
         >
           Decline
         </Button>

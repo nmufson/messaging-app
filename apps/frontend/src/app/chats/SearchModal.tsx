@@ -75,18 +75,22 @@ export function SearchModal() {
   const { textMessages, photoMessages } = useMessages({ searchInput });
 
   return (
-    <div className="search-modal px-1">
-      <div className="flex justify-between items-center gap-3 p-3">
+    <div className="search-modal space-y-5 px-2 pb-2 sm:px-1">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
         <SearchInput
           value={searchInput}
           onChange={onChangeSearchInput}
           autoFocus
         />
-        <button className="border-none p-0" onClick={closeModal}>
+        <button
+          type="button"
+          className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+          onClick={closeModal}
+        >
           Cancel
         </button>
       </div>
-      <div className="grid grid-cols-5 gap-3 max-h-[400px] overflow-y-auto">
+      <div className="grid max-h-[400px] grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3 md:grid-cols-5">
         {combinedList.slice(0, 10).map((item) => {
           const parsedChat = ChatListItemDTO.safeParse(item);
           const parsedProfile = BaseProfileDTO.safeParse(item);
@@ -112,9 +116,11 @@ export function SearchModal() {
           }
         })}
       </div>
-      <div>
-        <h5>Messages</h5>
-        <div>
+      <div className="space-y-3">
+        <h5 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          Messages
+        </h5>
+        <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
           {textMessages?.slice(0, 5).map((text) => (
             <TextMessagePreview
               key={text.id}
@@ -125,9 +131,11 @@ export function SearchModal() {
           ))}
         </div>
       </div>
-      <div>
-        <h5>Photos</h5>
-        <div className="flex flex-wrap">
+      <div className="space-y-3">
+        <h5 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          Photos
+        </h5>
+        <div className="flex flex-wrap gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
           {photoMessages?.map((message) => (
             <PhotoMessagePreview
               key={message.id}
@@ -140,7 +148,7 @@ export function SearchModal() {
       </div>
       {/* Allow composing message before chat is created */}
       {selectedProfile && !isCheckingDirectChat && !existingDirectChat && (
-        <div className="mt-4 border-t pt-3">
+        <div className="mt-2 border-t border-slate-200 pt-4">
           <ChatContent
             chatId={null}
             profiles={[selectedProfile]}
@@ -171,10 +179,10 @@ function PhotoMessagePreview(props: PhotoMessagePreviewProps) {
   return (
     <div
       onClick={handleNavigateToMessage}
-      className="relative w-45 max-h-150 border-2 border-white"
+      className="relative aspect-square w-36 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
-      <img src={imageUrl} className="w-full h-full object-cover" />
-      <div className="absolute top-2 right-2">
+      <img src={imageUrl} className="h-full w-full object-cover" />
+      <div className="absolute right-2 top-2 rounded-full bg-white/90 p-0.5 shadow-sm backdrop-blur-sm">
         <ProfileAvatar profile={sender} />
       </div>
     </div>
@@ -212,23 +220,31 @@ function TextMessagePreview(props: TextMessagePreviewProps) {
   };
 
   return (
-    <div className="mb-2">
+    <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
       {participantProfiles.length > 2 && (
-        <strong className="text-sm">{chatDisplayName}</strong>
+        <strong className="text-sm font-semibold text-slate-900">
+          {chatDisplayName}
+        </strong>
       )}
-      <div className="flex justify-between">
-        <small className="text-xs">{senderDisplayName}</small>
-        <small className="text-xs">{displayDate}</small>
+      <div className="flex justify-between gap-2">
+        <small className="text-xs font-medium text-slate-600">
+          {senderDisplayName}
+        </small>
+        <small className="text-xs text-slate-500">{displayDate}</small>
       </div>
-      <div className="flex justify-between items-center">
+      <div className="mt-2 flex items-center justify-between gap-3">
         <MessageBubble
           message={textMessage}
           showName={false}
           showTime={false}
           onClick={handleNavigateToMessage}
         />
-        <button onClick={handleNavigateToMessage} className="p-1">
-          <i className="bi bi-caret-right-fill text-gray-700 text-3xl" />
+        <button
+          type="button"
+          onClick={handleNavigateToMessage}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:border-brand hover:bg-brand hover:text-white"
+        >
+          <i className="bi bi-caret-right-fill text-base" />
         </button>
       </div>
     </div>
@@ -248,10 +264,12 @@ function ProfileSearchItem(props: ProfileSearchItemProps) {
     <button
       type="button"
       onClick={() => onSelectProfile(profile)}
-      className="profile-search-item flex flex-col items-center text-center w-[50px] whitespace-normal border-none bg-transparent p-0"
+      className="profile-search-item flex w-full flex-col items-center rounded-2xl border border-transparent bg-white p-2 text-center whitespace-normal shadow-sm transition hover:border-slate-200 hover:bg-brand-neutral"
     >
       <ProfileAvatar profile={profile} />
-      <span>{displayName}</span>
+      <span className="mt-2 text-[11px] font-medium leading-tight text-slate-700">
+        {displayName}
+      </span>
     </button>
   );
 }
@@ -275,13 +293,15 @@ function GroupChatSearchItem(props: GroupChatSearchItemProps) {
     <button
       type="button"
       onClick={() => onSelectChat(groupChat.id)}
-      className="gc-search-item flex flex-col items-center text-center w-[50px] whitespace-normal border-none bg-transparent p-0"
+      className="gc-search-item flex w-full flex-col items-center rounded-2xl border border-transparent bg-white p-2 text-center whitespace-normal shadow-sm transition hover:border-slate-200 hover:bg-brand-neutral"
     >
       <GroupPhoto
         groupPictureUrl={groupChat.groupPictureUrl}
         participantProfiles={participantProfiles}
       />
-      <span>{displayName}</span>
+      <span className="mt-2 text-[11px] font-medium leading-tight text-slate-700">
+        {displayName}
+      </span>
     </button>
   );
 }

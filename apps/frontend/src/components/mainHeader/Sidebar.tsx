@@ -38,7 +38,7 @@ export function Sidebar(props: SidebarProps) {
       {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40"
+          className="fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-[2px]"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -46,19 +46,25 @@ export function Sidebar(props: SidebarProps) {
 
       {/* Sidebar panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-64 bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed right-0 top-0 z-50 h-full w-[92vw] max-w-sm transform border-l border-slate-200 bg-white/95 shadow-[0_24px_80px_rgba(15,23,42,0.18)] backdrop-blur-sm transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="text-lg font-semibold" onClick={handleTestToast}>
-              Menu
-            </h2>
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
             <button
+              type="button"
+              onClick={handleTestToast}
+              className="text-left"
+            >
+              <h2 className="text-lg font-semibold text-slate-900">Menu</h2>
+              <p className="text-xs text-slate-500">Quick access and status</p>
+            </button>
+            <button
+              type="button"
               onClick={onClose}
-              className="p-1 hover:bg-gray-100 rounded"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
               aria-label="Close menu"
             >
               <i className="bi bi-x-lg text-xl" />
@@ -66,7 +72,7 @@ export function Sidebar(props: SidebarProps) {
           </div>
 
           {/* Menu items */}
-          <nav className="flex-1 p-4 overflow-y-auto">
+          <nav className="flex-1 overflow-y-auto px-3 py-4 sm:px-4">
             <ul className="space-y-2">
               {/* Friend Requests Accordion */}
               <li>
@@ -76,42 +82,42 @@ export function Sidebar(props: SidebarProps) {
               <li>
                 <Link
                   href="/contacts"
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 no-underline text-inherit"
+                  className="flex items-center gap-3 rounded-2xl px-3 py-3 text-slate-700 no-underline transition hover:bg-brand-neutral hover:text-slate-900"
                 >
-                  <div className="relative">
-                    <i className="bi bi-people-fill text-xl" />
+                  <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+                    <i className="bi bi-people-fill text-lg text-brand" />
                     <i
-                      className={`bi bi-circle-fill text-xs absolute -top-1 -right-1 ${dotColor}`}
+                      className={`bi bi-circle-fill absolute -top-0.5 -right-0.5 text-[10px] ${dotColor}`}
                     />
                   </div>
-                  <span>{message}</span>
+                  <span className="font-medium">{message}</span>
                 </Link>
               </li>
 
               <li>
                 <Link
                   href="/find-friends"
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 no-underline text-inherit"
+                  className="flex items-center gap-3 rounded-2xl px-3 py-3 text-slate-700 no-underline transition hover:bg-brand-neutral hover:text-slate-900"
                 >
-                  <i className="bi bi-person-plus-fill text-xl" />
-                  <span>Find Friends</span>
+                  <i className="bi bi-person-plus-fill text-lg text-brand" />
+                  <span className="font-medium">Find Friends</span>
                 </Link>
               </li>
 
               <li>
                 <Link
                   href={profileLink}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 no-underline text-inherit"
+                  className="flex items-center gap-3 rounded-2xl px-3 py-3 text-slate-700 no-underline transition hover:bg-brand-neutral hover:text-slate-900"
                 >
-                  <i className="bi bi-person-circle text-xl" />
-                  <span>Profile</span>
+                  <i className="bi bi-person-circle text-lg text-brand" />
+                  <span className="font-medium">Profile</span>
                 </Link>
               </li>
             </ul>
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t">
+          <div className="border-t border-slate-200 p-4">
             <LogOutButton />
           </div>
         </div>

@@ -62,9 +62,6 @@ export default function LogIn() {
         className="w-full max-w-md rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-8"
       >
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-lg font-bold text-white shadow-sm shadow-brand/25">
-            S
-          </div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             Welcome back
           </h1>
