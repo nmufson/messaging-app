@@ -1,5 +1,5 @@
 import { SelectedProfile } from '@/types/profile';
-import { ProfileContent } from '@/app/profile/ProfileContent';
+
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
 import { useChat } from '@/hooks/chat';
@@ -11,8 +11,17 @@ import { useNavigation } from '@/utils/Navigation';
 import { BaseProfileDTO, ChatInfoDTO, ChatType, ObjectId } from '@repo/common';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FormEvent, useCallback, useEffect, useMemo, useRef } from 'react';
+import {
+  FormEvent,
+  KeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { OverlayTrigger, Spinner, Tooltip } from 'react-bootstrap';
+import { useForm } from 'react-hook-form';
 import * as R from 'remeda';
 import { GroupPhoto } from '../GroupPhoto';
 import { FullscreenModal } from '../modal/FullscreenModal';
@@ -20,6 +29,9 @@ import { ProfileAvatar } from '../ProfileAvatar';
 import { Activities } from './Activities';
 import { GroupChatInfo } from './GroupChatInfo';
 import { useChatActivities } from '@/hooks/activity';
+import { ProfileContent } from '@/app/profile/profileContent';
+import { ImageUpload } from '../ImageUpload';
+import LoadingSpinner from '../LoadingSpinner';
 
 interface ChatContentProps {
   chatId: ObjectId | null;
@@ -30,17 +42,21 @@ interface ChatContentProps {
   shouldFocusChatInput?: boolean;
 }
 
+interface ChatImageFormValues {
+  imageUrl: string | null;
+}
+
 export function ChatContent(props: ChatContentProps) {
   const hasScrolledOnFirstRender = useRef(false);
+  const hadImageInputOnLastRender = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messageToViewRef = useRef<HTMLDivElement>(null);
-  const messageInputRef = useRef<HTMLInputElement>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
   const pathname = usePathname();
   const { navigateToChat } = useNavigation();
   const { launchModal } = useModalContext();
 
-  // TODO: can simply make inModalView check if we're at chat path or not??
   const {
     chatId,
     messageToView,
@@ -49,15 +65,18 @@ export function ChatContent(props: ChatContentProps) {
     isComposeMessageView = false,
     shouldFocusChatInput = false,
   } = props;
-  console.log(profiles);
+
   const { profile } = useAuth();
   const loggedInProfileId = profile?.id;
-  const {
-    value: textInput,
-    setValue: setTextInput,
-    onChange: onTextInputChange,
-  } = useInput();
-  const { value: imageUrlInput, setValue: setImageUrlInput } = useInput();
+  const { value: textInput, setValue: setTextInput } = useInput();
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const { control, watch, setValue } = useForm<ChatImageFormValues>({
+    defaultValues: {
+      imageUrl: null,
+    },
+  });
+  const imageUrlInput = watch('imageUrl');
 
   const {
     activeProfiles: activeParticipants,
@@ -89,7 +108,39 @@ export function ChatContent(props: ChatContentProps) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isSendingMessage,
   } = useChatActivities(chat?.id, profileIds);
+
+  const hasTextInput = textInput.length > 0; // allow sending blank messages
+  const hasImageInput = R.isTruthy(imageUrlInput);
+  const canSubmitMessage =
+    (hasTextInput || hasImageInput) && !(isUploadingImage || isSendingMessage);
+
+  // clear text input if user adds an image
+  useEffect(() => {
+    if (
+      hasImageInput &&
+      !hadImageInputOnLastRender.current &&
+      textInput.length
+    ) {
+      setTextInput('');
+    }
+
+    hadImageInputOnLastRender.current = hasImageInput;
+  }, [hasImageInput, setTextInput, textInput.length]);
+
+  // focus message input so user can include text with image
+  useEffect(() => {
+    if (!hasImageInput) {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      messageInputRef.current?.focus();
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [hasImageInput]);
 
   const scrollToBottom = useCallback((behavior: 'auto' | 'smooth' = 'auto') => {
     const container = messagesContainerRef.current;
@@ -136,35 +187,95 @@ export function ChatContent(props: ChatContentProps) {
     return () => window.cancelAnimationFrame(frameId);
   }, [shouldFocusChatInput, isLoading, chatId]);
 
-  const handleSubmitMessage = (e: FormEvent<HTMLFormElement>) => {
+  const clearSelectedImage = useCallback(() => {
+    setValue('imageUrl', null);
+    window.requestAnimationFrame(() => {
+      messageInputRef.current?.focus();
+    });
+  }, [setValue]);
+
+  const handleMessageInputKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter') {
+      if (e.shiftKey) {
+        return;
+      }
+
+      e.preventDefault();
+      e.currentTarget.form?.requestSubmit();
+      return;
+    }
+
+    if (e.key !== 'Backspace') {
+      return;
+    }
+
+    if (!hasImageInput || textInput.length > 0) {
+      return;
+    }
+
+    e.preventDefault();
+    clearSelectedImage();
+  };
+
+  const handleSubmitMessage = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!profile) {
       console.error('Profile required to send message');
       return;
     }
-    sendMessage({
-      senderId: profile.id,
-      type: textInput ? 'TEXT' : 'IMAGE',
-      content: textInput || null,
-      imageUrl: imageUrlInput || null,
-      onSuccess: (chatId) => {
-        if (inModalView) {
-          navigateToChat(chatId);
-        }
 
-        window.requestAnimationFrame(() => {
-          scrollToBottom('smooth');
+    if (!canSubmitMessage) {
+      return;
+    }
+
+    const selectedImageUrl = imageUrlInput;
+    // allow reassignment in the case of new chat creation
+    let resolvedChatId = chat?.id ?? null;
+
+    try {
+      if (selectedImageUrl) {
+        const imageChatId = await sendMessage({
+          senderId: profile.id,
+          type: 'IMAGE',
+          content: null,
+          imageUrl: selectedImageUrl,
+          chatId: resolvedChatId ?? undefined,
+          participantProfileIds: profileIds,
         });
-      },
-    });
 
-    setTextInput('');
-    setImageUrlInput('');
-    console.log('Message sent successfully!');
+        resolvedChatId = imageChatId;
+        setValue('imageUrl', null);
+      }
+
+      if (textInput) {
+        const textChatId = await sendMessage({
+          senderId: profile.id,
+          type: 'TEXT',
+          content: textInput,
+          imageUrl: null,
+          chatId: resolvedChatId ?? undefined,
+          participantProfileIds: profileIds,
+        });
+
+        resolvedChatId = textChatId;
+        setTextInput('');
+      }
+
+      if (inModalView && resolvedChatId) {
+        navigateToChat(resolvedChatId);
+      }
+
+      window.requestAnimationFrame(() => {
+        scrollToBottom('smooth');
+      });
+    } catch (error) {
+      console.error('Failed to send message(s)', error);
+    }
   };
 
   if (isLoading) return <Spinner />;
+
   const draftParticipantProfiles: BaseProfileDTO[] =
     profiles?.map((selectedProfile) => ({
       ...selectedProfile,
@@ -192,6 +303,7 @@ export function ChatContent(props: ChatContentProps) {
     name,
     participantProfiles: participantProfiles || profiles,
     profileId: loggedInProfileId,
+    truncate: 40,
   });
 
   const otherParticipantProfiles = participantProfiles.filter(
@@ -229,14 +341,17 @@ export function ChatContent(props: ChatContentProps) {
             <i className="bi bi-caret-left-fill text-3xl" />
           </Link>
 
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center justify-center">
             <ChatPhoto
               chatType={type}
               chat={chat}
               otherParticipantProfiles={otherParticipantProfiles}
+              size={40}
             />
 
-            <h1 className="text-xl font-semibold">{displayName}</h1>
+            <h1 className="text-lg font-semibold text-center leading-tight mt-3 mb-1">
+              {displayName}
+            </h1>
             {/* TODO: clean this up */}
             {isAnyOnline && (
               <OverlayTrigger
@@ -269,7 +384,7 @@ export function ChatContent(props: ChatContentProps) {
             )}
           </div>
           {/* opens modal for user profile if in direct chat, or group info if in group chat */}
-          <i className="bi bi-info-circle text-2xl" onClick={handleInfoClick} />
+          <i className="bi bi-info-circle text-3xl" onClick={handleInfoClick} />
         </div>
       )}
       <Activities
@@ -291,24 +406,59 @@ export function ChatContent(props: ChatContentProps) {
 
       <form
         onSubmit={handleSubmitMessage}
-        className="send-message-form flex gap-3 justify-between items-center p-2 flex-shrink-0 bg-white border-t"
+        className="send-message-form flex gap-3 justify-between items-end p-2 flex-shrink-0 bg-white border-t"
       >
-        <div>
-          <i className="bi bi-image text-3xl" />
+        <div className="shrink-0">
+          <ImageUpload<ChatImageFormValues>
+            name="imageUrl"
+            control={control}
+            onUploadingChange={setIsUploadingImage}
+            // imageClassName="h-10 w-10 rounded-lg border border-gray-200 object-cover"
+            maintainFallback={true}
+            fallback={
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 text-gray-600 transition hover:bg-gray-100">
+                <i className="bi bi-image text-lg" />
+              </div>
+            }
+          />
         </div>
-        <input
-          ref={messageInputRef}
-          type="text"
-          name="message"
-          autoComplete="off"
-          placeholder="Type a message…"
-          className="w-7/10 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 "
-          aria-label="Message input"
-          value={textInput}
-          onChange={onTextInputChange}
-          required
-        />
-        <button type="submit" disabled={textInput.trim() === ''}>
+        <div className="flex min-w-0 flex-1 items-end gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 focus-within:ring-2 focus-within:ring-blue-400">
+          {isUploadingImage ? (
+            <LoadingSpinner className="h-5 w-5 text-gray-400" />
+          ) : hasImageInput ? (
+            <div className="relative shrink-0">
+              <img
+                src={imageUrlInput ?? ''}
+                alt="Selected image"
+                className="h-12 w-12 rounded-md object-cover"
+              />
+              <button
+                type="button"
+                onClick={clearSelectedImage}
+                className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-gray-900 text-white shadow-sm transition hover:bg-gray-700"
+                aria-label="Remove selected image"
+              >
+                <i className="bi bi-x text-[10px]" />
+              </button>
+            </div>
+          ) : null}
+
+          <textarea
+            ref={messageInputRef}
+            name="message"
+            autoComplete="off"
+            placeholder={
+              hasImageInput || isUploadingImage ? '' : 'Type a message…'
+            }
+            rows={1}
+            className="flex-1 resize-none bg-transparent px-0 py-0 ring-0 focus:outline-none focus:ring-0 field-sizing-content max-h-[5lh] overflow-y-auto"
+            aria-label="Message input"
+            value={textInput}
+            onChange={(e) => setTextInput(e.target.value)}
+            onKeyDown={handleMessageInputKeyDown}
+          />
+        </div>
+        <button type="submit" disabled={!canSubmitMessage}>
           <i className="bi bi-arrow-up" />
         </button>
       </form>
@@ -321,16 +471,18 @@ interface ChatPhotoProps {
   chatType: ChatType;
   chat?: ChatInfoDTO;
   otherParticipantProfiles: BaseProfileDTO[];
+  size?: number;
 }
 
 function ChatPhoto(props: ChatPhotoProps) {
-  const { chatType, chat, otherParticipantProfiles } = props;
+  const { chatType, chat, otherParticipantProfiles, size } = props;
 
   if (chatType === 'GROUP') {
     return (
       <GroupPhoto
         groupPictureUrl={chat?.groupPictureUrl || null}
         participantProfiles={otherParticipantProfiles}
+        size={size}
       />
     );
   }
@@ -338,6 +490,6 @@ function ChatPhoto(props: ChatPhotoProps) {
   const otherProfile = otherParticipantProfiles[0];
 
   if (otherProfile) {
-    return <ProfileAvatar profile={otherProfile} />;
+    return <ProfileAvatar profile={otherProfile} size={size} />;
   }
 }

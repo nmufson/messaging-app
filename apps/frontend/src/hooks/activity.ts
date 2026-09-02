@@ -14,7 +14,8 @@ interface SendMessageParams {
   type: 'TEXT' | 'IMAGE';
   content: string | null;
   imageUrl: string | null;
-  onSuccess?: (chatId: ObjectId) => void;
+  chatId?: ObjectId;
+  participantProfileIds?: ObjectId[];
 }
 
 export function useChatActivities(
@@ -72,7 +73,7 @@ export function useChatActivities(
   );
 
   const {
-    mutate: sendMessageToChat,
+    mutateAsync: sendMessageToChatAsync,
     isPending,
     error: sendToChatError,
   } = useMutation(
@@ -100,7 +101,7 @@ export function useChatActivities(
   );
 
   const {
-    mutate: sendMessageToNewChat,
+    mutateAsync: sendMessageToNewChatAsync,
     isPending: isSendingToNewChat,
     error: sendToNewChatError,
   } = useMutation(
@@ -165,7 +166,7 @@ export function useChatActivities(
     };
   }, [chatId, allActivities]);
 
-  const { status, error: subscriptionError } = useSubscription(
+  useSubscription(
     trpc.activity.onNewActivity.subscriptionOptions(onNewActivityQuery, {
       onData(newActivityData) {
         const newActivity = newActivityData.data;
@@ -190,37 +191,33 @@ export function useChatActivities(
     })
   );
 
-  const sendMessage = (params: SendMessageParams) => {
-    const { onSuccess, ...message } = params;
+  const sendMessage = async (params: SendMessageParams) => {
+    const { chatId: targetChatId, participantProfileIds, ...message } = params;
+    const resolvedChatId = targetChatId ?? chatId;
+    const resolvedParticipantProfileIds = participantProfileIds ?? profileIds;
+
     // If chat exists, send message
-    if (chatId) {
-      console.log('sending message to existing chat', chatId);
-      sendMessageToChat(
-        {
-          message,
-          chatId,
-        },
-        {
-          onSuccess: () => {
-            onSuccess?.(chatId);
-          },
-        }
-      );
-    } else if (profileIds) {
-      sendMessageToNewChat(
-        {
-          message,
-          participantProfileIds: profileIds,
-        },
-        {
-          onSuccess: (messageActivity) => {
-            onSuccess?.(messageActivity.chatId);
-          },
-        }
-      );
-    } else {
-      console.error('Chat or selected profiles required to send message');
+    if (resolvedChatId) {
+      console.log('sending message to existing chat', resolvedChatId);
+      const messageActivity = await sendMessageToChatAsync({
+        message,
+        chatId: resolvedChatId,
+      });
+
+      return messageActivity.chatId;
     }
+
+    if (resolvedParticipantProfileIds) {
+      const messageActivity = await sendMessageToNewChatAsync({
+        message,
+        participantProfileIds: resolvedParticipantProfileIds,
+      });
+
+      return messageActivity.chatId;
+    }
+
+    console.error('Chat or selected profiles required to send message');
+    return null;
   };
 
   return {

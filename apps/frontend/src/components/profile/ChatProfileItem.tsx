@@ -1,7 +1,7 @@
 import { ProfilePreview } from '@/components/profile/ProfilePreview';
 import { MouseEvent } from 'react';
 import { useModalContext } from '@/context/ModalContext';
-import { ProfileContent } from '@/app/profile/ProfileContent';
+import { ProfileContent } from '@/app/profile/profileContent';
 import { FullscreenModal } from '@/components/modal/FullscreenModal';
 import { SelectedProfile } from '@/types/profile';
 import { BaseProfileDTO } from '@repo/common';

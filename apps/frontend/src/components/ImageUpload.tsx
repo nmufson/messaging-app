@@ -12,6 +12,7 @@ export interface BaseImageUploadProps {
   imageClassName?: string;
   imageSize?: number;
   fallback?: ReactNode;
+  maintainFallback?: boolean;
   onUploadingChange?: (isUploading: boolean) => void;
 }
 
@@ -30,15 +31,7 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
     ...controllerProps
   } = props;
   let { fallback } = props;
-
-  fallback = fallback ?? (
-    <div
-      className={`flex items-center justify-center bg-gray-200 text-gray-500 ${imageClassName}`}
-      style={imageSize ? { width: imageSize, height: imageSize } : {}}
-    >
-      <i className="bi bi-plus-lg text-2xl" />
-    </div>
-  );
+  const { maintainFallback = false } = props;
 
   const {
     field,
@@ -129,9 +122,20 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
       onPreviewUrlChange(null);
     } finally {
       props.onUploadingChange?.(false);
+      setIsLoadingFileChange(false);
     }
   };
 
+  fallback = fallback ?? (
+    <div
+      className={`flex items-center justify-center bg-gray-200 text-gray-500 ${imageClassName}`}
+      style={imageSize ? { width: imageSize, height: imageSize } : {}}
+    >
+      <i className="bi bi-plus-lg text-2xl" />
+    </div>
+  );
+
+  console.log(isPending, isLoadingFileChange);
   return (
     <div className="relative inline-block">
       <input
@@ -154,7 +158,9 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
         className={`cursor-pointer block ${isPending ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80'} transition-opacity`}
         style={imageSize ? { width: imageSize, height: imageSize } : {}}
       >
-        {previewUrl ? (
+        {!previewUrl || maintainFallback ? (
+          fallback
+        ) : (
           <>
             <img
               src={previewUrl}
@@ -166,8 +172,6 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
               <i className="bi bi-pencil text-sm" />
             </div>
           </>
-        ) : (
-          fallback
         )}
       </label>
 
