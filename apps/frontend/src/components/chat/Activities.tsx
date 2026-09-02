@@ -38,7 +38,11 @@ export function Activities(props: ActivitiesProps) {
   );
 
   if (!activities || !activities.length) {
-    return <div>No messages yet</div>;
+    return (
+      <div className="flex flex-1 items-center justify-center py-4 text-gray-500">
+        No messages yet
+      </div>
+    );
   }
 
   return (

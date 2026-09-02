@@ -3,33 +3,26 @@ import { MouseEvent } from 'react';
 import { useModalContext } from '@/context/ModalContext';
 import { ProfileContent } from '@/app/profile/profileContent';
 import { FullscreenModal } from '@/components/modal/FullscreenModal';
-import { SelectedProfile } from '@/types/profile';
 import { BaseProfileDTO } from '@repo/common';
 
-interface ChatProfileItemProps {
+interface ChatProfileSubItemProps {
   profile: BaseProfileDTO;
-  onClearSelections: () => void;
-  addSelectedProfile: (profile: SelectedProfile) => void;
+  onSelectProfile: (profile: BaseProfileDTO) => void;
 }
 
-export function ChatProfileItem(props: ChatProfileItemProps) {
-  const { profile, onClearSelections, addSelectedProfile } = props;
-  const { launchModal, closeModal } = useModalContext();
+export function ChatProfileSubItem(props: ChatProfileSubItemProps) {
+  const { profile, onSelectProfile } = props;
+  const { launchModal } = useModalContext();
 
   const handleProfileClick = () => {
-    onClearSelections();
-    addSelectedProfile({
-      id: profile.id,
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-    });
+    onSelectProfile(profile);
   };
 
   const handleOpenProfileModal = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     launchModal(
       <FullscreenModal header="New Message">
-        <ProfileContent profileId={profile.id} />
+        <ProfileContent profileId={profile.id} showBackButton={false} />
       </FullscreenModal>
     );
   };

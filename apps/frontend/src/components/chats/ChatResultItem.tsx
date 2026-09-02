@@ -1,23 +1,21 @@
-import { SelectedProfile } from '@/app/chats/ComposeMessageModal';
 import { useAuth } from '@/context/AuthContext';
 import { useToggle } from '@/hooks/general';
 import { getChatDisplayName } from '@/utils';
-import { BaseProfileDTO, ChatListItemDTO, ObjectId } from '@repo/common';
+import { BaseProfileDTO, ChatListItemDTO } from '@repo/common';
 import { MouseEvent } from 'react';
-import { ChatProfileItem } from '../profile/ChatProfileItem';
+import { ChatProfileSubItem } from '../profile/ChatProfileItem';
 import { getParticipantProfiles } from '@/utils/general';
 
 interface GroupChatResultItemProps {
   chat: ChatListItemDTO;
-  onSelectChat: (chatId: ObjectId) => void;
-  onClearSelections: () => void;
-  addSelectedProfile: (profile: SelectedProfile) => void;
+  onSelectChat: (chat: ChatListItemDTO) => void;
+  onSelectProfile: (profile: BaseProfileDTO) => void;
 }
 
 export function ChatResultItem(props: GroupChatResultItemProps) {
-  const { chat, onSelectChat, onClearSelections, addSelectedProfile } = props;
+  const { chat, onSelectChat, onSelectProfile } = props;
   const { profile } = useAuth();
-  const { name, groupPictureUrl, participants, id: chatId } = chat;
+  const { name, groupPictureUrl, participants } = chat;
   const { status: showProfiles, toggleStatus: toggleShowProfiles } =
     useToggle();
 
@@ -35,11 +33,11 @@ export function ChatResultItem(props: GroupChatResultItemProps) {
   };
 
   return (
-    <div>
+    <div className="">
       <button
         type="button"
-        onClick={() => onSelectChat(chatId)}
-        className="flex items-center p-3 border-b border-grey-200 w-full text-left"
+        onClick={() => onSelectChat(chat)}
+        className="flex items-center px-3 py-2 border-grey-200 w-full text-left cursor-pointer rounded-lg"
       >
         <img
           src={groupPictureUrl || '/default-profile.png'}
@@ -63,13 +61,12 @@ export function ChatResultItem(props: GroupChatResultItemProps) {
         className={`overflow-hidden transition-all duration-300 ${showProfiles ? 'max-h-100 opacity-100' : 'max-h-0 opacity-0'}`}
         style={{ willChange: 'max-height, opacity' }}
       >
-        <div className="flex flex-col">
+        <div className="chat-profile-items flex flex-col">
           {participantProfiles.map((profile: BaseProfileDTO) => (
-            <ChatProfileItem
+            <ChatProfileSubItem
               key={profile.id}
               profile={profile}
-              onClearSelections={onClearSelections}
-              addSelectedProfile={addSelectedProfile}
+              onSelectProfile={onSelectProfile}
             />
           ))}
         </div>

@@ -40,9 +40,8 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
 
   const inputId = `image-upload-${controllerProps.name}`;
 
-  const { value: previewUrl, onChange: onPreviewUrlChange } = useSelectedValue<
-    string | null
-  >(field.value || null);
+  const { value: previewUrl, handleChange: handlePreviewUrlChange } =
+    useSelectedValue<string | null>(field.value || null);
 
   const { mutateAsync: createUploadSignature, isPending } = useMutation(
     trpc.image.getImageUploadSignature.mutationOptions()
@@ -77,7 +76,7 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
     try {
       // Show preview immediately
       const localPreview = URL.createObjectURL(file);
-      onPreviewUrlChange(localPreview);
+      handlePreviewUrlChange(localPreview);
 
       // Get upload signature
       const { timestamp, signature, cloudName, apiKey } =
@@ -115,11 +114,11 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
 
       // update form with url from Cloudinary
       field.onChange(data.secure_url);
-      onPreviewUrlChange(data.secure_url);
+      handlePreviewUrlChange(data.secure_url);
     } catch (error) {
       console.error('Upload error:', error);
       alert('Failed to upload image. Please try again.');
-      onPreviewUrlChange(null);
+      handlePreviewUrlChange(null);
     } finally {
       props.onUploadingChange?.(false);
       setIsLoadingFileChange(false);
@@ -135,7 +134,6 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
     </div>
   );
 
-  console.log(isPending, isLoadingFileChange);
   return (
     <div className="relative inline-block">
       <input

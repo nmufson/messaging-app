@@ -6,6 +6,8 @@ import { KeyboardEvent } from 'react';
 
 interface SelectedProfilesInputProps {
   selectedProfiles: SelectedProfile[];
+  selectedGroupChatName?: string | null;
+  onClearSelectedGroupChat?: () => void;
   highlightedProfileId: ObjectId | null;
   onHighlightedProfileIdChange: (id: ObjectId | null) => void;
   removeSelectedProfile: (profile: SelectedProfile) => void;
@@ -16,6 +18,8 @@ interface SelectedProfilesInputProps {
 export function SelectedProfilesInput(props: SelectedProfilesInputProps) {
   const {
     selectedProfiles,
+    selectedGroupChatName,
+    onClearSelectedGroupChat,
     highlightedProfileId,
     onHighlightedProfileIdChange,
     removeSelectedProfile,
@@ -34,8 +38,6 @@ export function SelectedProfilesInput(props: SelectedProfilesInputProps) {
     profile: SelectedProfile
   ) => {
     e.preventDefault();
-    console.log(highlightedProfileId, 'highlightedProfileId');
-    console.log(profile.id, 'profile.id');
     if (highlightedProfileId === profile.id && e.key === 'Backspace') {
       removeSelectedProfile(profile);
       onHighlightedProfileIdChange(null);
@@ -44,33 +46,40 @@ export function SelectedProfilesInput(props: SelectedProfilesInputProps) {
 
   useEffect(() => {
     inputRef.current?.focus();
-  }, [selectedProfiles]);
+  }, [selectedProfiles, selectedGroupChatName]);
 
   const handleInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (
-      e.key === 'Backspace' &&
-      searchNameInput === '' &&
-      selectedProfiles.length > 0
-    ) {
-      if (highlightedProfileId) {
-        const profileToRemove = selectedProfiles.find(
-          (p) => p.id === highlightedProfileId
-        );
-        if (profileToRemove) {
-          removeSelectedProfile(profileToRemove);
-          onHighlightedProfileIdChange(null);
-        }
-      } else {
-        onHighlightedProfileIdChange(
-          selectedProfiles[selectedProfiles.length - 1].id
-        );
+    if (e.key !== 'Backspace' || searchNameInput !== '') return;
+
+    if (selectedProfiles.length === 0) {
+      if (selectedGroupChatName) {
+        onClearSelectedGroupChat?.();
       }
+      return;
     }
+
+    if (highlightedProfileId) {
+      const profileToRemove = selectedProfiles.find(
+        (p) => p.id === highlightedProfileId
+      );
+      if (profileToRemove) {
+        removeSelectedProfile(profileToRemove);
+      }
+      onHighlightedProfileIdChange(null);
+      return;
+    }
+
+    const lastProfile = selectedProfiles[selectedProfiles.length - 1];
+    onHighlightedProfileIdChange(lastProfile.id);
   };
 
-  // TODO: can prob make this a component
   return (
     <div className="flex flex-wrap items-center gap-2 flex-1">
+      {selectedGroupChatName && (
+        <span className="px-2 py-1 bg-gray-100 rounded-full text-sm whitespace-nowrap">
+          {selectedGroupChatName}
+        </span>
+      )}
       {selectedProfiles.map((profile) => (
         <span
           key={profile.id}
@@ -88,8 +97,7 @@ export function SelectedProfilesInput(props: SelectedProfilesInputProps) {
         onChange={handleChangeSearch}
         value={searchNameInput}
         autoFocus
-        className="px-2 py-1 border-none focus:outline-none min-w-[120px] flex-shrink"
-        // style={{ flexBasis: '120px' }}
+        className="px-2 py-1 border-none focus:outline-none flex-1 w-0 min-w-[40px]"
         ref={inputRef}
         onKeyDown={handleInputKeyDown}
       />

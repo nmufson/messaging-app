@@ -20,7 +20,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { OverlayTrigger, Spinner, Tooltip } from 'react-bootstrap';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import * as R from 'remeda';
 import { GroupPhoto } from '../GroupPhoto';
@@ -101,7 +101,7 @@ export function ChatContent(props: ChatContentProps) {
     };
   }, [chatId, loggedInProfileId, profileIds]);
 
-  const { chat, isLoading } = useChat(params);
+  const { chat, isLoading, error } = useChat(params);
   const {
     sendMessage,
     allActivities,
@@ -274,8 +274,6 @@ export function ChatContent(props: ChatContentProps) {
     }
   };
 
-  if (isLoading) return <Spinner />;
-
   const draftParticipantProfiles: BaseProfileDTO[] =
     profiles?.map((selectedProfile) => ({
       ...selectedProfile,
@@ -284,7 +282,9 @@ export function ChatContent(props: ChatContentProps) {
       lastOnline: undefined,
     })) ?? [];
 
-  const isDraftChat = !chat && draftParticipantProfiles.length > 0;
+  console.log(chat);
+  console.log(draftParticipantProfiles);
+  const isDraftChat = (!chat && draftParticipantProfiles.length > 0) || error;
 
   if (!chat && !isDraftChat) return <div>Chat not found.</div>;
 
@@ -333,8 +333,12 @@ export function ChatContent(props: ChatContentProps) {
     }
   };
 
+  const containerClass = inModalView
+    ? 'flex h-full min-h-0 flex-col'
+    : 'flex h-screen flex-col';
+
   return (
-    <div className="flex flex-col h-screen">
+    <div className={containerClass}>
       {!isComposeMessageView && (
         <div className="header-container pt-2 pb-0 px-4 border-b bg-gray-50 flex justify-between items-center flex-shrink-0">
           <Link href="/chats" className="no-underline text-inherit">

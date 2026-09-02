@@ -22,11 +22,11 @@ export function useInput(initialValue: string = '') {
 export function useSelectedValue<T>(initialValue: T) {
   const [value, setValue] = useState<T>(initialValue);
 
-  const onChange = (newValue: T) => {
+  const handleChange = (newValue: T) => {
     setValue(newValue);
   };
 
-  return { value, setValue, onChange };
+  return { value, setValue, handleChange };
 }
 
 export function useSelectedValues<T>(initialValues: T[] = []) {

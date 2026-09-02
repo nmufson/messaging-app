@@ -1,14 +1,19 @@
-import { ListProfileDTO } from '@repo/common';
+import { BaseProfileDTO } from '@repo/common';
 import { ProfilePreview } from '@/components/profile/ProfilePreview';
 
 interface ProfileResultItemProps {
-  profile: ListProfileDTO;
-  onAddProfile: (profile: ListProfileDTO) => void;
+  profile: BaseProfileDTO;
+  onAddProfile: (profile: BaseProfileDTO) => void;
+  className?: string;
 }
 
 export function ProfileResultItem(props: ProfileResultItemProps) {
-  const { profile, onAddProfile } = props;
+  const { profile, onAddProfile, className } = props;
   return (
-    <ProfilePreview profile={profile} onClick={() => onAddProfile(profile)} />
+    <ProfilePreview
+      profile={profile}
+      onClick={() => onAddProfile(profile)}
+      className={className}
+    />
   );
 }

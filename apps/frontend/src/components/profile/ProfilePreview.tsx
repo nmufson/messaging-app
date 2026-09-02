@@ -1,11 +1,11 @@
 import { DEFAULT_PROFILE_IMAGE } from '@/constants';
 import { getOnlineStatusDisplay } from '@/utils';
-import { ListProfileDTO } from '@repo/common';
 import Link from 'next/link';
 import { ReactNode } from 'react';
+import type { BaseProfileDTO } from '@repo/common';
 
 interface ProfilePreviewProps {
-  profile: ListProfileDTO;
+  profile: BaseProfileDTO;
   onClick?: () => void;
   rightContent?: ReactNode;
   asLink?: string; // wraps in link if provided
@@ -34,7 +34,7 @@ export function ProfilePreview(props: ProfilePreviewProps) {
 
   const content = (
     <div
-      className={`profile-preview group flex items-center p-3 border-b border-grey-200 w-full text-left cursor-pointer ${className ?? ''}`}
+      className={`profile-preview group flex items-center border-1 border-grey-200 w-full text-left cursor-pointer ${className ?? ''}`}
       onClick={onClick}
     >
       <img
