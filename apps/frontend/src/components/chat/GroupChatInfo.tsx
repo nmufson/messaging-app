@@ -58,13 +58,13 @@ function PhotoModalContent(props: PhotoModalContentProps) {
   );
 }
 
-export function GroupChatInfo({
-  chatId,
-  onScrollToBottom,
-}: {
+interface GroupChatInfoProps {
   chatId: ObjectId;
   onScrollToBottom: () => void;
-}) {
+}
+
+export function GroupChatInfo(props: GroupChatInfoProps) {
+  const { chatId, onScrollToBottom } = props;
   const {
     status: editMode,
     toggleStatus: toggleEditMode,
@@ -102,6 +102,7 @@ export function GroupChatInfo({
   });
 
   const groupPictureFormValue = watch('groupPictureUrl');
+  const isDisplayNameDirty = Boolean(dirtyFields.name);
 
   // reset when chat data loads or changes
   useEffect(() => {
@@ -267,42 +268,57 @@ export function GroupChatInfo({
     navigateToProfile(profileId);
   };
 
+  const handleEditModeButtonClick = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    toggleEditMode();
+  };
+
   return (
     <div>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col items-center justify-center py-5"
+        className="flex items-center justify-center py-5 gap-2 position-relative"
       >
-        <div onClick={handleLaunchPhotoModal}>
-          <GroupPhoto
-            groupPictureUrl={groupPictureFormValue || groupPictureUrl}
-            participantProfiles={participantProfiles}
-            size={100}
-            className="cursor-pointer hover:opacity-80 transition-opacity"
-          />
-        </div>
+        <div className="flex flex-col justify-between items-center gap-6 px-4 w-75/100">
+          <div onClick={handleLaunchPhotoModal}>
+            <GroupPhoto
+              groupPictureUrl={groupPictureFormValue || groupPictureUrl}
+              participantProfiles={participantProfiles}
+              size={60}
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+            />
+          </div>
 
-        <div className="flex justify-between items-center gap-2 px-4">
-          <div></div>
           {editMode ? (
             <>
               <TextFieldGroup type="text" name="name" control={control} />
-              <Button type="submit" disabled={isUpdatingChatInfo}>
-                <i className="bi bi-floppy" />
-              </Button>
             </>
           ) : (
             <>
-              <h1 className="text-2xl">{displayName}</h1>
-              <Button
-                onClick={(e: MouseEvent<HTMLButtonElement>) => {
-                  e.preventDefault();
-                  toggleEditMode();
-                }}
-              >
-                <i className="bi bi-pencil text-xl" />
-              </Button>
+              <h1 className="text-2xl text-center">{displayName}</h1>
             </>
+          )}
+        </div>
+
+        <div className="absolute top-42 right-2 w-20px">
+          {editMode && isDisplayNameDirty ? (
+            <Button type="submit" disabled={isUpdatingChatInfo}>
+              <i className="bi bi-floppy" />
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={handleEditModeButtonClick}
+              className="w-30px py-1 px-3"
+              aria-label={editMode ? 'Cancel edit' : 'Edit chat name'}
+            >
+              <i
+                className={
+                  editMode ? 'bi bi-x-lg text-sm' : 'bi bi-pencil text-sm'
+                }
+              />
+            </Button>
           )}
         </div>
       </form>
@@ -325,10 +341,10 @@ export function GroupChatInfo({
                       e.preventDefault();
                       handleLaunchRemoveMemberModal(p.profile.id);
                     }}
-                    className="opacity-100 cursor-pointer md:opacity-0 md:group-hover:opacity-100 md:transition-opacity text-red-500 hover:text-red-700 p-2"
+                    className="opacity-100 cursor-pointer md:opacity-0 md:group-hover:opacity-100 md:transition-opacity text-red-500 hover:text-red-700 py-2 px-2"
                     aria-label="Remove member"
                   >
-                    <i className="bi bi-x-circle text-xl" />
+                    <i className="bi bi-x-circle text-xl py-2 px-2" />
                   </Button>
                 }
               />

@@ -17,14 +17,14 @@ export function FullscreenModal(props: FullscreenModalProps) {
   return (
     <div className="full-screen-modal fixed bottom-0 z-50 bg-white overflow-y-auto flex flex-col w-full h-100/100">
       {showHeader && (
-        <div className="flex items-center gap-2 p-4 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center gap-3 p-4 border-b border-gray-200 flex-shrink-0">
           <button
             onClick={closeModal}
             className="flex items-center gap-2 hover:bg-gray-100 rounded p-1 transition-colors"
           >
             <i className="bi bi-caret-left-fill text-xl" />
           </button>
-          {header && <p className="font-semibold text-lg">{header}</p>}
+          {header && <p className="font-bold text-2xl">{header}</p>}
         </div>
       )}
       <div

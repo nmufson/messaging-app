@@ -28,10 +28,6 @@ export function Sidebar(props: SidebarProps) {
     numOnline: numProfilesOnline,
     numRecentlyActive,
   });
-  const { addToast } = useToast();
-  const handleTestToast = () => {
-    addToast({ header: 'Toast Test!', body: 'Heres a test', delay: 300000 });
-  };
 
   return (
     <>
@@ -53,18 +49,14 @@ export function Sidebar(props: SidebarProps) {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
-            <button
-              type="button"
-              onClick={handleTestToast}
-              className="text-left"
-            >
+            <div className="text-left">
               <h2 className="text-lg font-semibold text-slate-900">Menu</h2>
               <p className="text-xs text-slate-500">Quick access and status</p>
-            </button>
+            </div>
             <button
               type="button"
               onClick={onClose}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
               aria-label="Close menu"
             >
               <i className="bi bi-x-lg text-xl" />

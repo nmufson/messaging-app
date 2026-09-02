@@ -34,7 +34,8 @@ export function SelectedProfilesInput(props: SelectedProfilesInputProps) {
     profile: SelectedProfile
   ) => {
     e.preventDefault();
-
+    console.log(highlightedProfileId, 'highlightedProfileId');
+    console.log(profile.id, 'profile.id');
     if (highlightedProfileId === profile.id && e.key === 'Backspace') {
       removeSelectedProfile(profile);
       onHighlightedProfileIdChange(null);
@@ -51,15 +52,25 @@ export function SelectedProfilesInput(props: SelectedProfilesInputProps) {
       searchNameInput === '' &&
       selectedProfiles.length > 0
     ) {
-      onHighlightedProfileIdChange(
-        selectedProfiles[selectedProfiles.length - 1].id
-      );
+      if (highlightedProfileId) {
+        const profileToRemove = selectedProfiles.find(
+          (p) => p.id === highlightedProfileId
+        );
+        if (profileToRemove) {
+          removeSelectedProfile(profileToRemove);
+          onHighlightedProfileIdChange(null);
+        }
+      } else {
+        onHighlightedProfileIdChange(
+          selectedProfiles[selectedProfiles.length - 1].id
+        );
+      }
     }
   };
 
   // TODO: can prob make this a component
   return (
-    <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
+    <div className="flex flex-wrap items-center gap-2 flex-1">
       {selectedProfiles.map((profile) => (
         <span
           key={profile.id}
@@ -78,7 +89,7 @@ export function SelectedProfilesInput(props: SelectedProfilesInputProps) {
         value={searchNameInput}
         autoFocus
         className="px-2 py-1 border-none focus:outline-none min-w-[120px] flex-shrink"
-        style={{ flexBasis: '120px' }}
+        // style={{ flexBasis: '120px' }}
         ref={inputRef}
         onKeyDown={handleInputKeyDown}
       />

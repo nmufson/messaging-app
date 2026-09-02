@@ -79,8 +79,8 @@ export function ComposeMessageModal(props: ComposeMessageModalProps) {
           Cancel
         </button>
       </div>
-      <form className="flex items-start gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-        <label htmlFor="chat-for" className="font-medium text-slate-700">
+      <form className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-1">
+        <label htmlFor="chat-for" className="text-lg text-slate-700">
           For:
         </label>
         <SelectedProfilesInput
@@ -91,13 +91,6 @@ export function ComposeMessageModal(props: ComposeMessageModalProps) {
           searchNameInput={searchNameInput}
           onSearchNameInputChange={onSearchNameInputChange}
         />
-        {/* TODO: click this for Friends List modal */}
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-brand transition hover:bg-brand hover:text-white"
-        >
-          <i className="bi bi-plus-circle" />
-        </button>
       </form>
 
       {groupChats.length > 0 && (
