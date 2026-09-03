@@ -51,7 +51,7 @@ export function Activities(props: ActivitiesProps) {
     <div
       ref={messagesContainerRef}
       onScroll={(e) => handleScroll(e.currentTarget.scrollTop)}
-      className="messages-container flex-1 overflow-y-auto py-4 pb-6"
+      className="messages-container flex-1 flex flex-col gap-2.5 overflow-y-auto pb-2 pr-0.5"
     >
       {activities.map((activity, i) => {
         if (activity.activityType === 'message') {

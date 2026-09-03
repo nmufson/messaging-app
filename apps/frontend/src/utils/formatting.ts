@@ -60,7 +60,7 @@ export function getChatDisplayName(params: GetChatDisplayNameParams): string {
 
   // group chat with name
   if (name) {
-    return name;
+    return truncate ? R.truncate(name, truncate) : name;
   }
 
   const participantNames = participantProfiles

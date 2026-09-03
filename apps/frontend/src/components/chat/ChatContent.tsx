@@ -333,14 +333,12 @@ export function ChatContent(props: ChatContentProps) {
     }
   };
 
-  const containerClass = inModalView
-    ? 'flex h-full min-h-0 flex-col'
-    : 'flex h-screen flex-col';
+  const containerClass = inModalView ? ' h-full min-h-0 ' : 'h-screen ';
 
   return (
-    <div className={containerClass}>
+    <div className={`flex flex-col overflow-hidden ${containerClass}`}>
       {!isComposeMessageView && (
-        <div className="header-container pt-2 pb-0 px-4 border-b bg-gray-50 flex justify-between items-center flex-shrink-0">
+        <div className="header-container pt-2 pb-0 px-4 border-b bg-gray-50 flex justify-between items-center gap-2 flex-shrink-0 max-w-full">
           <Link href="/chats" className="no-underline text-inherit">
             <i className="bi bi-caret-left-fill text-3xl" />
           </Link>
@@ -350,10 +348,10 @@ export function ChatContent(props: ChatContentProps) {
               chatType={type}
               chat={chat}
               otherParticipantProfiles={otherParticipantProfiles}
-              size={80}
+              size={70}
             />
 
-            <h1 className="text-lg font-semibold text-center leading-tight my-1">
+            <h1 className="text-base font-semibold text-center leading-tight my-1 break-words break-all">
               {displayName}
             </h1>
             {/* TODO: clean this up */}

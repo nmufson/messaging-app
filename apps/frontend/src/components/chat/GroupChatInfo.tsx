@@ -275,33 +275,31 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
   };
 
   return (
-    <div>
+    <div className="group-chat-info-container relative flex flex-col gap-3">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex items-center justify-center py-5 gap-2 position-relative"
+        className="flex flex-col items-center justify-center p-2 gap-2 position-relative"
       >
-        <div className="flex flex-col justify-between items-center gap-6 px-4 w-75/100">
-          <div onClick={handleLaunchPhotoModal}>
-            <GroupPhoto
-              groupPictureUrl={groupPictureFormValue || groupPictureUrl}
-              participantProfiles={participantProfiles}
-              size={60}
-              className="cursor-pointer hover:opacity-80 transition-opacity"
-            />
-          </div>
+        <div onClick={handleLaunchPhotoModal}>
+          <GroupPhoto
+            groupPictureUrl={groupPictureFormValue || groupPictureUrl}
+            participantProfiles={participantProfiles}
+            size={80}
+            className="cursor-pointer hover:opacity-80 transition-opacity"
+          />
+        </div>
 
+        <div className="flex items-center justify-between gap-2 w-full">
+          <div></div>
           {editMode ? (
             <>
               <TextFieldGroup type="text" name="name" control={control} />
             </>
           ) : (
             <>
-              <h1 className="text-2xl text-center">{displayName}</h1>
+              <h1 className="text-2xl text-center text-wrap">{displayName}</h1>
             </>
           )}
-        </div>
-
-        <div className="absolute top-42 right-2 w-20px">
           {editMode && isDisplayNameDirty ? (
             <Button type="submit" disabled={isUpdatingChatInfo}>
               <i className="bi bi-floppy" />
@@ -323,7 +321,7 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
         </div>
       </form>
 
-      <div className="mt-6">
+      <div className="">
         <h3 className="mb-3 text-lg font-semibold">Members</h3>
         <div className="space-y-3">
           {participants.map((p) => {

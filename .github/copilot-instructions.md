@@ -8,4 +8,7 @@ const {profile, name, user} = props;
 ...
 };
 
-**Rule:** Before implementing any non-trivial feature or making significant changes, present a detailed plan to the user for approval.
+**Rules:**
+
+- Before implementing any non-trivial feature or making significant changes, present a detailed plan to the user for approval.
+- Do not use the tailwind class 'space'

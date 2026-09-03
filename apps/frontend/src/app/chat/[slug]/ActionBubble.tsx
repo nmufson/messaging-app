@@ -13,7 +13,7 @@ export function ActionBubble({ action }: { action: ChatActionDTO }) {
   });
 
   return (
-    <div className="flex justify-center mt-3 mb-3">
+    <div className="flex justify-center">
       <div className="flex flex-col items-center max-w-[80%]">
         <div
           className="inline-block break-words rounded-xl px-4 py-2 bg-gray-300 text-gray-700 text-center shadow-sm"

@@ -19,15 +19,20 @@ import { MessageBubble } from '../chat/[slug]/MessageBubble';
 import { useInput, useSelectedValue } from '@/hooks/general';
 import { ReactNode, useEffect } from 'react';
 import { SelectedProfile } from '@/types/profile';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export function SearchModal() {
   const { navigateToChat, navigateToMessage } = useNavigation();
   const { closeModal } = useModalContext();
   const { value: searchInput, onChange: onChangeSearchInput } = useInput();
-  const { value: selectedProfile, onChange: onSelectedProfileChange } =
+  const { value: selectedProfile, handleChange: onSelectedProfileChange } =
     useSelectedValue<SelectedProfile | null>(null);
 
-  const { profiles, groupChats } = usePotentialChats({
+  const {
+    profiles,
+    groupChats,
+    isLoading: isLoadingPotentialChats,
+  } = usePotentialChats({
     searchInput: searchInput,
     requireInput: false,
     includeOnlyExistingChats: true,
@@ -72,8 +77,8 @@ export function SearchModal() {
   const { textMessages, photoMessages } = useMessages({ searchInput });
 
   return (
-    <div className="search-modal space-y-5 py-2 px-2 sm:px-1">
-      <div className="top-container flex items-center mb-0 justify-between gap-3 border-b border-slate-200 pb-3">
+    <div className="search-modal py-2 px-2 sm:px-1">
+      <div className="top-container flex items-center mb-0 justify-between gap-3">
         <SearchInput
           value={searchInput}
           onChange={onChangeSearchInput}
@@ -87,64 +92,85 @@ export function SearchModal() {
           Cancel
         </button>
       </div>
-      <div className="grid max-h-[270px] grid-cols-3 gap-3 overflow-y-hidden border-b border-slate-200 py-2 mb-4">
-        {combinedList.slice(0, 6).map((item) => {
-          const parsedChat = ChatListItemDTO.safeParse(item);
-          const parsedProfile = BaseProfileDTO.safeParse(item);
+      {combinedList.length > 0 && (
+        <div className="grid max-h-[270px] grid-cols-3 gap-3 overflow-y-hidden border-b border-slate-200 py-2 mb-4">
+          {combinedList.slice(0, 6).map((item) => {
+            const parsedChat = ChatListItemDTO.safeParse(item);
+            const parsedProfile = BaseProfileDTO.safeParse(item);
 
-          if (parsedChat.success) {
-            return (
-              <GroupChatSearchItem
-                groupChat={parsedChat.data}
-                onSelectChat={handleSelectGroupChat}
-                key={item.id}
-              />
-            );
-          }
+            if (parsedChat.success) {
+              return (
+                <GroupChatSearchItem
+                  groupChat={parsedChat.data}
+                  onSelectChat={handleSelectGroupChat}
+                  key={item.id}
+                />
+              );
+            }
 
-          if (parsedProfile.success) {
-            return (
-              <ProfileSearchItem
-                profile={parsedProfile.data}
-                onSelectProfile={handleSelectProfile}
-                key={item.id}
+            if (parsedProfile.success) {
+              return (
+                <ProfileSearchItem
+                  profile={parsedProfile.data}
+                  onSelectProfile={handleSelectProfile}
+                  key={item.id}
+                />
+              );
+            }
+          })}
+        </div>
+      )}
+
+      {isLoadingPotentialChats && <LoadingSpinner />}
+
+      {textMessages && textMessages.length > 0 && (
+        <div className="space-y-3">
+          <h5 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            Messages
+          </h5>
+          <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            {textMessages.slice(0, 5).map((text) => (
+              <TextMessagePreview
+                key={text.id}
+                textMessage={text}
+                onNavigateToMessage={() => {
+                  navigateToMessage(text.chat.id, text.id);
+                }}
               />
-            );
-          }
-        })}
-      </div>
-      <div className="space-y-3">
-        <h5 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-          Messages
-        </h5>
-        <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-          {textMessages?.slice(0, 5).map((text) => (
-            <TextMessagePreview
-              key={text.id}
-              textMessage={text}
-              onNavigateToMessage={() => {
-                navigateToMessage(text.chat.id, text.id);
-              }}
-            />
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="space-y-3">
-        <h5 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-          Photos
-        </h5>
-        <div className="grid max-h-[230px] grid-cols-2 gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-          {photoMessages?.map((message) => (
-            <PhotoMessagePreview
-              key={message.id}
-              photoMessage={message}
-              onNavigateToMessage={() => {
-                navigateToMessage(message.chatId, message.id);
-              }}
-            />
-          ))}
+      )}
+
+      {photoMessages && photoMessages.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h5 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            Photos
+          </h5>
+          <div className="grid max-h-[230px] grid-cols-2 gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            {photoMessages.map((message) => (
+              <PhotoMessagePreview
+                key={message.id}
+                photoMessage={message}
+                onNavigateToMessage={() => {
+                  navigateToMessage(message.chatId, message.id);
+                }}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {combinedList.length === 0 &&
+        textMessages &&
+        textMessages.length === 0 &&
+        photoMessages &&
+        photoMessages.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-2 py-10">
+            <i className="bi bi-search text-3xl text-slate-400" />
+            <p className="text-sm text-slate-500">No results found</p>
+          </div>
+        )}
     </div>
   );
 }

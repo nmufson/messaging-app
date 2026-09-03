@@ -33,7 +33,7 @@ export function MessageBubble(props: MessageBubbleProps) {
     <div
       ref={ref}
       onClick={onClick}
-      className={`flex mt-2 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+      className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
     >
       <div className="flex items-end gap-1 w-full">
         <div className="flex justify-center shrink-0 w-[40px]">
