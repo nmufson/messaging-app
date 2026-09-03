@@ -147,6 +147,7 @@ model ChatAction {
   chatId      String
   chat        Chat            @relation(fields: [chatId], references: [id])
   actionType  ChatActionType
+  content     String?         @db.Text
   actorId     String          
   actor       Profile         @relation("ActingProfile", fields: [actorId], references: [id])
   targetId    String?         

@@ -360,24 +360,26 @@ function OtherProfileButtons(props: OtherProfileButtonsProps) {
   }
 
   return (
-    <div className="other-profile-buttons relative flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
-      <div className="relative w-full sm:w-44">
+    <div className="other-profile-buttons relative flex w-full flex-col gap-3 sm:flex-row sm:items-start sm:justify-center">
+      <div className="relative w-full max-w-sm sm:w-[220px]">
         <Button
           onClick={handleActionClick}
-          className={`${isFriend || hasPendingOutgoing ? 'bg-slate-400' : 'bg-brand'} h-11 w-full rounded-xl px-5 font-semibold text-white shadow-sm shadow-brand/20 transition hover:bg-blue-600`}
+          className={`${
+            isFriend || hasPendingOutgoing ? 'bg-slate-400' : 'bg-brand'
+          } h-11 w-full rounded-xl px-5 font-semibold text-white shadow-sm shadow-brand/20 transition hover:bg-blue-600`}
         >
           {actionLabel}
         </Button>
 
         {isFriend && isFriendMenuOpen && (
-          <div className="absolute left-0 top-full z-20 mt-1 w-full rounded-2xl border border-slate-200 bg-white shadow-[0_14px_40px_rgba(15,23,42,0.12)]">
+          <div className="absolute left-0 top-full z-20 mt-2 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.12)]">
             <button
               type="button"
               onClick={() => {
                 setIsFriendMenuOpen(false);
                 onRemoveFriend();
               }}
-              className="block w-full rounded-xl px-4 py-4 text-center text-sm text-red-600 transition hover:bg-red-50"
+              className="block w-full border-0 bg-white px-4 py-3 text-center text-sm font-medium text-red-600 transition hover:bg-red-50"
             >
               Remove Friend
             </button>
@@ -388,7 +390,7 @@ function OtherProfileButtons(props: OtherProfileButtonsProps) {
       {isFriend && (
         <Button
           onClick={onMessage}
-          className="h-11 rounded-xl border border-slate-200 bg-white px-5 font-semibold text-brand transition hover:border-brand hover:bg-brand-neutral"
+          className="h-11 w-full max-w-sm rounded-xl border border-slate-200 bg-white px-5 font-semibold text-brand shadow-sm transition hover:border-brand hover:bg-brand-neutral sm:w-[220px]"
         >
           Message
         </Button>

@@ -175,6 +175,7 @@ export const chatRouter = router({
               id: true,
               chatId: true,
               actionType: true,
+              content: true,
               targetId: true,
               createdAt: true,
               actorId: true,

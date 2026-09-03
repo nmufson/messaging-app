@@ -16,6 +16,7 @@ export const IChatAction = z.object({
   id: ObjectId,
   chatId: ObjectId,
   actionType: ChatActionType,
+  content: z.string().nullish(),
   actorId: ObjectId,
   targetId: ObjectId.nullable(),
   actor: BaseProfileDTO,

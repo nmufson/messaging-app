@@ -11,7 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ProfileDTO, ProfilePageDTO, UpdateProfileInput } from '@repo/common';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFormState } from 'react-hook-form';
 import * as R from 'remeda';
 
 export function UpdateProfileModal({ profile }: { profile: ProfilePageDTO }) {
@@ -35,6 +35,7 @@ export function UpdateProfileModal({ profile }: { profile: ProfilePageDTO }) {
     defaultValues,
     mode: 'onBlur',
   });
+  const { isDirty } = useFormState({ control });
   const { dirtyFields } = formState;
 
   const { mutateAsync: updateProfile, isPending } = useMutation(
@@ -135,7 +136,7 @@ export function UpdateProfileModal({ profile }: { profile: ProfilePageDTO }) {
             helperText="Max 250 characters"
           />
         </div>
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending || !isDirty} className="">
           Save
         </Button>
       </form>

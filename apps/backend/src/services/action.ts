@@ -7,6 +7,7 @@ import { incrementUnreadActivityCount } from './message';
 interface ActionData {
   chatId: ObjectId;
   actionType: ChatActionType;
+  content?: string | null;
   actorId: ObjectId;
   targetId?: ObjectId;
 }
@@ -22,6 +23,7 @@ export async function createAction(prisma: PrismaClient, data: ActionData) {
       id: true,
       chatId: true,
       actionType: true,
+      content: true,
       actorId: true,
       targetId: true,
       createdAt: true,

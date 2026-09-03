@@ -47,6 +47,7 @@ describe('activity creation and chat updates', () => {
         senderId: sender.profile!.id,
         type: 'TEXT',
         content: 'hello there',
+        imageUrl: null,
       },
     });
 
@@ -107,6 +108,7 @@ describe('activity creation and chat updates', () => {
     const { newActionActivity } = await createAction(prisma, {
       chatId: chat.id,
       actionType: 'NAME_CHANGED',
+      content: 'The Cool New Chat Name',
       actorId: actor.profile!.id,
       targetId: target.profile!.id,
     });
@@ -121,6 +123,7 @@ describe('activity creation and chat updates', () => {
 
     expect(newActionActivity.activityType).toBe('action');
     expect(newActionActivity.actionType).toBe('NAME_CHANGED');
+    expect(newActionActivity.content).toBe('The Cool New Chat Name');
     expect(newActionActivity.actor.id).toBe(actor.profile!.id);
     expect(newActionActivity.target?.id).toBe(target.profile!.id);
     expect(updatedChat?.lastActivityAt).not.toBeNull();

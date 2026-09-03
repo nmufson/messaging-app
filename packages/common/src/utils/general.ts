@@ -46,22 +46,25 @@ export function getActionDisplayText(params: GetActionDisplayTextParams) {
 
   switch (action.actionType) {
     case 'CHAT_CREATED': {
-      return `${actorLabel} created the chat.`;
+      return `${actorLabel} created the chat`;
     }
     case 'MEMBER_ADDED': {
-      return `${actorLabel} added ${targetLabel} to the chat.`;
+      return `${actorLabel} added ${targetLabel} to the chat`;
     }
     case 'MEMBER_REMOVED': {
-      return `${actorLabel} removed ${targetLabel} from the chat.`;
+      return `${actorLabel} removed ${targetLabel} from the chat`;
     }
     case 'MEMBER_LEFT': {
       return `${actorLabel} left the chat.`;
     }
     case 'NAME_CHANGED': {
-      return `${actorLabel} changed the chat name.`;
+      const newName = action.content?.trim();
+      return newName
+        ? `${actorLabel} changed the chat name to "${newName}"`
+        : `${actorLabel} changed the chat name`;
     }
     case 'PICTURE_CHANGED': {
-      return `${actorLabel} changed the chat picture.`;
+      return `${actorLabel} changed the chat picture`;
     }
     default: {
       return assertNever(action.actionType);

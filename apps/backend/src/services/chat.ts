@@ -24,6 +24,7 @@ export const CHAT_INFO_SELECT = {
       id: true,
       chatId: true,
       actionType: true,
+      content: true,
       actorId: true,
       targetId: true,
       createdAt: true,

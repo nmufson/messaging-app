@@ -83,6 +83,7 @@ export const activityRouter = router({
             id: true,
             chatId: true,
             actionType: true,
+            content: true,
             actorId: true,
             targetId: true,
             createdAt: true,

@@ -1,9 +1,4 @@
-import {
-  DateTimeSchema,
-  ObjectId,
-  BaseProfileDTO,
-  BaseParticipantWithProfile,
-} from '@repo/common';
+import { DateTimeSchema, ObjectId, BaseProfileDTO } from '@repo/common';
 import { DateTime } from 'luxon';
 import * as R from 'remeda';
 
@@ -57,10 +52,11 @@ interface GetChatDisplayNameParams {
 
 export function getChatDisplayName(params: GetChatDisplayNameParams): string {
   const { name, participantProfiles = [], profileId, truncate } = params;
+  const normalizedName = name?.trim() ?? null;
 
   // group chat with name
-  if (name) {
-    return truncate ? R.truncate(name, truncate) : name;
+  if (normalizedName) {
+    return truncate ? R.truncate(normalizedName, truncate) : normalizedName;
   }
 
   const participantNames = participantProfiles

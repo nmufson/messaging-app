@@ -11,6 +11,7 @@ import {
 import { TRPCError } from '@trpc/server';
 import { logger } from '../lib/pino';
 import { profileProcedure } from '../trpc';
+import * as R from 'remeda';
 
 export const actionRouter = router({
   updateInfo: profileProcedure
@@ -20,9 +21,17 @@ export const actionRouter = router({
       const { id, ...updatedFields } = input;
       const { user } = ctx;
       const profileId = user?.profile?.id;
+      const hasNameField = R.isTruthy(updatedFields.name);
+
+      const normalizedUpdatedFields = hasNameField
+        ? {
+            ...updatedFields,
+            name: updatedFields.name?.trim() ? updatedFields.name.trim() : null,
+          }
+        : updatedFields;
 
       logger.info(
-        { chatId: id, updatedFields, profileId },
+        { chatId: id, updatedFields: normalizedUpdatedFields, profileId },
         'Updating chat info'
       );
 
@@ -32,17 +41,19 @@ export const actionRouter = router({
 
       const updatedChat = await ctx.prisma.chat.update({
         where: { id },
-        data: updatedFields,
+        data: normalizedUpdatedFields,
         select: CHAT_INFO_SELECT,
       });
 
       // only one field will be updated at a time
-      const updatedField = updatedFields.name ? 'name' : 'groupPictureUrl';
+      const updatedField = hasNameField ? 'name' : 'groupPictureUrl';
       const actionType = CHAT_UPDATE_ACTIONS[updatedField];
 
       const actionData = {
         chatId: id,
         actionType,
+        content:
+          actionType === 'NAME_CHANGED' ? normalizedUpdatedFields.name : null,
         actorId: profileId,
       };
 
