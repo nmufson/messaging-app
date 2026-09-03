@@ -20,6 +20,7 @@ export interface BaseInputGroupProps {
   disabled?: boolean;
   placeholder?: string;
   helperText?: string;
+  limit?: number;
   as?: 'input' | 'textarea' | 'select';
 }
 
@@ -35,6 +36,7 @@ export function TextFieldGroup<T extends object>(
     placeholder,
     disabled = false,
     helperText,
+    limit,
     as,
     ...controllerProps
   } = props;
@@ -55,6 +57,7 @@ export function TextFieldGroup<T extends object>(
         {...field}
         as={as}
         type={as ? undefined : type}
+        maxLength={limit}
         placeholder={placeholder}
         disabled={disabled}
         isInvalid={!!error}

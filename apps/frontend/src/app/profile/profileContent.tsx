@@ -217,7 +217,7 @@ export function ProfileContent(props: ProfileContentProps) {
         </div>
 
         {/* content */}
-        <div className="px-4 pb-8 pt-20 sm:px-6 lg:px-8">
+        <div className="px-4 pb-8 pt-6 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center text-center">
             <h1 className="text-3xl text-brand-dark sm:text-4xl">
               {displayName}

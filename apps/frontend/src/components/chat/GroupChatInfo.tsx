@@ -19,7 +19,7 @@ import { TextFieldGroup } from '../FieldGroup';
 import { GroupPhoto } from '../GroupPhoto';
 import { ImageUpload } from '../ImageUpload';
 import LoadingSpinner from '../LoadingSpinner';
-import { Modal, ModalActions } from '../modal/Modal';
+import { Modal } from '../modal/Modal';
 import { ProfilePreview } from '../profile/ProfilePreview';
 import { Contacts } from '../Contacts';
 import { FullscreenModal } from '../modal/FullscreenModal';
@@ -152,6 +152,7 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
     const profile = participants.find(
       (p) => p.profile.id === profileId
     )?.profile;
+
     if (!profile) {
       console.error('Profile not found');
       return;
@@ -160,7 +161,7 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
     launchModal(
       <Modal header="Remove Member">
         <p>Remove {getProfileDisplayName(profile)} from the chat?</p>
-        <ModalActions>
+        <div className="flex gap-2 mt-4 justify-center">
           <CancelButton key="close" />
           <Button
             key="cancel-request"
@@ -178,7 +179,7 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
           >
             Remove
           </Button>
-        </ModalActions>
+        </div>
       </Modal>
     );
   };
@@ -214,7 +215,7 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
     closeModal(); // Close contacts modal
     launchModal(
       <Modal header={`Add ${displayName} to chat?`}>
-        <ModalActions>
+        <div className="flex gap-2 mt-4 justify-end">
           {/* TODO: abstract this further? */}
           <CancelButton key="close" />
           <Button
@@ -233,7 +234,7 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
           >
             Add
           </Button>
-        </ModalActions>
+        </div>
       </Modal>
     );
   };
@@ -244,7 +245,7 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
         <p className="text-sm text-gray-700">
           Are you sure you want to leave {displayName}?
         </p>
-        <ModalActions>
+        <div className="flex gap-2 mt-4 justify-end">
           <CancelButton key="close" />
           <Button
             key="leave-chat"
@@ -259,7 +260,7 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
           >
             Leave Chat
           </Button>
-        </ModalActions>
+        </div>
       </Modal>
     );
   };
@@ -275,12 +276,15 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
   };
 
   return (
-    <div className="group-chat-info-container relative flex flex-col gap-3">
+    <div className="group-chat-info-container relative flex flex-col gap-3 mt-1">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col items-center justify-center p-2 gap-2 position-relative"
+        className="chat-photo-name-form relative flex flex-col items-center justify-center gap-3 rounded-2xl border border-grey-150 bg-gradient-to-b from-white to-brand-accent p-4 shadow-sm md:p-5"
       >
-        <div onClick={handleLaunchPhotoModal}>
+        <div
+          onClick={handleLaunchPhotoModal}
+          className="rounded-full p-1 transition-colors hover:bg-brand-light"
+        >
           <GroupPhoto
             groupPictureUrl={groupPictureFormValue || groupPictureUrl}
             participantProfiles={participantProfiles}
@@ -289,26 +293,38 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
           />
         </div>
 
-        <div className="flex items-center justify-between gap-2 w-full">
-          <div></div>
+        <div className="flex w-full items-center justify-between gap-2 rounded-xl border border-grey-150 bg-white/80 px-3 py-2">
+          <div className="w-[40px]"></div>
           {editMode ? (
             <>
-              <TextFieldGroup type="text" name="name" control={control} />
+              <TextFieldGroup
+                type="text"
+                name="name"
+                control={control}
+                limit={50}
+              />
             </>
           ) : (
             <>
-              <h1 className="text-2xl text-center text-wrap">{displayName}</h1>
+              <h1 className="max-w-[60%] break-all text-center text-2xl text-brand-dark">
+                {displayName}
+              </h1>
             </>
           )}
+
           {editMode && isDisplayNameDirty ? (
-            <Button type="submit" disabled={isUpdatingChatInfo}>
-              <i className="bi bi-floppy" />
+            <Button
+              type="submit"
+              disabled={isUpdatingChatInfo}
+              className="self-start border-brand bg-brand text-white hover:bg-blue-700 h-[35px] w-[35px] flex items-center justify-center rounded-full"
+            >
+              <i className="bi bi-floppy text-sm" />
             </Button>
           ) : (
             <Button
               type="button"
               onClick={handleEditModeButtonClick}
-              className="w-30px py-1 px-3"
+              className="self-start border-grey-200 bg-white px-3 py-1 text-slate-700 hover:bg-grey-100 h-[35px] w-[35px] flex items-center justify-center rounded-full"
               aria-label={editMode ? 'Cancel edit' : 'Edit chat name'}
             >
               <i
@@ -321,9 +337,9 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
         </div>
       </form>
 
-      <div className="">
-        <h3 className="mb-3 text-lg font-semibold">Members</h3>
-        <div className="space-y-3">
+      <div className="members-container rounded-2xl border border-grey-150 bg-white/90 p-4 shadow-sm md:p-5">
+        <h3 className="mb-3 text-lg font-semibold text-brand-dark">Members</h3>
+        <div className="flex flex-col gap-3">
           {participants.map((p) => {
             if (p.profile.id === profile?.id) return;
             return (
@@ -332,11 +348,13 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
                 profile={p.profile}
                 showPresence={true}
                 onClick={() => handleProfilePreviewClick(p.profile.id)}
+                className="rounded-xl border-grey-150 bg-white/80 px-3 py-2 transition-colors hover:bg-grey-50"
                 rightContent={
                   <Button
                     type="button"
                     onClick={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
                       handleLaunchRemoveMemberModal(p.profile.id);
                     }}
                     className="opacity-100 cursor-pointer md:opacity-0 md:group-hover:opacity-100 md:transition-opacity text-red-500 hover:text-red-700 py-2 px-2"
@@ -349,18 +367,18 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
             );
           })}
 
-          <div className="flex flex-col gap-3 pt-2">
+          <div className="mt-1 flex flex-col gap-3 border-t border-grey-150 pt-4">
             <Button
               type="button"
               onClick={handleLaunchContactsModal}
-              className="bg-sky-600 text-white hover:bg-sky-700"
+              className="border-brand bg-brand text-white hover:bg-blue-700"
             >
               Add Member
             </Button>
             <Button
               type="button"
               onClick={handleLaunchLeaveChatModal}
-              className="bg-red-500 text-white hover:bg-red-600"
+              className="border-red-500 bg-red-500 text-white hover:bg-red-600"
             >
               Leave Chat
             </Button>

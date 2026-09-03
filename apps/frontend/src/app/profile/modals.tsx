@@ -3,7 +3,7 @@ import { Button, CancelButton } from '@/components/button/button';
 import { TextFieldGroup } from '@/components/FieldGroup';
 import { ImageUpload } from '@/components/ImageUpload';
 import { FullscreenModal } from '@/components/modal/FullscreenModal';
-import { Modal, ModalActions } from '@/components/modal/Modal';
+import { Modal } from '@/components/modal/Modal';
 import { useModalContext } from '@/context/ModalContext';
 import { useToast } from '@/context/Toast/ToastContext';
 import { useTRPC } from '@/lib/trpc';
@@ -153,8 +153,8 @@ export function CancelRequestModal({
   return (
     <Modal header="Cancel Request?">
       <p>Click to cancel friend request.</p>
-      <ModalActions>
-        <CancelButton key="close" />,
+      <div className="flex gap-2 mt-4 justify-end">
+        <CancelButton key="close" />
         <Button
           key="cancel-request"
           onClick={onCancelRequest}
@@ -162,7 +162,7 @@ export function CancelRequestModal({
         >
           Cancel Friend Request
         </Button>
-      </ModalActions>
+      </div>
     </Modal>
   );
 }
@@ -177,7 +177,7 @@ export function RemoveFriendModal({
   return (
     <Modal header="Remove Friend?">
       <p>This person will be removed from your friends list.</p>
-      <ModalActions>
+      <div className="flex gap-2 mt-4 justify-end">
         <CancelButton key="close" />
         <Button
           key="remove-friend"
@@ -186,7 +186,7 @@ export function RemoveFriendModal({
         >
           Remove Friend
         </Button>
-      </ModalActions>
+      </div>
     </Modal>
   );
 }
