@@ -1,5 +1,6 @@
 import { SelectedProfile } from '@/types/profile';
 
+import { BackButton } from '@/components/button/BackButton';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
 import { useChat } from '@/hooks/chat';
@@ -9,7 +10,6 @@ import { getChatDisplayName } from '@/utils';
 import { getParticipantProfiles } from '@/utils/general';
 import { useNavigation } from '@/utils/Navigation';
 import { BaseProfileDTO, ChatInfoDTO, ChatType, ObjectId } from '@repo/common';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   FormEvent,
@@ -339,9 +339,7 @@ export function ChatContent(props: ChatContentProps) {
     <div className={`flex flex-col overflow-hidden ${containerClass}`}>
       {!isComposeMessageView && (
         <div className="header-container pt-2 pb-0 px-4 border-b bg-gray-50 flex justify-between items-center gap-2 flex-shrink-0 max-w-full">
-          <Link href="/chats" className="no-underline text-inherit">
-            <i className="bi bi-caret-left-fill text-3xl" />
-          </Link>
+          <BackButton href="/chats" iconClassName="text-3xl" />
 
           <div className="flex flex-col items-center justify-center">
             <ChatPhoto

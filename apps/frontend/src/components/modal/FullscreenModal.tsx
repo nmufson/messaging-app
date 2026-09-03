@@ -1,3 +1,4 @@
+import { BackButton } from '@/components/button/BackButton';
 import { useModalContext } from '@/context/ModalContext';
 import { ReactNode } from 'react';
 
@@ -18,12 +19,11 @@ export function FullscreenModal(props: FullscreenModalProps) {
     <div className="full-screen-modal fixed bottom-0 z-50 bg-white overflow-y-auto flex flex-col w-full h-100/100">
       {showHeader && (
         <div className="flex items-center gap-3 p-4 border-b border-gray-200 flex-shrink-0">
-          <button
+          <BackButton
             onClick={closeModal}
-            className="flex items-center gap-2 hover:bg-gray-100 rounded p-1 transition-colors"
-          >
-            <i className="bi bi-caret-left-fill text-xl" />
-          </button>
+            className="h-10 w-10 border-gray-200 bg-white text-slate-700 shadow-none hover:bg-gray-100"
+            iconClassName="text-xl"
+          />
           {header && <p className="font-bold text-2xl">{header}</p>}
         </div>
       )}

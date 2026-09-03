@@ -1,4 +1,5 @@
 'use client';
+import { BackButton } from '@/components/button/BackButton';
 import { Button } from '@/components/button/button';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
@@ -13,7 +14,6 @@ import {
   RelationshipToViewer,
 } from '@repo/common';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import Link from 'next/link';
 import { useState } from 'react';
 import { ComposeMessageModal } from '../chats/ComposeMessageModal';
 import {
@@ -199,12 +199,12 @@ export function ProfileContent(props: ProfileContentProps) {
         {/* header */}
         <div className="relative h-52 w-full sm:h-60">
           {showBackButton && (
-            <Link
-              href="/chats"
-              className="absolute left-4 top-4 z-10 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/50 bg-white/90 text-slate-800 no-underline shadow-sm transition hover:bg-white"
-            >
-              <i className="bi bi-caret-left-fill text-2xl" />
-            </Link>
+            <div className="absolute left-4 top-4 z-10">
+              <BackButton
+                href="/chats"
+                className="border-white/50 bg-white/90 text-slate-800 shadow-sm hover:bg-white"
+              />
+            </div>
           )}
           <ProfileHeader headerUrl={headerUrl} />
           <div className="absolute left-1/2 top-[78%] z-10 -translate-x-1/2 -translate-y-1/2">
@@ -360,28 +360,30 @@ function OtherProfileButtons(props: OtherProfileButtonsProps) {
   }
 
   return (
-    <div className="other-profile-buttons flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
-      <Button
-        onClick={handleActionClick}
-        className={`${isFriend || hasPendingOutgoing ? 'bg-slate-400' : 'bg-brand'} h-11 rounded-xl px-5 font-semibold text-white shadow-sm shadow-brand/20 transition hover:bg-blue-600`}
-      >
-        {actionLabel}
-      </Button>
+    <div className="other-profile-buttons relative flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
+      <div className="relative w-full sm:w-44">
+        <Button
+          onClick={handleActionClick}
+          className={`${isFriend || hasPendingOutgoing ? 'bg-slate-400' : 'bg-brand'} h-11 w-full rounded-xl px-5 font-semibold text-white shadow-sm shadow-brand/20 transition hover:bg-blue-600`}
+        >
+          {actionLabel}
+        </Button>
 
-      {isFriend && isFriendMenuOpen && (
-        <div className="absolute z-20 mt-2 min-w-[170px] rounded-2xl border border-slate-200 bg-white p-1 shadow-[0_14px_40px_rgba(15,23,42,0.12)]">
-          <button
-            type="button"
-            onClick={() => {
-              setIsFriendMenuOpen(false);
-              onRemoveFriend();
-            }}
-            className="block w-full rounded-xl px-4 py-2 text-left text-sm text-red-600 transition hover:bg-red-50"
-          >
-            Remove Friend
-          </button>
-        </div>
-      )}
+        {isFriend && isFriendMenuOpen && (
+          <div className="absolute left-0 top-full z-20 mt-1 w-full rounded-2xl border border-slate-200 bg-white shadow-[0_14px_40px_rgba(15,23,42,0.12)]">
+            <button
+              type="button"
+              onClick={() => {
+                setIsFriendMenuOpen(false);
+                onRemoveFriend();
+              }}
+              className="block w-full rounded-xl px-4 py-4 text-center text-sm text-red-600 transition hover:bg-red-50"
+            >
+              Remove Friend
+            </button>
+          </div>
+        )}
+      </div>
 
       {isFriend && (
         <Button

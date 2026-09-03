@@ -163,7 +163,7 @@ export function getFriendsOnlineSummary(
   if (numOnline > 0) {
     return {
       dotColor: PRESENCE_COLORS.online,
-      message: `${numOnline} online`,
+      message: `${numOnline} friends online`,
     };
   }
 
@@ -176,7 +176,7 @@ export function getFriendsOnlineSummary(
 
   return {
     dotColor: PRESENCE_COLORS.offline,
-    message: 'None online',
+    message: 'No friends online',
   };
 }
 

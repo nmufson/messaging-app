@@ -1,14 +1,11 @@
 'use client';
+import { BackButton } from '@/components/button/BackButton';
 import { ProfilePreview } from '@/components/profile/ProfilePreview';
 import { SearchInput } from '@/components/SearchInput';
-import { useAuth } from '@/context/AuthContext';
 import { useNavigation } from '@/utils/Navigation';
-import { useFriendRequest } from '@/hooks/friendRequest';
 import { useInput } from '@/hooks/general';
 import { useTRPC } from '@/lib/trpc';
-import { ObjectId } from '@repo/common';
 import { skipToken, useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
 import { Spinner } from 'react-bootstrap';
 
 export default function FindFriends() {
@@ -30,12 +27,7 @@ export default function FindFriends() {
     <div className="min-h-screen bg-brand-accent px-3 py-3 sm:px-4 lg:px-6">
       <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white/85 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-sm">
         <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4 sm:px-5">
-          <Link
-            href="/chats"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 no-underline transition hover:border-slate-300 hover:bg-slate-50"
-          >
-            <i className="bi bi-caret-left-fill text-2xl" />
-          </Link>
+          <BackButton href="/chats" />
           <div className="text-center">
             <h1 className="m-0 text-2xl font-semibold tracking-tight text-slate-900">
               Find Friends
@@ -74,12 +66,13 @@ export default function FindFriends() {
               <p>Something went wrong. Please try again.</p>
             </div>
           ) : nonFriends && nonFriends.length > 0 ? (
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {nonFriends.map((profile) => (
                 <li key={profile.id}>
                   <ProfilePreview
                     profile={profile}
                     showPresence
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm transition hover:border-brand-light hover:bg-brand-neutral"
                     onClick={() => navigateToProfile(profile.id)}
                   />
                 </li>

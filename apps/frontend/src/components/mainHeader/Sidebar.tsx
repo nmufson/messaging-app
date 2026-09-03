@@ -71,7 +71,7 @@ export function Sidebar(props: SidebarProps) {
                 <FriendRequests />
               </li>
 
-              <li>
+              <li className="contacts">
                 <Link
                   href="/contacts"
                   className="flex items-center gap-3 rounded-2xl px-3 py-3 text-slate-700 no-underline transition hover:bg-brand-neutral hover:text-slate-900"
@@ -86,22 +86,26 @@ export function Sidebar(props: SidebarProps) {
                 </Link>
               </li>
 
-              <li>
+              <li className="find-friends">
                 <Link
                   href="/find-friends"
                   className="flex items-center gap-3 rounded-2xl px-3 py-3 text-slate-700 no-underline transition hover:bg-brand-neutral hover:text-slate-900"
                 >
-                  <i className="bi bi-person-plus-fill text-lg text-brand" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+                    <i className="bi bi-person-plus-fill text-lg text-brand" />
+                  </div>
                   <span className="font-medium">Find Friends</span>
                 </Link>
               </li>
 
-              <li>
+              <li className="profile">
                 <Link
                   href={profileLink}
                   className="flex items-center gap-3 rounded-2xl px-3 py-3 text-slate-700 no-underline transition hover:bg-brand-neutral hover:text-slate-900"
                 >
-                  <i className="bi bi-person-circle text-lg text-brand" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+                    <i className="bi bi-person-circle text-lg text-brand" />
+                  </div>
                   <span className="font-medium">Profile</span>
                 </Link>
               </li>
