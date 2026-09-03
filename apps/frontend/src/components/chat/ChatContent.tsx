@@ -350,10 +350,10 @@ export function ChatContent(props: ChatContentProps) {
               chatType={type}
               chat={chat}
               otherParticipantProfiles={otherParticipantProfiles}
-              size={40}
+              size={80}
             />
 
-            <h1 className="text-lg font-semibold text-center leading-tight mt-3 mb-1">
+            <h1 className="text-lg font-semibold text-center leading-tight my-1">
               {displayName}
             </h1>
             {/* TODO: clean this up */}

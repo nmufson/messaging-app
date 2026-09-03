@@ -152,7 +152,7 @@ export function ComposeMessageModal(props: ComposeMessageModalProps) {
           </form>
 
           {shouldShowSearchResults && (
-            <div className="max-h-[45vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
+            <div className="overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-xl">
               {groupChats.length > 0 && (
                 <div className="flex flex-col gap-1">
                   <div>

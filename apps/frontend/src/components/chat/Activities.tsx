@@ -1,5 +1,6 @@
 import { ActionBubble } from '@/app/chat/[slug]/ActionBubble';
 import { MessageBubble } from '@/app/chat/[slug]/MessageBubble';
+import { useAuth } from '@/context/AuthContext';
 import { ChatActivityDTO, ObjectId } from '@repo/common';
 import * as _ from 'lodash';
 import { RefObject, useMemo } from 'react';
@@ -26,6 +27,7 @@ export function Activities(props: ActivitiesProps) {
     hasNextPage,
     isFetchingNextPage,
   } = props;
+  const { profile } = useAuth();
 
   const handleScroll = useMemo(
     () =>
@@ -59,6 +61,11 @@ export function Activities(props: ActivitiesProps) {
           };
 
           const { shouldShowName, shouldShowAvatar } = (() => {
+            const isCurrentUser = profile?.id === messageWithSender.sender.id;
+            if (isCurrentUser) {
+              return { shouldShowName: false, shouldShowAvatar: false };
+            }
+
             let shouldShowName = true;
             let shouldShowAvatar = true;
 

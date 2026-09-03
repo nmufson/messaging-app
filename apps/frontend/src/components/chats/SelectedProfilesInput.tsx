@@ -100,6 +100,7 @@ export function SelectedProfilesInput(props: SelectedProfilesInputProps) {
         className="px-2 py-1 border-none focus:outline-none flex-1 w-0 min-w-[40px]"
         ref={inputRef}
         onKeyDown={handleInputKeyDown}
+        autoComplete="off"
       />
     </div>
   );

@@ -87,7 +87,7 @@ export function SearchModal() {
           Cancel
         </button>
       </div>
-      <div className="grid max-h-[230px] grid-cols-3 gap-3 overflow-y-hidden border-b border-slate-200 py-2 mb-4">
+      <div className="grid max-h-[270px] grid-cols-3 gap-3 overflow-y-hidden border-b border-slate-200 py-2 mb-4">
         {combinedList.slice(0, 6).map((item) => {
           const parsedChat = ChatListItemDTO.safeParse(item);
           const parsedProfile = BaseProfileDTO.safeParse(item);
@@ -292,6 +292,7 @@ function GroupChatSearchItem(props: GroupChatSearchItemProps) {
       <GroupPhoto
         groupPictureUrl={groupChat.groupPictureUrl}
         participantProfiles={participantProfiles}
+        size={60}
       />
     </SearchListItem>
   );

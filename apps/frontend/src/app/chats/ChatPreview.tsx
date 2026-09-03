@@ -59,10 +59,18 @@ export function ChatPreview({ chat }: { chat: ChatDTO }) {
       className="block transition-colors hover:bg-brand-light/25"
     >
       <div className="chat-preview-container flex cursor-pointer items-center px-3 py-3 sm:px-4">
-        <div className="mr-3 flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-slate-200 ring-2 ring-white">
-          {displayPicture}
+        <div className="mr-3 flex max-w-[50px] items-center justify-center overflow-hidden rounded-full bg-slate-200 ring-2 ring-white">
+          {isGroupChat ? (
+            <GroupPhoto
+              groupPictureUrl={groupPictureUrl}
+              participantProfiles={participantProfiles}
+              size={50}
+            />
+          ) : (
+            <ProfileAvatar profile={otherParticipantProfile} />
+          )}
         </div>
-        <div className="flex w-full flex-col">
+        <div className="flex flex-col grow">
           <div className="flex items-center justify-between gap-3">
             <h6 className="text-sm font-semibold text-slate-900">
               {formattedDisplayName}
