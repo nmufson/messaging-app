@@ -38,11 +38,18 @@ export type LogInUserInput = z.infer<typeof LogInUserInput>;
 export const UserRole = z.enum(['USER', 'ADMIN']);
 export type UserRole = z.infer<typeof UserRole>;
 
+const AvatarUrlSchema = z.union([
+  z.url(),
+  z
+    .string()
+    .regex(/^\/[^\s]*$/, 'Must be an absolute URL or root-relative path'),
+]);
+
 export const AuthProfileDTO = z.object({
   id: ObjectId,
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
-  avatarUrl: z.url().nullable(),
+  avatarUrl: AvatarUrlSchema.nullable(),
 });
 
 export const AuthUserDTO = z.object({

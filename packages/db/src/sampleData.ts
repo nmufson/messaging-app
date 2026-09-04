@@ -6,7 +6,73 @@ import {
 } from '@prisma/client';
 import { randomUUID } from 'crypto';
 
-const PROFILE_PIC_URL = 'https://mdbcdn.b-cdn.net/img/new/avatars/2.webp';
+const SEED_ASSET_BASE_PATH = '/seed';
+
+function seedAssetPath(params: string[]): string {
+  return `${SEED_ASSET_BASE_PATH}/${params.join('/')}`;
+}
+
+const SEED_ASSETS = {
+  avatars: {
+    avatar0: seedAssetPath(['avatars', 'avatar-0.jpeg']),
+    avatar1: seedAssetPath(['avatars', 'avatar-1.avif']),
+    avatar3: seedAssetPath(['avatars', 'avatar-3.avif']),
+    portrait: seedAssetPath([
+      'avatars',
+      '360_F_1274137375_hetXwsOEVXNlvvkfeQ0Uv1M08isDihw0.jpg',
+    ]),
+    cartoon: seedAssetPath([
+      'avatars',
+      '3d-cartoon-style-character_23-2151033973.avif',
+    ]),
+    sideProfile: seedAssetPath([
+      'avatars',
+      'hand-drawn-side-profile-cartoon-illustration_23-2150503821.avif',
+    ]),
+    alt1: seedAssetPath(['avatars', 'images(1).jpeg']),
+    alt2: seedAssetPath(['avatars', 'images(2).jpeg']),
+    alt3: seedAssetPath(['avatars', 'images.jpeg']),
+  },
+  headers: {
+    cooking: seedAssetPath(['headers', 'images.jpeg']),
+    hiking: seedAssetPath(['headers', 'images(1).jpeg']),
+    running: seedAssetPath(['headers', 'images(2).jpeg']),
+    general: seedAssetPath(['headers', 'images(3).jpeg']),
+    abstract: seedAssetPath([
+      'headers',
+      'awesome-cool-art-banner-background-v_1522721jpg!bw700.jpeg',
+    ]),
+  },
+  photoMessages: {
+    cooking: [
+      seedAssetPath(['photo-messages', 'cooking0.jpg']),
+      seedAssetPath(['photo-messages', 'cooking1.jpg']),
+      seedAssetPath(['photo-messages', 'cookin2.jpg']),
+    ],
+    hiking: [
+      seedAssetPath(['photo-messages', 'hiking0.jpg']),
+      seedAssetPath(['photo-messages', 'hiking1.jpg']),
+      seedAssetPath(['photo-messages', 'hiking2.jpg']),
+    ],
+    running: [
+      seedAssetPath(['photo-messages', 'running0.jpeg']),
+      seedAssetPath(['photo-messages', 'running1.jpg']),
+    ],
+  },
+  groupChatPhotos: {
+    cooking: seedAssetPath(['group-chat-photos', 'cooking-group.jpg']),
+    hiking: seedAssetPath(['group-chat-photos', 'hiking-group.jpg']),
+    running: seedAssetPath(['group-chat-photos', 'running-group.jpg']),
+    teamHands: seedAssetPath([
+      'group-chat-photos',
+      'istockphoto-1368965646-612x612.jpg',
+    ]),
+    social: seedAssetPath([
+      'group-chat-photos',
+      '360_F_569818893_ph01fzGNwgIBf0pzcwyJ3IwsRzQTpmpN.jpg',
+    ]),
+  },
+} as const;
 
 // Helper to create random dates within the last 2 months
 const BASE_DATE = new Date('2025-12-14T12:00:00Z');
@@ -60,6 +126,57 @@ const profileIds = {
   grace: randomUUID(),
   harper: randomUUID(),
 };
+
+type ProfileSeedKey = keyof typeof profileIds;
+type ProfileMedia = { avatarUrl?: string; headerUrl?: string };
+interface ProfileSeed extends ProfileMedia {
+  id: string;
+  firstName: string;
+  lastName: string;
+  userId: string;
+  friends: string[];
+  title?: string;
+  bio?: string;
+}
+
+const PROFILE_MEDIA_BY_KEY: Partial<Record<ProfileSeedKey, ProfileMedia>> = {
+  alice: {
+    avatarUrl: SEED_ASSETS.avatars.avatar0,
+    headerUrl: SEED_ASSETS.headers.cooking,
+  },
+  bob: {
+    avatarUrl: SEED_ASSETS.avatars.avatar1,
+  },
+  charlie: {
+    avatarUrl: SEED_ASSETS.avatars.sideProfile,
+    headerUrl: SEED_ASSETS.headers.hiking,
+  },
+  diana: {
+    avatarUrl: SEED_ASSETS.avatars.portrait,
+    headerUrl: SEED_ASSETS.headers.running,
+  },
+  nick: {
+    avatarUrl: SEED_ASSETS.avatars.alt2,
+    headerUrl: SEED_ASSETS.headers.general,
+  },
+  emma: {
+    avatarUrl: SEED_ASSETS.avatars.cartoon,
+    headerUrl: SEED_ASSETS.headers.abstract,
+  },
+  sophia: {
+    avatarUrl: SEED_ASSETS.avatars.alt1,
+  },
+  liam: {
+    avatarUrl: SEED_ASSETS.avatars.avatar3,
+  },
+  harper: {
+    avatarUrl: SEED_ASSETS.avatars.alt3,
+  },
+};
+
+function getProfileMedia(profileKey: ProfileSeedKey): ProfileMedia {
+  return PROFILE_MEDIA_BY_KEY[profileKey] ?? {};
+}
 
 const friendRequestIds = {
   request1: randomUUID(),
@@ -185,12 +302,12 @@ export const usersData = [
   },
 ];
 
-export const profilesData = [
+export const profilesData: ProfileSeed[] = [
   {
     id: profileIds.alice,
     firstName: 'Alice',
     lastName: 'Smith',
-    avatarUrl: PROFILE_PIC_URL,
+    ...getProfileMedia('alice'),
     userId: userIds.alice,
     friends: [profileIds.bob, profileIds.charlie, profileIds.nick],
     title: 'Software Engineer',
@@ -200,7 +317,7 @@ export const profilesData = [
     id: profileIds.bob,
     firstName: 'Bob',
     lastName: 'Jones',
-    avatarUrl: PROFILE_PIC_URL,
+    ...getProfileMedia('bob'),
     userId: userIds.bob,
     friends: [profileIds.alice, profileIds.diana, profileIds.nick],
   },
@@ -208,7 +325,7 @@ export const profilesData = [
     id: profileIds.charlie,
     firstName: 'Charlie',
     lastName: 'Brown',
-    avatarUrl: PROFILE_PIC_URL,
+    ...getProfileMedia('charlie'),
     userId: userIds.charlie,
     friends: [profileIds.alice, profileIds.diana],
   },
@@ -216,7 +333,7 @@ export const profilesData = [
     id: profileIds.diana,
     firstName: 'Diana',
     lastName: 'Prince',
-    avatarUrl: PROFILE_PIC_URL,
+    ...getProfileMedia('diana'),
     userId: userIds.diana,
     friends: [profileIds.bob, profileIds.charlie],
   },
@@ -224,7 +341,7 @@ export const profilesData = [
     id: profileIds.nick,
     firstName: 'Nick',
     lastName: 'Mufson',
-    avatarUrl: PROFILE_PIC_URL,
+    ...getProfileMedia('nick'),
     userId: userIds.nick,
     friends: [
       profileIds.alice,
@@ -243,7 +360,7 @@ export const profilesData = [
     id: profileIds.emma,
     firstName: 'Emma',
     lastName: 'Johnson',
-    avatarUrl: PROFILE_PIC_URL,
+    ...getProfileMedia('emma'),
     userId: userIds.emma,
     friends: [profileIds.nick],
     title: 'UI/UX Designer',
@@ -253,7 +370,6 @@ export const profilesData = [
     id: profileIds.oliver,
     firstName: 'Oliver',
     lastName: 'Williams',
-    avatarUrl: PROFILE_PIC_URL,
     userId: userIds.oliver,
     friends: [profileIds.nick],
     title: 'DevOps Engineer',
@@ -263,7 +379,7 @@ export const profilesData = [
     id: profileIds.sophia,
     firstName: 'Sophia',
     lastName: 'Martinez',
-    avatarUrl: PROFILE_PIC_URL,
+    ...getProfileMedia('sophia'),
     userId: userIds.sophia,
     friends: [profileIds.nick],
     title: 'Data Scientist',
@@ -273,7 +389,7 @@ export const profilesData = [
     id: profileIds.liam,
     firstName: 'Liam',
     lastName: 'Davis',
-    avatarUrl: PROFILE_PIC_URL,
+    ...getProfileMedia('liam'),
     userId: userIds.liam,
     friends: [profileIds.nick],
   },
@@ -281,7 +397,6 @@ export const profilesData = [
     id: profileIds.ava,
     firstName: 'Ava',
     lastName: 'Garcia',
-    avatarUrl: PROFILE_PIC_URL,
     userId: userIds.ava,
     friends: [profileIds.nick],
   },
@@ -289,7 +404,6 @@ export const profilesData = [
     id: profileIds.mia,
     firstName: 'Mia',
     lastName: 'Rodriguez',
-    avatarUrl: PROFILE_PIC_URL,
     userId: userIds.mia,
     friends: [profileIds.nick],
   },
@@ -297,7 +411,6 @@ export const profilesData = [
     id: profileIds.noah,
     firstName: 'Noah',
     lastName: 'Lee',
-    avatarUrl: PROFILE_PIC_URL,
     userId: userIds.noah,
     friends: [profileIds.nick],
   },
@@ -305,7 +418,6 @@ export const profilesData = [
     id: profileIds.lucas,
     firstName: 'Lucas',
     lastName: 'Walker',
-    avatarUrl: PROFILE_PIC_URL,
     userId: userIds.lucas,
     friends: [profileIds.nick],
   },
@@ -313,7 +425,6 @@ export const profilesData = [
     id: profileIds.elijah,
     firstName: 'Elijah',
     lastName: 'Hall',
-    avatarUrl: PROFILE_PIC_URL,
     userId: userIds.elijah,
     friends: [],
   },
@@ -321,7 +432,6 @@ export const profilesData = [
     id: profileIds.grace,
     firstName: 'Grace',
     lastName: 'Allen',
-    avatarUrl: PROFILE_PIC_URL,
     userId: userIds.grace,
     friends: [],
   },
@@ -329,7 +439,7 @@ export const profilesData = [
     id: profileIds.harper,
     firstName: 'Harper',
     lastName: 'Young',
-    avatarUrl: PROFILE_PIC_URL,
+    ...getProfileMedia('harper'),
     userId: userIds.harper,
     friends: [],
   },
@@ -371,25 +481,23 @@ export const friendRequestsData = [
 const rawChatsData = [
   {
     id: chatIds.ketchupStains,
-    name: 'Ketchup Stains',
+    name: 'Kitchen Crew',
     creatorId: profileIds.alice,
     type: ChatType.GROUP,
     participantIds: [profileIds.alice, profileIds.bob, profileIds.nick],
-    groupPictureUrl:
-      'https://t3.ftcdn.net/jpg/04/79/93/20/360_F_479932092_BmeQGwL1ljKI368UJVlIwczA8MtjbBnj.jpg',
+    groupPictureUrl: SEED_ASSETS.groupChatPhotos.cooking,
   },
   {
     id: chatIds.coolestKats,
-    name: 'The Coolest Kats',
+    name: 'Weekend Hikers',
     creatorId: profileIds.charlie,
     type: ChatType.GROUP,
     participantIds: [profileIds.charlie, profileIds.diana, profileIds.nick],
-    groupPictureUrl:
-      'https://media.istockphoto.com/id/1322842973/photo/diverse-business-people-putting-their-hands-together-in-cirle.jpg?s=612x612&w=0&k=20&c=9BAYCv8tAsgYPQdTsFxLzLJsmt6tGYE5Etwd63OccxQ=',
+    groupPictureUrl: SEED_ASSETS.groupChatPhotos.hiking,
   },
   {
     id: chatIds.groupChat1,
-    name: 'GROUP CHAT 1',
+    name: 'Sunrise Runners',
     creatorId: profileIds.charlie,
     type: ChatType.GROUP,
     participantIds: [
@@ -399,9 +507,11 @@ const rawChatsData = [
       profileIds.bob,
       profileIds.nick,
     ],
+    groupPictureUrl: SEED_ASSETS.groupChatPhotos.running,
   },
   {
     id: chatIds.bigGroup2,
+    name: 'General Hangout',
     creatorId: profileIds.charlie,
     type: ChatType.GROUP,
     participantIds: [
@@ -411,18 +521,21 @@ const rawChatsData = [
       profileIds.nick,
       profileIds.bob,
     ],
+    groupPictureUrl: SEED_ASSETS.groupChatPhotos.teamHands,
   },
   {
     id: chatIds.directChat1,
     creatorId: profileIds.nick,
     type: ChatType.DIRECT,
     participantIds: [profileIds.alice, profileIds.nick],
+    groupPictureUrl: SEED_ASSETS.groupChatPhotos.social,
   },
   {
     id: chatIds.directChat2,
     creatorId: profileIds.alice,
     type: ChatType.DIRECT,
     participantIds: [profileIds.charlie, profileIds.nick],
+    groupPictureUrl: SEED_ASSETS.headers.abstract,
   },
 ];
 
@@ -432,766 +545,201 @@ export const chatsData = rawChatsData.map((chat) => ({
 }));
 
 const rawMessagesData = [
-  // Ketchup Stains chat
+  // Direct chats
   {
     id: randomUUID(),
     type: MessageType.TEXT,
-    content: 'Hey Nick!',
+    content: 'Hey Nick, did the lasagna photos upload on your end?',
     senderId: profileIds.alice,
     chatId: chatIds.directChat1,
   },
   {
     id: randomUUID(),
     type: MessageType.TEXT,
-    content: 'Hey Charlie!',
+    content: 'Yep, they are looking great in the app preview.',
+    senderId: profileIds.nick,
+    chatId: chatIds.directChat1,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'Hey Charlie, can you share the route GPX from last weekend?',
     senderId: profileIds.nick,
     chatId: chatIds.directChat2,
   },
   {
     id: randomUUID(),
     type: MessageType.TEXT,
-    content: 'Hey Bob!',
+    content: 'Sure, I will send it after dinner.',
+    senderId: profileIds.charlie,
+    chatId: chatIds.directChat2,
+  },
+
+  // Cooking chat
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'Kitchen Crew recipe night starts at 7, who is cooking what?',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
   },
   {
     id: randomUUID(),
-    type: MessageType.IMAGE,
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.IMAGE,
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg',
+    type: MessageType.TEXT,
+    content: 'I will handle pasta and garlic bread.',
     senderId: profileIds.bob,
-    chatId: chatIds.bigGroup2,
+    chatId: chatIds.ketchupStains,
   },
   {
     id: randomUUID(),
     type: MessageType.IMAGE,
-    imageUrl:
-      'https://plus.unsplash.com/premium_photo-1673967831980-1d377baaded2?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2F0c3xlbnwwfHwwfHx8MA%3D%3D',
+    imageUrl: SEED_ASSETS.photoMessages.cooking[0],
+    senderId: profileIds.alice,
+    chatId: chatIds.ketchupStains,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'That plating looks clean. Save me a portion please.',
+    senderId: profileIds.nick,
+    chatId: chatIds.ketchupStains,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.IMAGE,
+    imageUrl: SEED_ASSETS.photoMessages.cooking[1],
+    senderId: profileIds.bob,
+    chatId: chatIds.ketchupStains,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'Perfect. I am trying this with a spicier sauce next week.',
+    senderId: profileIds.alice,
+    chatId: chatIds.ketchupStains,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.IMAGE,
+    imageUrl: SEED_ASSETS.photoMessages.cooking[2],
+    senderId: profileIds.nick,
+    chatId: chatIds.ketchupStains,
+  },
+
+  // Hiking chat
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'Weekend Hikers, weather looks perfect for Saturday.',
+    senderId: profileIds.charlie,
+    chatId: chatIds.coolestKats,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'Lets do the ridge trail and start early.',
+    senderId: profileIds.diana,
+    chatId: chatIds.coolestKats,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.IMAGE,
+    imageUrl: SEED_ASSETS.photoMessages.hiking[0],
+    senderId: profileIds.charlie,
+    chatId: chatIds.coolestKats,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'Trailhead parking was full by 8 last time.',
     senderId: profileIds.nick,
     chatId: chatIds.coolestKats,
   },
   {
     id: randomUUID(),
     type: MessageType.IMAGE,
-    imageUrl:
-      'https://plus.unsplash.com/premium_photo-1673967831980-1d377baaded2?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2F0c3xlbnwwfHwwfHx8MA%3D%3D',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'How are you doing today?',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Did you see the game last night?',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Hey Alice! How are you?',
-    senderId: profileIds.bob,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Doing well, just had lunch.',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Nice! What did you eat?',
-    senderId: profileIds.bob,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Sandwich with way too much ketchup.',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'And a side of fries!',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Classic Alice move 😂',
-    senderId: profileIds.bob,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'You know me!',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: "Let's hang out later?",
-    senderId: profileIds.bob,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Sure! 5pm at the park?',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'See you there!',
-    senderId: profileIds.bob,
-    chatId: chatIds.ketchupStains,
-  },
-
-  // Coolest Kats chat
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Hey Diana, did you finish the project?',
-    senderId: profileIds.charlie,
-    chatId: chatIds.coolestKats,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'I was working on it all night.',
-    senderId: profileIds.charlie,
-    chatId: chatIds.coolestKats,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Almost! Just need to add the final touches.',
+    imageUrl: SEED_ASSETS.photoMessages.hiking[1],
     senderId: profileIds.diana,
     chatId: chatIds.coolestKats,
   },
   {
     id: randomUUID(),
     type: MessageType.TEXT,
-    content: 'Let me know if you need help.',
+    content: 'Lets bring extra water, that climb is no joke.',
     senderId: profileIds.charlie,
     chatId: chatIds.coolestKats,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: "Thanks, Charlie! You're the best.",
-    senderId: profileIds.diana,
-    chatId: chatIds.coolestKats,
-  },
-
-  // Group Chat 1
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Hey everyone!',
-    senderId: profileIds.charlie,
-    chatId: chatIds.groupChat1,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Hi Charlie!',
-    senderId: profileIds.bob,
-    chatId: chatIds.groupChat1,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Whats up?',
-    senderId: profileIds.alice,
-    chatId: chatIds.groupChat1,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Ready for the game tonight?',
-    senderId: profileIds.diana,
-    chatId: chatIds.groupChat1,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Absolutely! Go team!',
-    senderId: profileIds.charlie,
-    chatId: chatIds.groupChat1,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: "Let's win this!",
-    senderId: profileIds.charlie,
-    chatId: chatIds.groupChat1,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'We got this!',
-    senderId: profileIds.charlie,
-    chatId: chatIds.groupChat1,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: "Let's win this!",
-    senderId: profileIds.bob,
-    chatId: chatIds.groupChat1,
-  },
-
-  // Big Group 2
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Morning all!',
-    senderId: profileIds.diana,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Good morning!',
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Anyone up for coffee?',
-    senderId: profileIds.charlie,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Always!',
-    senderId: profileIds.diana,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Count me in ☕',
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-
-  // ...more messages for realism...
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Hello Diana!',
-    senderId: profileIds.charlie,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'How was your weekend?',
-    senderId: profileIds.diana,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Pretty good! Went hiking.',
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Nice! Where to?',
-    senderId: profileIds.charlie,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Bear Mountain.',
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: "That's awesome!",
-    senderId: profileIds.diana,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'We should all go next time.',
-    senderId: profileIds.charlie,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: "I'm in!",
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Me too!',
-    senderId: profileIds.diana,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: "What's everyone doing for lunch?",
-    senderId: profileIds.charlie,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Ordering pizza.',
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Save me a slice!',
-    senderId: profileIds.diana,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Of course!',
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Anyone want to play chess later?',
-    senderId: profileIds.charlie,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: "I'm game!",
-    senderId: profileIds.diana,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: "Let's do it!",
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'See you all soon!',
-    senderId: profileIds.charlie,
-    chatId: chatIds.bigGroup2,
-  },
-
-  {
-    id: randomUUID(),
-    type: MessageType.IMAGE,
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
   },
   {
     id: randomUUID(),
     type: MessageType.IMAGE,
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg',
-    senderId: profileIds.bob,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.IMAGE,
-    imageUrl:
-      'https://plus.unsplash.com/premium_photo-1673967831980-1d377baaded2?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2F0c3xlbnwwfHwwfHx8MA%3D%3D',
+    imageUrl: SEED_ASSETS.photoMessages.hiking[2],
     senderId: profileIds.nick,
     chatId: chatIds.coolestKats,
   },
+
+  // Running chat
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'Sunrise Runners check-in: easy 5k or interval session tomorrow?',
+    senderId: profileIds.charlie,
+    chatId: chatIds.groupChat1,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'I vote intervals. I am trying to improve pace this month.',
+    senderId: profileIds.alice,
+    chatId: chatIds.groupChat1,
+  },
   {
     id: randomUUID(),
     type: MessageType.IMAGE,
-    imageUrl:
-      'https://plus.unsplash.com/premium_photo-1673967831980-1d377baaded2?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2F0c3xlbnwwfHwwfHx8MA%3D%3D',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'How are you doing today?',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Did you see the game last night?',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Hey Alice! How are you?',
-    senderId: profileIds.bob,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Doing well, just had lunch.',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Nice! What did you eat?',
-    senderId: profileIds.bob,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Sandwich with way too much ketchup.',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'And a side of fries!',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Classic Alice move 😂',
-    senderId: profileIds.bob,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'You know me!',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Let’s hang out later?',
-    senderId: profileIds.bob,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Sure! 5pm at the park?',
-    senderId: profileIds.alice,
-    chatId: chatIds.ketchupStains,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'See you there!',
-    senderId: profileIds.bob,
-    chatId: chatIds.ketchupStains,
-  },
-
-  // Coolest Kats chat
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Hey Diana, did you finish the project?',
-    senderId: profileIds.charlie,
-    chatId: chatIds.coolestKats,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'I was working on it all night.',
-    senderId: profileIds.charlie,
-    chatId: chatIds.coolestKats,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Almost! Just need to add the final touches.',
-    senderId: profileIds.diana,
-    chatId: chatIds.coolestKats,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Let me know if you need help.',
-    senderId: profileIds.charlie,
-    chatId: chatIds.coolestKats,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Thanks, Charlie! You’re the best.',
-    senderId: profileIds.diana,
-    chatId: chatIds.coolestKats,
-  },
-
-  // Group Chat 1
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Hey everyone!',
-    senderId: profileIds.charlie,
-    chatId: chatIds.groupChat1,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Hi Charlie!',
-    senderId: profileIds.bob,
-    chatId: chatIds.groupChat1,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'What’s up?',
-    senderId: profileIds.alice,
-    chatId: chatIds.groupChat1,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Ready for the game tonight?',
+    imageUrl: SEED_ASSETS.photoMessages.running[0],
     senderId: profileIds.diana,
     chatId: chatIds.groupChat1,
   },
   {
     id: randomUUID(),
     type: MessageType.TEXT,
-    content: 'Absolutely! Go team!',
-    senderId: profileIds.charlie,
-    chatId: chatIds.groupChat1,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Let’s win this!',
-    senderId: profileIds.charlie,
-    chatId: chatIds.groupChat1,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'We got this!',
-    senderId: profileIds.charlie,
-    chatId: chatIds.groupChat1,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Let’s win this!',
+    content: 'Meet at the track at 6:30 and warm up for 10 minutes.',
     senderId: profileIds.bob,
+    chatId: chatIds.groupChat1,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.IMAGE,
+    imageUrl: SEED_ASSETS.photoMessages.running[1],
+    senderId: profileIds.charlie,
+    chatId: chatIds.groupChat1,
+  },
+  {
+    id: randomUUID(),
+    type: MessageType.TEXT,
+    content: 'Deal. I will post splits after we finish.',
+    senderId: profileIds.nick,
     chatId: chatIds.groupChat1,
   },
 
-  // Big Group 2
+  // General chat
   {
     id: randomUUID(),
     type: MessageType.TEXT,
-    content: 'Morning all!',
+    content: 'General Hangout: game night or movie night this Friday?',
     senderId: profileIds.diana,
     chatId: chatIds.bigGroup2,
   },
   {
     id: randomUUID(),
     type: MessageType.TEXT,
-    content: 'Good morning!',
+    content: 'Game night. I will bring snacks.',
     senderId: profileIds.alice,
     chatId: chatIds.bigGroup2,
   },
   {
     id: randomUUID(),
     type: MessageType.TEXT,
-    content: 'Anyone up for coffee?',
-    senderId: profileIds.charlie,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Always!',
-    senderId: profileIds.diana,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Count me in ☕',
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-
-  // ...more messages for realism...
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Hello Diana!',
-    senderId: profileIds.charlie,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'How was your weekend?',
-    senderId: profileIds.diana,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Pretty good! Went hiking.',
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Nice! Where to?',
-    senderId: profileIds.charlie,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Bear Mountain.',
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'That’s awesome!',
-    senderId: profileIds.diana,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'We should all go next time.',
-    senderId: profileIds.charlie,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'I’m in!',
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Me too!',
-    senderId: profileIds.diana,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'What’s everyone doing for lunch?',
-    senderId: profileIds.charlie,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Ordering pizza.',
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Save me a slice!',
-    senderId: profileIds.diana,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Of course!',
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Anyone want to play chess later?',
-    senderId: profileIds.charlie,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'I’m game!',
-    senderId: profileIds.diana,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'Let’s do it!',
-    senderId: profileIds.alice,
-    chatId: chatIds.bigGroup2,
-  },
-  {
-    id: randomUUID(),
-    type: MessageType.TEXT,
-    content: 'See you all soon!',
+    content: 'Perfect, I can host this time.',
     senderId: profileIds.charlie,
     chatId: chatIds.bigGroup2,
   },

@@ -15,6 +15,26 @@ import { createWSSContext, authenticateWebSocketRequest } from './trpc/context';
 import { connectionManager } from './lib/connectionManager';
 import { randomUUID } from 'crypto';
 
+interface TrpcLogParams {
+  transport: 'http' | 'ws';
+  path?: string;
+  type: string;
+  error: Error & { cause?: unknown };
+}
+
+function logTrpcError(params: TrpcLogParams): void {
+  const { transport, path, type, error } = params;
+
+  console.error(
+    `[tRPC ${transport}] ${type} ${path ?? '<unknown>'}: ${error.message}`
+  );
+
+  const maybeCause = error.cause as { issues?: unknown } | undefined;
+  if (maybeCause && Array.isArray(maybeCause.issues)) {
+    console.error('[tRPC validation issues]', maybeCause.issues);
+  }
+}
+
 dotenv.config();
 
 export function createApp() {
@@ -33,7 +53,7 @@ export function createApp() {
       cookie: {
         maxAge: 7 * 24 * 60 * 60 * 1000, // ms
       },
-      secret: 'secret keyyy',
+      secret: process.env.SECRET_KEY || 'default-secret',
       resave: false,
       saveUninitialized: false,
       store: new PrismaSessionStore(prisma, {
@@ -52,6 +72,14 @@ export function createApp() {
     createExpressMiddleware({
       router: appRouter,
       createContext,
+      onError({ error, path, type }) {
+        logTrpcError({
+          transport: 'http',
+          path,
+          type,
+          error,
+        });
+      },
     })
   );
 
@@ -73,6 +101,14 @@ export function startServer() {
     wss,
     router: appRouter,
     createContext: createWSSContext,
+    onError({ error, path, type }) {
+      logTrpcError({
+        transport: 'ws',
+        path,
+        type,
+        error,
+      });
+    },
     // Enable heartbeat messages to keep connection open (disabled by default)
     keepAlive: {
       enabled: true,
