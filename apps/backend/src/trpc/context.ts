@@ -8,9 +8,8 @@ import { CreateWSSContextFnOptions } from '@trpc/server/adapters/ws';
 import { ObjectId } from '@repo/common';
 import { unsign } from 'cookie-signature';
 
-// TODO: take this from env?
 const SESSION_COOKIE_NAME = 'connect.sid'; // default for express-session
-const SESSION_SECRET = 'secret keyyy'; // must match your express-session secret
+const SESSION_SECRET = process.env.SECRET_KEY || 'default-secret';
 
 // User might not have a profile yet (just registered)
 export type UserWithOptionalProfile = User & {
