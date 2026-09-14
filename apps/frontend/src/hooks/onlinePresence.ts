@@ -1,7 +1,8 @@
 import { useTRPC } from '@/lib/trpc';
-import { DurationObject, ObjectId, PresenceUpdate } from '@repo/common';
+import { BaseProfileDTO, DurationObject, ObjectId } from '@repo/common';
 import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSubscription } from '@trpc/tanstack-react-query';
+import { DateTime } from 'luxon';
 import { useMemo } from 'react';
 import * as R from 'remeda';
 
@@ -12,7 +13,7 @@ interface OnlinePresenceOptions {
 }
 
 export function useOnlinePresence(options?: OnlinePresenceOptions) {
-  const { chatId } = options || {};
+  const { chatId, withinLast = { hours: 1 } } = options || {};
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -22,21 +23,59 @@ export function useOnlinePresence(options?: OnlinePresenceOptions) {
     trpc.onlinePresence.profilesPresence.queryOptions(options)
   );
 
-  const handlePresenceUpdate = (presenceUpdate: PresenceUpdate) => {
-    console.log('Received presence update:', presenceUpdate);
+  const shouldIncludeProfile = (profile: BaseProfileDTO) => {
+    if (profile.isOnline) return true;
+    if (!profile.lastOnline) return false;
+
+    const cutoff = DateTime.now().minus(withinLast);
+    return profile.lastOnline.toMillis() >= cutoff.toMillis();
+  };
+
+  const handlePresenceUpdate = (presenceUpdate: BaseProfileDTO) => {
+    const allPresenceQueryKey = trpc.onlinePresence.profilesPresence.queryKey();
+
+    // Keep all presence caches in sync for profiles that already exist in them.
+    queryClient.setQueriesData(
+      { queryKey: allPresenceQueryKey },
+      (oldData: BaseProfileDTO[] | undefined) => {
+        if (!oldData) return oldData;
+
+        let didUpdate = false;
+        const nextData = oldData.map((profile) => {
+          if (profile.id !== presenceUpdate.id) {
+            return profile;
+          }
+
+          didUpdate = true;
+          return {
+            ...profile,
+            ...presenceUpdate,
+          };
+        });
+
+        return didUpdate ? nextData : oldData;
+      }
+    );
 
     queryClient.setQueryData(queryKey, (oldData) => {
       if (!oldData) return oldData;
 
-      return oldData.map((profile) =>
-        profile.id === presenceUpdate.profileId
-          ? {
-              ...profile,
-              isOnline: presenceUpdate.isOnline,
-              lastOnline: presenceUpdate.lastOnline,
-            }
-          : profile
+      const existingProfileIndex = oldData.findIndex(
+        (profile) => profile.id === presenceUpdate.id
       );
+      const shouldInclude = shouldIncludeProfile(presenceUpdate);
+
+      if (existingProfileIndex === -1) {
+        if (!shouldInclude) return oldData;
+        return [...oldData, presenceUpdate];
+      }
+
+      if (!shouldInclude) {
+        return oldData.filter((profile) => profile.id !== presenceUpdate.id);
+      }
+
+      // Existing entries were already patched by setQueriesData above.
+      return oldData;
     });
   };
 

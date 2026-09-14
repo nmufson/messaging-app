@@ -3,8 +3,7 @@ import { prisma } from '@repo/db';
 import { eventEmitter } from './eventBus';
 import { logger } from './pino';
 import { DateTime } from 'luxon';
-import { DateTimeSchema, ObjectId } from '@repo/common';
-import { last } from 'remeda';
+import { BaseProfileDTO, DateTimeSchema, ObjectId } from '@repo/common';
 
 interface ConnectionInfo {
   ws: WebSocket;
@@ -133,8 +132,11 @@ class ConnectionManager {
           'Emitting presence update events to friends'
         );
 
-        const payload = {
-          profileId,
+        const payload: BaseProfileDTO = {
+          id: profileId,
+          firstName: populatedProfile.firstName,
+          lastName: populatedProfile.lastName,
+          avatarUrl: populatedProfile.avatarUrl,
           isOnline,
           lastOnline: newLastOnline,
         };

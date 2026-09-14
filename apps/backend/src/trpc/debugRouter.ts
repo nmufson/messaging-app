@@ -31,13 +31,18 @@ export const debugRouter = router({
       });
 
       if (updatedProfile) {
+        const payload = {
+          id: profileId,
+          firstName: updatedProfile.firstName,
+          lastName: updatedProfile.lastName,
+          avatarUrl: updatedProfile.avatarUrl,
+          isOnline,
+          lastOnline: isOnline ? null : new Date(),
+        };
+
         // Notify friends about presence change
         updatedProfile.friends.forEach((friend) => {
-          eventEmitter.emit(`presenceUpdate:${friend.id}`, {
-            profileId,
-            isOnline,
-            lastOnline: isOnline ? null : new Date(),
-          });
+          eventEmitter.emit(`presenceUpdate:${friend.id}`, payload);
         });
       }
 

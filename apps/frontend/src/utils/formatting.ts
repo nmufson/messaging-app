@@ -159,7 +159,7 @@ export function getFriendsOnlineSummary(
   if (numOnline > 0) {
     return {
       dotColor: PRESENCE_COLORS.online,
-      message: `${numOnline} friends online`,
+      message: `${numOnline} friend${numOnline === 1 ? '' : 's'} online`,
     };
   }
 

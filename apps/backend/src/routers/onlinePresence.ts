@@ -1,12 +1,6 @@
 import { eventEmitter } from '@/lib/eventBus';
 import { logger } from '@/lib/pino';
-import {
-  BaseProfileDTO,
-  DurationObject,
-  ObjectId,
-  PresenceUpdate,
-  z,
-} from '@repo/common';
+import { BaseProfileDTO, DurationObject, ObjectId, z } from '@repo/common';
 import { TRPCError } from '@trpc/server';
 import { on } from 'events';
 import { DateTime } from 'luxon';
@@ -102,8 +96,8 @@ export const onlinePresenceRouter = router({
         { signal }
       )) {
         logger.info({ presenceUpdate }, 'Received presence update');
-        const parsedUpdate = PresenceUpdate.safeParse(presenceUpdate);
-        if (parsedUpdate.success) {
+        const parsedUpdate = BaseProfileDTO.safeParse(presenceUpdate);
+        if (parsedUpdate.success && parsedUpdate.data.id !== userProfileId) {
           logger.info({ parsedUpdate }, 'parsed successfully, yielding');
           yield parsedUpdate.data;
         }
@@ -154,7 +148,10 @@ export const onlinePresenceRouter = router({
         `presenceInChatUpdate:${chatId}`,
         { signal }
       )) {
-        yield presenceUpdate;
+        const parsedUpdate = BaseProfileDTO.safeParse(presenceUpdate);
+        if (parsedUpdate.success && parsedUpdate.data.id !== userProfileId) {
+          yield parsedUpdate.data;
+        }
       }
     }),
 });
