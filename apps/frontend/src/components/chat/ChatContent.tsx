@@ -348,35 +348,13 @@ export function ChatContent(props: ChatContentProps) {
             <h1 className="text-base font-semibold text-center leading-tight my-1 break-words break-all">
               {displayName}
             </h1>
-            {/* TODO: clean this up */}
             {isAnyOnline && (
-              <OverlayTrigger
-                placement="bottom"
-                overlay={(props) => (
-                  <Tooltip id="online-participants-tooltip" {...props}>
-                    {onlineParticipants.slice(0, 5).map((p) => (
-                      <div key={p.id}>
-                        {p.id === loggedInProfileId
-                          ? 'You'
-                          : `${p.firstName} ${p.lastName}`}
-                      </div>
-                    ))}
-                    {onlineParticipants.length > 5 && (
-                      <div>+ {onlineParticipants.length - 5} more...</div>
-                    )}
-                  </Tooltip>
-                )}
-              >
-                <div
-                  className="flex items-center -mt-2 cursor-pointer"
-                  tabIndex={0}
-                >
-                  <i className="bi bi-dot text-4xl text-green-900"></i>
-                  <span>
-                    {type === 'GROUP' && numParticipantsOnline} Online
-                  </span>
-                </div>
-              </OverlayTrigger>
+              <OnlineParticipantsIndicator
+                isGroupChat={type === 'GROUP'}
+                loggedInProfileId={loggedInProfileId}
+                numParticipantsOnline={numParticipantsOnline}
+                onlineParticipants={onlineParticipants}
+              />
             )}
           </div>
           {/* opens modal for user profile if in direct chat, or group info if in group chat */}
@@ -488,4 +466,63 @@ function ChatPhoto(props: ChatPhotoProps) {
   if (otherProfile) {
     return <ProfileAvatar profile={otherProfile} size={size} />;
   }
+}
+
+interface OnlineParticipantsIndicatorProps {
+  isGroupChat: boolean;
+  loggedInProfileId?: ObjectId;
+  numParticipantsOnline: number;
+  onlineParticipants: BaseProfileDTO[];
+}
+
+function OnlineParticipantsIndicator(props: OnlineParticipantsIndicatorProps) {
+  const {
+    isGroupChat,
+    loggedInProfileId,
+    numParticipantsOnline,
+    onlineParticipants,
+  } = props;
+
+  return (
+    <OverlayTrigger
+      placement="bottom"
+      overlay={(tooltipProps) => (
+        <Tooltip
+          id="online-participants-tooltip"
+          {...tooltipProps}
+          className="[&_.tooltip-inner]:bg-transparent [&_.tooltip-inner]:p-0"
+        >
+          <div className="rounded-xl border border-brand-light bg-brand-dark px-3 py-2 text-sm text-white shadow-lg">
+            {onlineParticipants.slice(0, 5).map((participant) => (
+              <div key={participant.id} className="leading-6">
+                {participant.id === loggedInProfileId
+                  ? 'You'
+                  : `${participant.firstName} ${participant.lastName}`}
+              </div>
+            ))}
+            {onlineParticipants.length > 5 && (
+              <div className="pt-1 text-brand-light">
+                + {onlineParticipants.length - 5} more...
+              </div>
+            )}
+          </div>
+        </Tooltip>
+      )}
+    >
+      <div
+        className="mb-1 flex items-center gap-1 rounded-full border border-brand-light bg-brand-light/80 px-2 text-sm font-medium text-brand-dark shadow-sm transition hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand"
+        tabIndex={0}
+        aria-label={
+          isGroupChat
+            ? `${numParticipantsOnline} participants online`
+            : 'Participant online'
+        }
+      >
+        <i className="bi bi-dot text-3xl leading-none text-success-500" />
+        <span>
+          {isGroupChat ? `${numParticipantsOnline} Online` : 'Online'}
+        </span>
+      </div>
+    </OverlayTrigger>
+  );
 }
