@@ -78,18 +78,16 @@ export function ChatContent(props: ChatContentProps) {
   });
   const imageUrlInput = watch('imageUrl');
 
-  const {
-    activeProfiles: activeParticipants,
-    numProfilesOnline: numParticipantsOnline,
-  } = useOnlinePresence({
-    chatId: chatId ?? undefined,
-    friendsOnly: false,
-  });
+  const { activeProfiles, numProfilesOnline: numParticipantsOnline } =
+    useOnlinePresence({
+      chatId: chatId ?? undefined,
+      friendsOnly: false,
+    });
   const isAnyOnline = R.isTruthy(numParticipantsOnline);
 
   const onlineParticipants = useMemo(
-    () => activeParticipants?.filter((p) => p.isOnline) || [],
-    [activeParticipants]
+    () => activeProfiles?.filter((p) => p.isOnline) || [],
+    [activeProfiles]
   );
   const profileIds = profiles?.map((profile) => profile.id);
 
@@ -282,8 +280,6 @@ export function ChatContent(props: ChatContentProps) {
       lastOnline: undefined,
     })) ?? [];
 
-  console.log(chat);
-  console.log(draftParticipantProfiles);
   const isDraftChat = (!chat && draftParticipantProfiles.length > 0) || error;
 
   if (!chat && !isDraftChat) return <div>Chat not found.</div>;

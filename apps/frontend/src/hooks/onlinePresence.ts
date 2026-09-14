@@ -18,10 +18,13 @@ export function useOnlinePresence(options?: OnlinePresenceOptions) {
   const queryClient = useQueryClient();
 
   const queryKey = trpc.onlinePresence.profilesPresence.queryKey(options);
+  const presenceQueryOptions =
+    trpc.onlinePresence.profilesPresence.queryOptions(options, {
+      staleTime: 0,
+      refetchOnMount: true,
+    });
 
-  const { data, isLoading, error } = useQuery(
-    trpc.onlinePresence.profilesPresence.queryOptions(options)
-  );
+  const { data, isLoading, error } = useQuery(presenceQueryOptions);
 
   const shouldIncludeProfile = (profile: BaseProfileDTO) => {
     if (profile.isOnline) return true;
@@ -32,51 +35,37 @@ export function useOnlinePresence(options?: OnlinePresenceOptions) {
   };
 
   const handlePresenceUpdate = (presenceUpdate: BaseProfileDTO) => {
-    const allPresenceQueryKey = trpc.onlinePresence.profilesPresence.queryKey();
-
-    // Keep all presence caches in sync for profiles that already exist in them.
-    queryClient.setQueriesData(
-      { queryKey: allPresenceQueryKey },
+    queryClient.setQueryData(
+      queryKey,
       (oldData: BaseProfileDTO[] | undefined) => {
         if (!oldData) return oldData;
 
-        let didUpdate = false;
-        const nextData = oldData.map((profile) => {
+        const existingProfileIndex = oldData.findIndex(
+          (profile) => profile.id === presenceUpdate.id
+        );
+        const shouldInclude = shouldIncludeProfile(presenceUpdate);
+
+        if (existingProfileIndex === -1) {
+          if (!shouldInclude) return oldData;
+          return [...oldData, presenceUpdate];
+        }
+
+        if (!shouldInclude) {
+          return oldData.filter((profile) => profile.id !== presenceUpdate.id);
+        }
+
+        return oldData.map((profile) => {
           if (profile.id !== presenceUpdate.id) {
             return profile;
           }
 
-          didUpdate = true;
           return {
             ...profile,
             ...presenceUpdate,
           };
         });
-
-        return didUpdate ? nextData : oldData;
       }
     );
-
-    queryClient.setQueryData(queryKey, (oldData) => {
-      if (!oldData) return oldData;
-
-      const existingProfileIndex = oldData.findIndex(
-        (profile) => profile.id === presenceUpdate.id
-      );
-      const shouldInclude = shouldIncludeProfile(presenceUpdate);
-
-      if (existingProfileIndex === -1) {
-        if (!shouldInclude) return oldData;
-        return [...oldData, presenceUpdate];
-      }
-
-      if (!shouldInclude) {
-        return oldData.filter((profile) => profile.id !== presenceUpdate.id);
-      }
-
-      // Existing entries were already patched by setQueriesData above.
-      return oldData;
-    });
   };
 
   const handlePresenceError = (error: unknown) => {

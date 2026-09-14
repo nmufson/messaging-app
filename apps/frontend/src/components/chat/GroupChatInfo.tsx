@@ -306,7 +306,7 @@ export function GroupChatInfo(props: GroupChatInfoProps) {
             </>
           ) : (
             <>
-              <h1 className="max-w-[60%] break-all text-center text-2xl text-brand-dark">
+              <h1 className="max-w-[60%] break-word text-center text-2xl text-brand-dark">
                 {displayName}
               </h1>
             </>

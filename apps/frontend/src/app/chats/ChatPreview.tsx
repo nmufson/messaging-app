@@ -38,10 +38,6 @@ export function ChatPreview({ chat }: { chat: ChatDTO }) {
   const loggedInParticipant = getParticipant(participants, loggedInProfileId);
   const unreadActivities = loggedInParticipant?.unreadActivities ?? 0;
 
-  const displayPicture = isGroupChat
-    ? GroupPhoto({ groupPictureUrl, participantProfiles })
-    : ProfileAvatar({ profile: otherParticipantProfile });
-
   const timeToShow = lastActivity ? lastActivity.createdAt : chatCreatedAt;
   const displayTime = formatDisplayDate(timeToShow);
 
