@@ -22,7 +22,7 @@ export function Contacts(props: ContactsProps) {
     friendsOnly: true,
   });
 
-  const presenceIds = activeFriends?.map((friend) => friend.id);
+  const activeFriendIds = activeFriends?.map((friend) => friend.id);
 
   const { friends, isLoading, error } = useFriends(profile?.id ?? null);
 
@@ -34,12 +34,32 @@ export function Contacts(props: ContactsProps) {
     return fullName.includes(search);
   };
 
-  const filteredActiveFriends = activeFriends
-    ?.filter(matchesSearch)
-    .filter((friend) => !R.isIncludedIn(friend.id, profilesToExclude));
+  const filteredActiveFriends = R.pipe(
+    activeFriends ?? [],
+    R.filter(matchesSearch),
+    R.filter((friend) => !R.isIncludedIn(friend.id, profilesToExclude)),
+    R.sort((a, b) => {
+      const aOnline = a.isOnline ?? false;
+      const bOnline = b.isOnline ?? false;
+
+      if (aOnline !== bOnline) {
+        return aOnline ? -1 : 1;
+      }
+
+      // Preserve existing order of online friends
+      if (aOnline) {
+        return 0;
+      }
+
+      const aLastOnline = a.lastOnline?.toMillis() ?? 0;
+      const bLastOnline = b.lastOnline?.toMillis() ?? 0;
+
+      return bLastOnline - aLastOnline;
+    })
+  );
 
   const friendsNotInPresenceList = friends?.filter(
-    (friend) => !R.isIncludedIn(friend.id, presenceIds || [])
+    (friend) => !R.isIncludedIn(friend.id, activeFriendIds || [])
   );
 
   if (isLoading) {

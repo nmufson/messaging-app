@@ -74,14 +74,7 @@ const SEED_ASSETS = {
   },
 } as const;
 
-// Helper to create random dates within the last 2 months
-const BASE_DATE = new Date('2025-12-14T12:00:00Z');
-const TWO_MONTHS_IN_MS = 60 * 24 * 60 * 60 * 1000; // ~60 days in milliseconds
-
-function getRandomDateWithinTwoMonths(): Date {
-  const randomOffset = Math.random() * TWO_MONTHS_IN_MS;
-  return new Date(BASE_DATE.getTime() - randomOffset);
-}
+const BASE_DATE = new Date('2026-09-15T12:00:00Z');
 
 function getRandomDateBetween(startDate: Date, endDate: Date): Date {
   const timeSpan = endDate.getTime() - startDate.getTime();
@@ -140,11 +133,11 @@ interface ProfileSeed extends ProfileMedia {
 }
 
 const PROFILE_MEDIA_BY_KEY: Partial<Record<ProfileSeedKey, ProfileMedia>> = {
-  alice: {
+  bob: {
     avatarUrl: SEED_ASSETS.avatars.avatar0,
     headerUrl: SEED_ASSETS.headers.cooking,
   },
-  bob: {
+  alice: {
     avatarUrl: SEED_ASSETS.avatars.avatar1,
   },
   charlie: {
@@ -156,7 +149,6 @@ const PROFILE_MEDIA_BY_KEY: Partial<Record<ProfileSeedKey, ProfileMedia>> = {
     headerUrl: SEED_ASSETS.headers.running,
   },
   nick: {
-    avatarUrl: SEED_ASSETS.avatars.alt2,
     headerUrl: SEED_ASSETS.headers.general,
   },
   emma: {
@@ -196,12 +188,12 @@ const chatIds = {
 };
 
 const chatCreationDates = {
-  [chatIds.ketchupStains]: getRandomDateWithinTwoMonths(),
-  [chatIds.coolestKats]: getRandomDateWithinTwoMonths(),
-  [chatIds.groupChat1]: getRandomDateWithinTwoMonths(),
-  [chatIds.bigGroup2]: getRandomDateWithinTwoMonths(),
-  [chatIds.directChat1]: getRandomDateWithinTwoMonths(),
-  [chatIds.directChat2]: getRandomDateWithinTwoMonths(),
+  [chatIds.ketchupStains]: new Date('2026-08-24T18:30:00Z'),
+  [chatIds.coolestKats]: new Date('2026-08-26T16:00:00Z'),
+  [chatIds.groupChat1]: new Date('2026-08-29T12:45:00Z'),
+  [chatIds.bigGroup2]: new Date('2026-09-01T19:20:00Z'),
+  [chatIds.directChat1]: new Date('2026-09-10T15:00:00Z'),
+  [chatIds.directChat2]: new Date('2026-09-11T14:00:00Z'),
 };
 export const usersData = [
   {
@@ -532,23 +524,19 @@ const rawChatsData = [
   },
   {
     id: chatIds.directChat2,
-    creatorId: profileIds.alice,
+    creatorId: profileIds.nick,
     type: ChatType.DIRECT,
-    participantIds: [profileIds.charlie, profileIds.nick],
+    participantIds: [profileIds.emma, profileIds.nick],
     groupPictureUrl: SEED_ASSETS.headers.abstract,
   },
 ];
-
-export const chatsData = rawChatsData.map((chat) => ({
-  ...chat,
-  createdAt: chatCreationDates[chat.id],
-}));
 
 const rawMessagesData = [
   // Direct chats
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-12T15:20:00Z',
     content: 'Hey Nick, did the lasagna photos upload on your end?',
     senderId: profileIds.alice,
     chatId: chatIds.directChat1,
@@ -556,6 +544,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-12T15:30:00Z',
     content: 'Yep, they are looking great in the app preview.',
     senderId: profileIds.nick,
     chatId: chatIds.directChat1,
@@ -563,15 +552,18 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
-    content: 'Hey Charlie, can you share the route GPX from last weekend?',
+    createdAt: '2026-09-13T15:30:00Z',
+    content:
+      'Hey Emma, can you share your latest design notes for the profile flow?',
     senderId: profileIds.nick,
     chatId: chatIds.directChat2,
   },
   {
     id: randomUUID(),
     type: MessageType.TEXT,
-    content: 'Sure, I will send it after dinner.',
-    senderId: profileIds.charlie,
+    createdAt: '2026-09-13T15:37:00Z',
+    content: 'Absolutely, I will send them tonight.',
+    senderId: profileIds.emma,
     chatId: chatIds.directChat2,
   },
 
@@ -579,6 +571,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-14T17:10:00Z',
     content: 'Kitchen Crew recipe night starts at 7, who is cooking what?',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
@@ -586,6 +579,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-14T17:14:00Z',
     content: 'I will handle pasta and garlic bread.',
     senderId: profileIds.bob,
     chatId: chatIds.ketchupStains,
@@ -593,6 +587,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.IMAGE,
+    createdAt: '2026-09-14T17:18:00Z',
     imageUrl: SEED_ASSETS.photoMessages.cooking[0],
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
@@ -600,6 +595,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-14T17:23:00Z',
     content: 'That plating looks clean. Save me a portion please.',
     senderId: profileIds.nick,
     chatId: chatIds.ketchupStains,
@@ -607,6 +603,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.IMAGE,
+    createdAt: '2026-09-14T17:30:00Z',
     imageUrl: SEED_ASSETS.photoMessages.cooking[1],
     senderId: profileIds.bob,
     chatId: chatIds.ketchupStains,
@@ -614,6 +611,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-14T17:37:00Z',
     content: 'Perfect. I am trying this with a spicier sauce next week.',
     senderId: profileIds.alice,
     chatId: chatIds.ketchupStains,
@@ -621,6 +619,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.IMAGE,
+    createdAt: '2026-09-14T17:42:00Z',
     imageUrl: SEED_ASSETS.photoMessages.cooking[2],
     senderId: profileIds.nick,
     chatId: chatIds.ketchupStains,
@@ -630,6 +629,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-11T07:50:00Z',
     content: 'Weekend Hikers, weather looks perfect for Saturday.',
     senderId: profileIds.charlie,
     chatId: chatIds.coolestKats,
@@ -637,6 +637,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-11T07:55:00Z',
     content: 'Lets do the ridge trail and start early.',
     senderId: profileIds.diana,
     chatId: chatIds.coolestKats,
@@ -644,6 +645,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.IMAGE,
+    createdAt: '2026-09-11T08:02:00Z',
     imageUrl: SEED_ASSETS.photoMessages.hiking[0],
     senderId: profileIds.charlie,
     chatId: chatIds.coolestKats,
@@ -651,6 +653,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-11T08:08:00Z',
     content: 'Trailhead parking was full by 8 last time.',
     senderId: profileIds.nick,
     chatId: chatIds.coolestKats,
@@ -658,6 +661,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.IMAGE,
+    createdAt: '2026-09-11T08:15:00Z',
     imageUrl: SEED_ASSETS.photoMessages.hiking[1],
     senderId: profileIds.diana,
     chatId: chatIds.coolestKats,
@@ -665,6 +669,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-11T08:22:00Z',
     content: 'Lets bring extra water, that climb is no joke.',
     senderId: profileIds.charlie,
     chatId: chatIds.coolestKats,
@@ -672,6 +677,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.IMAGE,
+    createdAt: '2026-09-11T08:30:00Z',
     imageUrl: SEED_ASSETS.photoMessages.hiking[2],
     senderId: profileIds.nick,
     chatId: chatIds.coolestKats,
@@ -681,6 +687,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-09T06:10:00Z',
     content: 'Sunrise Runners check-in: easy 5k or interval session tomorrow?',
     senderId: profileIds.charlie,
     chatId: chatIds.groupChat1,
@@ -688,6 +695,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-09T06:16:00Z',
     content: 'I vote intervals. I am trying to improve pace this month.',
     senderId: profileIds.alice,
     chatId: chatIds.groupChat1,
@@ -695,6 +703,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.IMAGE,
+    createdAt: '2026-09-09T06:24:00Z',
     imageUrl: SEED_ASSETS.photoMessages.running[0],
     senderId: profileIds.diana,
     chatId: chatIds.groupChat1,
@@ -702,6 +711,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-09T06:31:00Z',
     content: 'Meet at the track at 6:30 and warm up for 10 minutes.',
     senderId: profileIds.bob,
     chatId: chatIds.groupChat1,
@@ -709,6 +719,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.IMAGE,
+    createdAt: '2026-09-09T06:39:00Z',
     imageUrl: SEED_ASSETS.photoMessages.running[1],
     senderId: profileIds.charlie,
     chatId: chatIds.groupChat1,
@@ -716,6 +727,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-09T06:45:00Z',
     content: 'Deal. I will post splits after we finish.',
     senderId: profileIds.nick,
     chatId: chatIds.groupChat1,
@@ -725,6 +737,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-15T18:05:00Z',
     content: 'General Hangout: game night or movie night this Friday?',
     senderId: profileIds.diana,
     chatId: chatIds.bigGroup2,
@@ -732,6 +745,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-15T18:12:00Z',
     content: 'Game night. I will bring snacks.',
     senderId: profileIds.alice,
     chatId: chatIds.bigGroup2,
@@ -739,6 +753,7 @@ const rawMessagesData = [
   {
     id: randomUUID(),
     type: MessageType.TEXT,
+    createdAt: '2026-09-15T18:18:00Z',
     content: 'Perfect, I can host this time.',
     senderId: profileIds.charlie,
     chatId: chatIds.bigGroup2,
@@ -747,7 +762,24 @@ const rawMessagesData = [
 
 export const messagesData = rawMessagesData.map((msg) => ({
   ...msg,
-  createdAt: getRandomDateBetween(chatCreationDates[msg.chatId], BASE_DATE),
+  createdAt: new Date(msg.createdAt),
+}));
+
+const latestMessageDateByChat = messagesData.reduce<
+  Partial<Record<string, Date>>
+>((acc, message) => {
+  const currentLatest = acc[message.chatId];
+  if (!currentLatest || message.createdAt > currentLatest) {
+    acc[message.chatId] = message.createdAt;
+  }
+  return acc;
+}, {});
+
+export const chatsData = rawChatsData.map((chat) => ({
+  ...chat,
+  createdAt: chatCreationDates[chat.id],
+  lastActivityAt:
+    latestMessageDateByChat[chat.id] ?? chatCreationDates[chat.id],
 }));
 
 const chatActionIds = {

@@ -16,12 +16,9 @@ export function Modal(props: ModalProps) {
 
   return (
     <div className="modal fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-gray-400/50" onClick={closeModal} />
       <div
-        className="absolute inset-0 bg-black bg-opacity-50"
-        onClick={closeModal}
-      />
-      <div
-        className={`relative bg-white rounded-lg shadow-lg p-6 min-w-[300px] max-w-lg z-10 ${className ?? ''}`}
+        className={`relative bg-white rounded-lg shadow-lg p-6 max-w-[310px] z-10 ${className ?? ''}`}
         onClick={(e) => e.stopPropagation()}
       >
         {showDefaultCloseButton && (

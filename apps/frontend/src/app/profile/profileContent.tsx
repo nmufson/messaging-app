@@ -21,6 +21,7 @@ import {
   RemoveFriendModal,
   UpdateProfileModal,
 } from './modals';
+import { ProfileAvatar } from '@/components/ProfileAvatar';
 
 interface ProfileContentProps {
   profileId: ObjectId;
@@ -208,11 +209,7 @@ export function ProfileContent(props: ProfileContentProps) {
           )}
           <ProfileHeader headerUrl={headerUrl} />
           <div className="absolute left-1/2 top-[78%] z-10 -translate-x-1/2 -translate-y-1/2">
-            <img
-              src={avatarUrl ?? '/default.png'}
-              alt="Profile"
-              className="h-32 w-32 rounded-full border-4 border-white object-cover shadow-[0_16px_35px_rgba(15,23,42,0.18)] sm:h-36 sm:w-36"
-            />
+            <ProfileAvatar profile={profile} size={128} />
           </div>
         </div>
 

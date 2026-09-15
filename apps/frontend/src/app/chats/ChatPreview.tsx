@@ -21,6 +21,9 @@ export function ChatPreview({ chat }: { chat: ChatDTO }) {
   const { profile } = useAuth();
   const loggedInProfileId = profile?.id;
   const participantProfiles = getParticipantProfiles(participants);
+  const otherParticipantProfiles = participantProfiles.filter(
+    (p) => p.id !== loggedInProfileId
+  );
 
   const isGroupChat = type === 'GROUP';
   const lastActivity = activities[0];
@@ -59,7 +62,7 @@ export function ChatPreview({ chat }: { chat: ChatDTO }) {
           {isGroupChat ? (
             <GroupPhoto
               groupPictureUrl={groupPictureUrl}
-              participantProfiles={participantProfiles}
+              participantProfiles={otherParticipantProfiles}
               size={50}
             />
           ) : (
