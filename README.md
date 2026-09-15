@@ -6,7 +6,7 @@ This repository is currently in progress.
 
 ## Demo
 
-[Watch the screen recording](./docs/readme-assets/demo-recording.mov)
+[Watch the screen recording](https://github.com/user-attachments/assets/48afebc8-2eff-4601-b065-32bcdfd143db)
 
 | Chats                                              | Active conversation                              |
 | -------------------------------------------------- | ------------------------------------------------ |
