@@ -12,21 +12,21 @@ This repository is currently in progress.
 | -------------------------------------------------- | ------------------------------------------------ |
 | ![Chats page](./docs/readme-assets/chats-page.png) | ![Chat view](./docs/readme-assets/chat-view.png) |
 
-| Start a conversation                                        | Search within chats                                  |
-| ----------------------------------------------------------- | ---------------------------------------------------- |
-| ![Compose chat flow](./docs/readme-assets/compose-chat.png) | ![Chat search](./docs/readme-assets/chat-search.png) |
+| My profile                                         | Other user profile                                       |
+| -------------------------------------------------- | -------------------------------------------------------- |
+| ![My profile](./docs/readme-assets/my-profile.png) | ![Other profile](./docs/readme-assets/other-profile.png) |
 
 | Friend requests                                              | Profile editing                                            |
 | ------------------------------------------------------------ | ---------------------------------------------------------- |
 | ![Friend requests](./docs/readme-assets/friend-requests.png) | ![Update profile](./docs/readme-assets/update-profile.png) |
 
+| Start a conversation                                        | Search within chats                                  |
+| ----------------------------------------------------------- | ---------------------------------------------------- |
+| ![Compose chat flow](./docs/readme-assets/compose-chat.png) | ![Chat search](./docs/readme-assets/chat-search.png) |
+
 | Contacts                                       | Chat details                                     |
 | ---------------------------------------------- | ------------------------------------------------ |
 | ![Contacts](./docs/readme-assets/contacts.png) | ![Chat info](./docs/readme-assets/chat-info.png) |
-
-| My profile                                         | Other user profile                                       |
-| -------------------------------------------------- | -------------------------------------------------------- |
-| ![My profile](./docs/readme-assets/my-profile.png) | ![Other profile](./docs/readme-assets/other-profile.png) |
 
 ### Implemented
 
