@@ -3,14 +3,15 @@ import { useChatList } from '@/hooks/chat';
 import { ChatPreview } from './ChatPreview';
 import { MessageSearchBar } from './SearchBar';
 import MainHeader from '@/components/mainHeader/mainHeader';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function ChatList() {
   const { chats, isLoading, error } = useChatList();
 
   if (isLoading)
     return (
-      <div className="min-h-screen bg-brand-accent p-6 text-slate-700">
-        Loading...
+      <div className="min-h-screen flex w-full items-center justify-center">
+        <LoadingSpinner spinnerClassName="h-8 w-8" />
       </div>
     );
   if (error)

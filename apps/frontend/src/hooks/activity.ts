@@ -51,7 +51,7 @@ export function useChatActivities(
 
   const {
     data: activityData,
-    isLoading: isActivitiesLoading,
+    isLoading: isLoadingActivities,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -226,7 +226,7 @@ export function useChatActivities(
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    isActivitiesLoading,
+    isLoadingActivities,
     isSendingMessage: isPending || isSendingToNewChat,
     sendMessageError: sendToChatError ?? sendToNewChatError,
   };

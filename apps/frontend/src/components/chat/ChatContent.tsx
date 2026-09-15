@@ -1,5 +1,5 @@
 import { SelectedProfile } from '@/types/profile';
-
+import { useLayoutEffect } from 'react';
 import { BackButton } from '@/components/button/BackButton';
 import { useAuth } from '@/context/AuthContext';
 import { useModalContext } from '@/context/ModalContext';
@@ -48,6 +48,7 @@ interface ChatImageFormValues {
 
 export function ChatContent(props: ChatContentProps) {
   const hasScrolledOnFirstRender = useRef(false);
+  const shouldAutoScrollRef = useRef(true);
   const hadImageInputOnLastRender = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -103,6 +104,7 @@ export function ChatContent(props: ChatContentProps) {
   const {
     sendMessage,
     allActivities,
+    isLoadingActivities,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -155,10 +157,12 @@ export function ChatContent(props: ChatContentProps) {
 
   useEffect(() => {
     hasScrolledOnFirstRender.current = false;
+    shouldAutoScrollRef.current = true;
   }, [pathname, chatId]);
 
   useEffect(() => {
     if (messageToView && messageToViewRef.current) {
+      shouldAutoScrollRef.current = false;
       messageToViewRef.current.scrollIntoView({ behavior: 'instant' });
       return;
     }
@@ -171,6 +175,44 @@ export function ChatContent(props: ChatContentProps) {
       hasScrolledOnFirstRender.current = true;
       return () => window.cancelAnimationFrame(frameId);
     }
+  }, [
+    messageToView,
+    scrollToBottom,
+    allActivities.length,
+    isLoadingActivities,
+  ]);
+
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+
+    if (!container || messageToView) {
+      return;
+    }
+
+    let frameId: number | null = null;
+    const observer = new ResizeObserver(() => {
+      if (!shouldAutoScrollRef.current) {
+        return;
+      }
+
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      frameId = window.requestAnimationFrame(() => {
+        scrollToBottom('auto');
+      });
+    });
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
   }, [messageToView, scrollToBottom, allActivities.length]);
 
   useEffect(() => {

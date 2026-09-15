@@ -66,7 +66,7 @@ export default function LogIn() {
             Welcome back
           </h1>
           <p className="mt-2 text-sm text-slate-600">
-            Log in to continue messaging.
+            Log in to start messaging.
           </p>
         </div>
 

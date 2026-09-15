@@ -58,14 +58,11 @@ export default function SignUp() {
         onSubmit={handleSubmit(onSubmit)}
       >
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-lg font-bold text-white shadow-sm shadow-brand/25">
-            S
-          </div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             Create your account
           </h1>
           <p className="mt-2 text-sm text-slate-600">
-            Start messaging and building your network.
+            Sign up to start messaging.
           </p>
         </div>
 
