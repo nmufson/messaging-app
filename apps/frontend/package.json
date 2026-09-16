@@ -20,7 +20,7 @@
     "@trpc/client": "^11.6.0",
     "@trpc/tanstack-react-query": "^11.6.0",
     "bootstrap-icons": "^1.13.1",
-    "next": "15.5.7",
+    "next": "15.5.25",
     "nuqs": "^2.7.2",
     "react": "19.1.0",
     "react-bootstrap": "^2.10.10",
