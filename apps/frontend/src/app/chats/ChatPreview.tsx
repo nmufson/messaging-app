@@ -48,6 +48,7 @@ export function ChatPreview({ chat }: { chat: ChatDTO }) {
   const activityContentDisplay = getMessagePreview({
     activity: lastActivity,
     profileId: loggedInProfileId,
+    truncate: 80,
   });
 
   const chatLink = `/chat/chat?chat=${chatId}`;
