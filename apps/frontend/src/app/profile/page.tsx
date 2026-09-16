@@ -1,15 +1,29 @@
 'use client';
 
+import { Suspense, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQueryState } from 'nuqs';
 import { ProfileContent } from './profileContent';
 
-export default function Profile() {
-  const [profileId, setProfileId] = useQueryState('profile');
+function ProfilePageContent() {
+  const [profileId] = useQueryState('profile');
+  const router = useRouter();
 
-  if (!profileId) {
-    window.location.href = '/chats';
-    return;
-  }
+  useEffect(() => {
+    if (!profileId) {
+      router.replace('/chats');
+    }
+  }, [profileId, router]);
+
+  if (!profileId) return null;
 
   return <ProfileContent profileId={profileId} />;
+}
+
+export default function Profile() {
+  return (
+    <Suspense fallback={null}>
+      <ProfilePageContent />
+    </Suspense>
+  );
 }

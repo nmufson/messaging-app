@@ -1,4 +1,4 @@
-import { ChatActivityDTO } from 'src/schemas/activities';
+import { ChatActivityDTO } from '../schemas/activities';
 
 export function checkIsActivityCreator(
   profileId: string,

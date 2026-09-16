@@ -1,14 +1,13 @@
 import { DateTime } from 'luxon';
-// TODO: fix these import paths
-import { ChatActionDTO, IChatAction } from 'src/schemas/action';
+import { ChatActionDTO, IChatAction } from '../schemas/action';
 import {
   ActivityType,
   IChatActionActivity,
   IMessageActivity,
-} from 'src/schemas/activities';
+} from '../schemas/activities';
 
-import { IMessage, IMessageWithSender } from 'src/schemas/message';
-import { DateRange, ObjectId } from 'src/schemas/primitives';
+import { IMessage, IMessageWithSender } from '../schemas/message';
+import { DateRange, ObjectId } from '../schemas/primitives';
 
 export const getDefaultDateRange = (): DateRange => {
   return {

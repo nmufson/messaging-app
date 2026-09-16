@@ -56,6 +56,7 @@ export default [
     plugins: {
       prettier: prettier,
       'react-hooks': reactHooks,
+      '@typescript-eslint': tsPlugin,
     },
     rules: {
       'prettier/prettier': 'warn',
