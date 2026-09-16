@@ -19,7 +19,7 @@ import { TextFieldGroup } from '../FieldGroup';
 import { GroupPhoto } from '../GroupPhoto';
 import { ImageUpload } from '../ImageUpload';
 import LoadingSpinner from '../LoadingSpinner';
-import { Modal } from '../modal/Modal';
+import { Modal } from '../modal/modal';
 import { ProfilePreview } from '../profile/ProfilePreview';
 import { Contacts } from '../Contacts';
 import { FullscreenModal } from '../modal/FullscreenModal';

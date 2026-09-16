@@ -3,7 +3,7 @@ import { Button, CancelButton } from '@/components/button/button';
 import { TextFieldGroup } from '@/components/FieldGroup';
 import { ImageUpload } from '@/components/ImageUpload';
 import { FullscreenModal } from '@/components/modal/FullscreenModal';
-import { Modal } from '@/components/modal/Modal';
+import { Modal } from '@/components/modal/modal';
 import { useModalContext } from '@/context/ModalContext';
 import { useToast } from '@/context/Toast/ToastContext';
 import { useTRPC } from '@/lib/trpc';
