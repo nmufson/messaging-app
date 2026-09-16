@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import express, { Request, Response } from 'express';
+import express from 'express';
 import session from 'express-session';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 import { prisma } from '@repo/db';
@@ -37,12 +37,23 @@ function logTrpcError(params: TrpcLogParams): void {
 
 dotenv.config();
 
+const isProduction = process.env.NODE_ENV === 'production';
+const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:3000')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 export function createApp() {
   const app = express();
 
+  if (isProduction) {
+    // for railway proxy support
+    app.set('trust proxy', 1);
+  }
+
   app.use(
     cors({
-      origin: 'http://localhost:3000',
+      origin: corsOrigins,
       credentials: true,
     })
   );
@@ -52,6 +63,9 @@ export function createApp() {
     session({
       cookie: {
         maxAge: 7 * 24 * 60 * 60 * 1000, // ms
+        httpOnly: true,
+        sameSite: isProduction ? 'none' : 'lax',
+        secure: isProduction,
       },
       secret: process.env.SECRET_KEY || 'default-secret',
       resave: false,

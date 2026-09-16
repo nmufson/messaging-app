@@ -42,8 +42,11 @@ function getQueryClient() {
   }
 }
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/trpc';
+const wsUrl = process.env.NEXT_PUBLIC_WS_URL ?? apiUrl.replace(/^http/i, 'ws');
+
 const wsClient = createWSClient({
-  url: 'ws://localhost:3001/trpc',
+  url: wsUrl,
 });
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -58,7 +61,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           true: wsLink({ client: wsClient, transformer: superjson }),
           false: httpBatchLink({
             transformer: superjson,
-            url: 'http://localhost:3001/trpc',
+            url: apiUrl,
             fetch(url, options) {
               return fetch(url, {
                 ...options,
