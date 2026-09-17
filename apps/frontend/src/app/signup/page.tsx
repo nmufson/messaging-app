@@ -22,7 +22,7 @@ export default function SignUp() {
     mode: 'onBlur',
   });
 
-  const { mutateAsync: registerUser } = useMutation(
+  const { mutateAsync: registerUser, isPending } = useMutation(
     trpc.auth.register.mutationOptions({
       onSuccess: (data) => {
         addToast({
@@ -94,8 +94,9 @@ export default function SignUp() {
           <button
             type="submit"
             className="w-full rounded-xl bg-brand px-4 py-3 font-semibold text-white shadow-sm shadow-brand/30 transition hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-brand/30"
+            disabled={isPending}
           >
-            Sign Up
+            {isPending ? 'Loading...' : 'Sign Up'}
           </button>
 
           <div className="flex items-center justify-center gap-1.5 text-sm">

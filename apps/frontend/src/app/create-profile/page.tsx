@@ -31,7 +31,7 @@ export default function CreateProfile() {
           body: 'Profile created successfully!',
           variant: 'success',
         });
-        router.push('/chats');
+        window.location.href = '/chats';
       },
       onError: (error) => {
         addToast({
