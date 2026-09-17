@@ -14,7 +14,8 @@
   "scripts": {
     "dev": "tsx watch src/app.ts",
     "dev:types": "tsup --watch",
-    "build": "tsup"
+    "build": "tsup",
+    "start": "node dist/app.js"
   },
   "dependencies": {
     "@quixo3/prisma-session-store": "^3.1.13",
