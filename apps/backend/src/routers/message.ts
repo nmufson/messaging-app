@@ -8,7 +8,7 @@ import {
   z,
 } from '@repo/common';
 import { PrismaClient } from '@repo/db';
-import { MessageActivityDTO } from '@repo/common/schemas/activities';
+import { MessageActivityDTO } from '@repo/common';
 import { TRPCError } from '@trpc/server';
 import {
   getMatchingPhotoMessages,

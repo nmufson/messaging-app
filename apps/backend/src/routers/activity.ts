@@ -9,10 +9,7 @@ import {
   tagActivity,
   z,
 } from '@repo/common';
-import {
-  ActivitiesQueryOptions,
-  ChatActivityDTO,
-} from '@repo/common/schemas/activities';
+import { ActivitiesQueryOptions, ChatActivityDTO } from '@repo/common';
 import { tracked, TRPCError } from '@trpc/server';
 import { on } from 'events';
 import { eventEmitter } from '../lib/eventBus';
