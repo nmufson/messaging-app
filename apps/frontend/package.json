@@ -5,8 +5,8 @@
   "scripts": {
     "prebuild": "pnpm --filter @repo/backend build",
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "next build && cp -r .next/static .next/standalone/apps/frontend/.next/static",
+    "start": "node .next/standalone/apps/frontend/server.js",
     "lint": "eslint .",
     "build:css": "tailwindcss -i ./app/globals.css -o ./app/output.css",
     "watch:css": "tailwindcss -i ./app/globals.css -o ./app/output.css --watch",
