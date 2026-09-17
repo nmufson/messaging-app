@@ -21,6 +21,7 @@
   "scripts": {
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
     "studio": "prisma studio",
     "build": "npm run generate && tsup",
     "dev": "npm run generate && tsup --watch",
