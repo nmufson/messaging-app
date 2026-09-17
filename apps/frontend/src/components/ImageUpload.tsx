@@ -26,7 +26,7 @@ export function ImageUpload<T extends object>(props: ImageUploadProps<T>) {
   const {
     label,
     required,
-    imageClassName = '',
+    imageClassName = 'h-28 w-28 rounded-xl border border-slate-200 bg-slate-100 object-cover',
     imageSize,
     ...controllerProps
   } = props;
